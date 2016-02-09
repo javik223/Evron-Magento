@@ -1,0 +1,45 @@
+<?php
+/**
+ * Magestore
+ * 
+ * NOTICE OF LICENSE
+ * 
+ * This source file is subject to the Magestore.com license that is
+ * available through the world-wide-web at this URL:
+ * http://www.magestore.com/license-agreement.html
+ * 
+ * DISCLAIMER
+ * 
+ * Do not edit or add to this file if you wish to upgrade this extension to newer
+ * version in the future.
+ * 
+ * @category    Magestore
+ * @package     Magestore_Inventorysupplyneeds
+ * @copyright   Copyright (c) 2012 Magestore (http://www.magestore.com/)
+ * @license     http://www.magestore.com/license-agreement.html
+ */
+
+/**
+ * Inventoryreports Helper
+ * 
+ * @category    Magestore
+ * @package     Magestore_Inventoryreports
+ * @author      Magestore Developer
+ */
+?>
+<?php $reports = $this->getReports() ?>
+<?php $reportcode = $this->getReportCode() ?>
+<tr class="report_select_div" <?php if($reportcode == 'customer') echo 'style="display:none"'; ?> >
+    <td class="label">
+        <label for="report_radio_select">
+            <strong><?php echo $this->__('View by') ?>:&nbsp;&nbsp;</strong>
+        </label>
+    </td>
+    <td class="value">
+        <select onchange="return showAttribute(this);" id="report_radio_select" type="select" name="report_radio_select">
+            <?php foreach($reports as $report): ?>
+                <option value="<?php echo $report['code'] ?>" <?php if($report['code'] == $reportcode) echo 'selected' ?>><?php echo $report['title']; ?></option>
+            <?php endforeach; ?>
+        </select>
+    </td>
+</tr>

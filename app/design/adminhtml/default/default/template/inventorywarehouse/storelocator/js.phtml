@@ -1,0 +1,93 @@
+<?php
+
+/**
+ * Magestore
+ * 
+ * NOTICE OF LICENSE
+ * 
+ * This source file is subject to the Magestore.com license that is
+ * available through the world-wide-web at this URL:
+ * http://www.magestore.com/license-agreement.html
+ * 
+ * DISCLAIMER
+ * 
+ * Do not edit or add to this file if you wish to upgrade this extension to newer
+ * version in the future.
+ * 
+ * @category    Magestore
+ * @package     Magestore_Inventorywarehouse
+ * @copyright   Copyright (c) 2012 Magestore (http://www.magestore.com/)
+ * @license     http://www.magestore.com/license-agreement.html
+ */
+?>
+<script type="text/javascript">
+    
+var IMStorePickupControl = Class.create();
+IMStorePickupControl.prototype = {    
+    initialize: function (storeId, changeWarehouseUrl, changeWHmsg){
+        this.storeId = storeId;
+        this.changeWarehouseUrl = changeWarehouseUrl;
+        this.changeWHmsg = changeWHmsg;
+    },
+    
+    changeWarehouse: function(element){
+        if(!confirm(this.changeWHmsg)){
+            element.value = $('curr_warehouse_id').value;
+            return;
+        }
+        this.curElement = element;
+        new Ajax.Request(this.changeWarehouseUrl, {
+            method: "get",
+            parameters: {store_id: this.storeId, warehouse_id: this.curElement.value},
+            onComplete: function (transport) {
+                if (transport.responseText.isJSON()) {
+                    var response = transport.responseText.evalJSON();
+                    if (response.error) {
+                        this.errorProcess(response.msgs.error);
+                        return;
+                    }
+                    this.updateStoreInformation(response);
+                } else {
+                }
+            }.bind(this)
+        });        
+    },
+    updateStoreInformation: function(response){
+        if(response.warehouse){
+            var warehouse = response.warehouse;
+            if(warehouse.warehouse_id){
+                $('name').value = warehouse.warehouse_name;
+                $('address').value = warehouse.street;
+                $('city').value = warehouse.city;
+                $('country').value = warehouse.country_id;
+                $('country').triggerEvent('change');
+                $('state').value = warehouse.state;
+                if($('state_id'))$('state_id').value = warehouse.state_id;
+                $('zipcode').value = warehouse.postcode;
+                if($('store_manager'))$('store_manager').value = warehouse.manager_name;
+                $('phone').value = warehouse.telephone;
+                $('email').value = warehouse.manager_email;
+            }
+        }
+    }
+}
+
+Element.prototype.triggerEvent = function(eventName)
+{
+    if (document.createEvent)
+    {
+        var evt = document.createEvent('HTMLEvents');
+        evt.initEvent(eventName, true, true);
+
+        return this.dispatchEvent(evt);
+    }
+
+    if (this.fireEvent)
+        return this.fireEvent('on' + eventName);
+}
+
+var imStorePickup = new IMStorePickupControl('<?php echo $this->getStoreId() ?>', '<?php echo $this->getChangeWarehouseUrl() ?>',
+                                                '<?php echo $this->getChangeWarehouseMessage() ?>');
+  
+</script>
+

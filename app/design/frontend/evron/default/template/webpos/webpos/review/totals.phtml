@@ -1,0 +1,22 @@
+<?php if (version_compare(Mage::getVersion(),'1.6.0.0','>=')): ?>
+<div id="total_wp" class="<?php if(Mage::getSingleton("checkout/cart")->getQuote()->getCouponCode()) echo 'coupon';  if(Mage::getSingleton("webpos/session")->getDiscountValue()) echo ' customdiscount';  ?>">
+<?php if ($this->canApplyMsrp()): ?>
+    <div class="cart-msrp-totals"><?php echo $this->__('ORDER TOTAL WILL BE DISPLAYED BEFORE YOU SUBMIT THE ORDER'); ?></div>
+<?php else: ?>
+<?php echo $this->renderTotals(); ?>
+<?php echo $this->renderTotals('footer'); ?>
+<?php endif; ?>
+</div>
+<?php else: ?>
+<table id="shopping-cart-totals-table">
+    <col />
+    <col width="1" />
+    <tfoot>
+        <?php echo $this->renderTotals('footer'); ?>
+    </tfoot>
+    <tbody>
+        <?php echo $this->renderTotals(); ?>
+    </tbody>
+</table>
+<?php endif; ?>
+

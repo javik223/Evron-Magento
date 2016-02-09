@@ -1,0 +1,118 @@
+
+<div class="entry-edit">
+    <div class="entry-edit-head">
+        <h4 class="icon-head head-edit-form fieldset-legend"><?php echo $this->__('Scan Barcode') ?></h4>
+    </div>
+    <div id="supplier_form" class="fieldset">
+
+        <input tabindex="1" style="width: 99%; height: 30px; font-size: 13px; color: gray;" id="barcode_search" name="barcode_query" type="text" class="input-text" placeholder="Search by Barcode/ Product Name/ Product SKU" autocomplete="off"/>
+        <span id="barcode_search_indicator" class="autocomplete-indicator" style="display: none;">
+            <img src="<?php echo $this->getSkinUrl('images/ajax-loader.gif') ?>" alt="Loading..." class="v-middle">
+        </span>
+        <div class="clear"></div>
+        <div id="barcode_search_autocomplete" class="autocomplete" style="display: none; width:300px"></div>
+    </div>
+</div>
+<div id="general_information"></div>
+<div id="barcode_information"></div>
+<div id="product_information"></div>
+<div id="warehouse_information"></div>
+<div id="supplier_information"></div>
+<div id="purchaseorder_information"></div>
+
+<script type="text/javascript">
+    document.getElementById("barcode_search").focus();
+    Ajax.Barcodeautocompleter = Class.create(Autocompleter.Base, {
+        initialize: function(element, update, url, options) {
+          this.baseInitialize(element, update, options);
+          this.options.asynchronous  = true;
+          this.options.onComplete    = this.onComplete.bind(this);
+          this.options.defaultParams = this.options.parameters || null;
+          this.url                   = url;
+        },
+
+        getUpdatedChoices: function() {
+          this.startIndicator();
+
+          var entry = encodeURIComponent(this.options.paramName) + '=' +
+            encodeURIComponent(this.getToken());
+
+          this.options.parameters = this.options.callback ?
+            this.options.callback(this.element, entry) : entry;
+
+          if(this.options.defaultParams)
+            this.options.parameters += '&' + this.options.defaultParams;
+
+          new Ajax.Request(this.url, this.options);
+        },
+
+        onComplete: function(request) {
+            
+            try
+            {
+                
+               var json = JSON.parse(request.responseText);
+                if(json.show){
+                    showBarcodeInformation(json.barcode_id);                    
+                    $('barcode_search_indicator').hide();
+                    $('barcode_search_autocomplete').hide();
+                }
+            }
+            catch(e)
+            {
+               this.updateChoices(request.responseText);
+            }
+          
+        }
+      });
+
+    new Ajax.Barcodeautocompleter(
+            'barcode_search',
+            'barcode_search_autocomplete',
+            '<?php echo $this->getUrl('adminhtml/inb_searchbarcode/search'); ?>',
+            {
+                paramName: "barcode_query",
+                minChars: 2,
+                indicator: "barcode_search_indicator",
+                updateElement: getSelectionId,
+                evalJSON: 'force'                
+            }
+    );
+    
+    function showBarcodeInformation(id) {
+        Element.show('loading-mask');
+        $('barcode_information').innerHTML = '';
+        $('product_information').innerHTML = '';
+        var parameters = {barcode_id: id};
+        var url = '<?php echo Mage::helper('adminhtml')->getUrl('adminhtml/inb_searchbarcode/showinformation') ?>';
+        var request = new Ajax.Request(url, {
+            method: 'post',
+            parameters: parameters,
+            onFailure: '',
+            onSuccess: function (transport) {
+                if (transport.status == 200) {                    
+                    var result = transport.responseText.evalJSON();
+                    $('general_information').innerHTML = result.general;
+                    $('barcode_information').innerHTML = result.barcode;
+                    if (result.product)
+                        $('product_information').innerHTML = result.product;
+                    if (result.supplier)
+                        $('supplier_information').innerHTML = result.supplier;
+                    if (result.purchaseorder)
+                        $('purchaseorder_information').innerHTML = result.purchaseorder;
+                    if (result.warehouse)
+                        $('warehouse_information').innerHTML = result.warehouse;
+                    
+                    $('barcode_search').value = '';
+                    Element.hide('loading-mask');
+                }
+            }
+        });
+    }
+
+    function getSelectionId(li) {          
+        return false;
+    }
+    
+      
+</script>

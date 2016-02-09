@@ -1,0 +1,39 @@
+<?php
+/**
+ * Magestore
+ * 
+ * NOTICE OF LICENSE
+ * 
+ * This source file is subject to the Magestore.com license that is
+ * available through the world-wide-web at this URL:
+ * http://www.magestore.com/license-agreement.html
+ * 
+ * DISCLAIMER
+ * 
+ * Do not edit or add to this file if you wish to upgrade this extension to newer
+ * version in the future.
+ * 
+ * @category    Magestore
+ * @package     Magestore_Inventorysupplyneeds
+ * @copyright   Copyright (c) 2012 Magestore (http://www.magestore.com/)
+ * @license     http://www.magestore.com/license-agreement.html
+ */
+
+/**
+ * Inventorysupplyneeds Adminhtml Controller
+ * 
+ * @category    Magestore
+ * @package     Magestore_Inventorywarehouse
+ * @author      Magestore Developer
+ */
+?>
+<div class="entry-edit">
+    <div class="entry-edit-head">
+        <h4 class="icon-head head-edit-form fieldset-legend"><?php echo $this->__('General Instructions') ?></h4>
+    </div>    
+    <div id="stocktransfering_form" class="fieldset ">
+        <?php echo $this->__('You can send stock from one of your warehouses to any other destinations.') ?><br />
+        <?php echo $this->__('- If you send stock from a warehouse to another one, the stock transfer will be auto-completed. The Qty transferred is updated instantly in both warehouses while the total Qty. in your system remains unchanged.') ?><br />
+        <?php echo $this->__('- If you send stock to other destination besides your warehouse, the total Qty. in your system will be subtracted correspondingly.') ?><br />
+    </div>
+</div>   

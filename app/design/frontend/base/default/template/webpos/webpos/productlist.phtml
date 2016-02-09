@@ -1,0 +1,79 @@
+<!-- Product list -->
+<?php
+$userId = Mage::helper('webpos/permission')->getCurrentUser();
+$isCreateOrder = Mage::helper('webpos/permission')->isCreateOrder($userId);
+if ($isCreateOrder) {
+$productHelper = Mage::helper('webpos/product');
+$products = $this->getProductCollection();
+$count = $products->getSize();
+$keyword = $this->getRequest()->getParam('keyword', null);
+$productsInCart = $this->getProductsInCart();
+$productsResult = array();
+if (!$count):
+    ?>
+	<div class='product_list'>
+    <ul id='product_list_wrapper'>
+        <li class="no-product">
+            <?php echo $this->__('There is no product'); ?>
+        </li>
+    </ul>
+	</div>
+<?php else: ?>
+    <div class='product_list'>
+        <ul class="product-slide" id='product_list_wrapper'>
+            <?php
+            $currentCurrencyCode = $this->getCurrentCurrencyCode(); /*get current currency*/
+            $numberProduct = 1;
+            foreach ($products as $product):
+                $productOptions = $options = $customOptions = array();
+                $productsResult[] = $product->getId();
+                $productOptions = $productHelper->getProductOptions($product);
+                $product->setFinalPrice($productHelper->convertPrice($product->getFinalPrice(),$currentCurrencyCode)); /*re-set final price Mr.Jack*/
+                $hasOption = $productHelper->isProductHasOptions($product);
+                if ($numberProduct == 1):
+                    ?>
+                    <li class='rows <?php if ($numberProduct == 4): $numberProduct = 0; ?> last <?php endif ?>'>
+                    <?php endif; ?>
+                    <?php if ($count == 1 && $keyword): ?>
+                        <input type="hidden" id="only_product_id" value="<?php echo $product->getId(); ?>">
+                        <input type="hidden" id="only_product_price" value="<?php echo $product->getFinalPrice(); ?>">
+                        <input type="hidden" id="only_product_image_path" value="<?php echo Mage::helper('catalog/image')->init($product, 'thumbnail')->resize(120); ?>">
+                    <?php endif; 
+						echo $productHelper->getProductHtml($product,'loadedAtList');
+					?>		   
+                    
+                <?php if ($numberProduct == 4): $numberProduct = 0; ?>
+                    </li>
+                <?php endif; ?>
+                <?php
+                $numberProduct++;
+            endforeach;
+            ?>
+            <?php
+            foreach ($productsInCart as $product):
+                if (in_array($product->getId(), $productsResult))
+                    continue;
+                $productsResult[] = $product->getId();
+				if(empty($keyword))
+					echo $productHelper->getProductHtml($product,'loadedAtList');
+				else
+					echo $productHelper->getProductHtml($product,'hide');
+			?>
+    <?php endforeach; ?>
+        </ul>
+    </div>
+<?php endif; ?>
+<script type="text/javascript">
+//	  Adam 14/07/2015: Add product to cart if there is a product in grid result
+    //$D(document).ready(function () {
+        if ($('only_product_id'))
+            addProduct($('only_product_id').value, $('only_product_price').value, $('only_product_image_path').value);
+    //});
+</script>
+<?php } else { ?>
+    <script type="text/javascript">
+        localDelete('productsInfo');
+        localDelete('customersInfo');
+        localDelete('productlist');
+    </script>
+<?php } ?>

@@ -1,0 +1,171 @@
+<?php
+$userId = Mage::helper('webpos/permission')->getCurrentUser();
+$isOrderThisUser = Mage::helper('webpos/permission')->isOrderThisUser($userId);
+$isOtherStaff = Mage::helper('webpos/permission')->isOtherStaff($userId);
+$isAllOrder = Mage::helper('webpos/permission')->isAllOrder($userId);
+if($isOrderThisUser == true || $isOtherStaff == true || $isAllOrder == true) {
+    ?>
+
+    
+        <div id="order_section_loader" style="display: none;">
+            <div class="img-ajax"></div>
+        </div>
+        <div id="order_section_not_loader" style="display: none;">
+            <div class="img-ajax"></div>
+        </div>
+        <div id="order-list" class="order-list col-lg-5 col-md-5 col-sm-5 col-xs-5">
+            <div class="form-search row" id='orderlist_top_bar'>
+                <div class="incon-menu col-lg-1 col-md-1 col-sm-1 col-xs-1" style="padding: 0;">
+				<!--
+                    <img onclick="showHideMenu('orders');" id='order_showmenu_icon' class='pointerCursor' src='<?php echo $this->getSkinUrl('images/icon/menu.png'); ?>'/>
+                -->
+				</div>
+                <div class='top_bar_right col-lg-10 col-md-10 col-sm-10 col-xs-10'>
+                    <?php echo $this->__('Orders'); ?>                        
+                </div>
+                <div class='product_search col-lg-1 col-md-1 col-sm-1 col-xs-1' id='product_search_order'>
+                    <img onclick="showSearchOrderForm()" id='search_icon' class='pointerCursor' src='<?php echo $this->getSkinUrl('images/icon/search.png'); ?>' />
+                </div>
+            </div>
+            <form id="orderlist-search-form" method="post" action="" style="display: none">
+                <ul id="search-order" class="search-order">
+                    <li class="col-lg-5 col-md-5 col-sm-5 col-xs-5" style="padding: 0;">                                
+                        <input type="text" name="order-id" id="order-id" placeholder="Order Id" class="input-text form-control"
+                               onkeydown="javascript: if (event.keyCode == 13)
+								orderlistSearch()" placeholder="Order ID"/>
+                    </li>                
+                    <li  class="col-lg-5 col-md-5 col-sm-5 col-xs-5" style="padding: 0;">                                
+                        <input type="text" name="name-email" id="customer-name-email" placeholder="Email/Name" class="input-text form-control"
+                               onkeydown="javascript: if (event.keyCode == 13)
+								orderlistSearch()"  placeholder="Customer Name/Email"/>
+                    </li>
+                    <li id="a-search"  class="col-lg-2 col-md-2 col-sm-2 col-xs-2 ">
+                        <button type="button" class="btn btn-warning" id="button-orderlist-search" onclick="hideSearchOrderForm()"><span><span><?php echo $this->__('Cancel') ?></span></span></button>
+                    </li>
+
+                </ul>
+            </form>     
+            <div id="order_list_grid">
+
+                <?php echo $this->getChildHtml('order_list') ?>
+            </div>
+			<div id='order_list_loader'>
+				<div class="img-ajax"></div>
+			</div>
+        </div>
+        <div id='' class="order-detail col-lg-7 col-md-7 col-sm-7 col-xs-7">
+			<div id='order_detail_loader'>
+				<div class="img-ajax"></div>
+			</div>
+            <div class="top-order">
+                <div class="head-view-order">
+                    <h1 class="" id='order_detail_title'><?php echo Mage::helper('webpos')->__('Order') ?></h1>
+                    <div class="col-lg-1 col-md-1 col-sm-1 col-xs-1" id="comment_order" onclick="showhideOrderCommnent('order-view-comment');"><img src='<?php echo $this->getSkinUrl('images/icon/order_comment.png'); ?>'/></div>
+                </div>
+                <div class='clear'></div>
+                <div class="order-comment" id="order-view-comment" style="display: none">
+                    <div class="comment">
+                        <div class="col col-lg-7 col-md-7 col-sm-7 col-xs-7"><?php echo $this->__('Order Comment:'); ?></div>
+                        <div class="col-lg-5 col-md-5 col-sm-5 col-xs-5" style="padding:0"><button class="btn btn-warning" onclick="saveOrderViewComment();" style="float: right;margin-left: -11px;"><?php echo $this->__('Save'); ?></button></div>                                            
+                        <form>
+                            <textarea id="order-view-comment-content"></textarea>
+                        </form>
+                    </div>                    
+                </div>
+                <div class='clear'></div>
+                <div class="top-info">
+                    <h2 class="price-order" id='order_detail_grandtotal'><?php echo 0 ?></h2>
+                    <p><span><?php echo $this->__('Created Date: ');?></span><span class="date common" id='order_detail_orderdate'><?php echo 0 ?></span></p>
+                    <p><span><?php echo $this->__('Status: ');?> </span><span class="status common" id='order_detail_status'><?php echo 0 ?></span></p>
+                    <p><span><?php echo $this->__('Total Due: ');?> </span><span class="total" id='order_detail_totaldue'><?php echo Mage::app()->getStore()->formatPrice(0); ?></span></p>
+                    <div class="btn-invoice"><button type="button" class="btn btn-warning" id='bt_create_invoice' onclick="invoiceOrder();">Invoice</button></div>
+                    <!-- start add button pdf invoice plus -->
+                    <?php if(Mage::getStoreConfig('pdfinvoiceplus/general/enable')): ?>
+                        <div class="btn-pdf-invoiceplus" style="float:left;margin:0px 0px 5px 5px;"><button type="button" class="btn btn-warning" id='bt_print_pdfinvoiceplus' onclick="printlinkPDF();">PDF Invoiceplus</button></div>
+                    <?php endif;?>
+                    <!-- end add button pdf invoice plus -->
+                </div>
+            </div> 
+            <div id='order_detail_area' class="">
+
+            </div>
+            <div class="footer-order">
+                <div class="col-lg-3 col-md-3 col-sm-3 col-xs-3"><button class="btn btn-default" id='order_bt_print' onclick=""><?php echo $this->__('Print');?></button></div>
+                <div class="col-lg-3 col-md-3 col-sm-3 col-xs-3"><button class="btn btn-default" id='order_bt_email' onclick="showSendEmailForm();"><?php echo $this->__('Email');?></button></div>
+                <div class="col-lg-3 col-md-3 col-sm-3 col-xs-3"><button class="btn btn-default" id='order_bt_ship' ><?php echo $this->__('Ship');?></button></div>
+                <div class="col-lg-3 col-md-3 col-sm-3 col-xs-3"><button class="btn btn-default" id='order_bt_cancel' ><?php echo $this->__('Cancel');?></button></div>
+            </div>            
+            <div class="" id="pos_order_container_sendemail_overlay" style="display: none;" onclick="cancelAddCustomer()"></div>
+            <div class="send-email hide">
+                <div class="modal-content">                        
+                    <div id="send_order_email_form" role="form" method="get" action="">
+                        <div class="top-form col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                            <div class="btn-cancel col-lg-3 col-md-3 col-sm-3 col-xs-3">
+                                <button onclick="cancelAddCustomer()" type="button" class="btn btn-default"><?php echo $this->__('Cancel');?></button>
+                            </div>
+                            <div class="col-lg-6 col-md-6 col-sm-6 col-xs-6"><h2><?php echo $this->__('Send email') ?></h2></div>
+                            <div class="btn-send col-lg-3 col-md-3 col-sm-3 col-xs-3">
+                                <button type="button" class="btn btn-default" onclick="sendOrderEmailToCustomer()"><?php echo $this->__('Send');?></button>
+                            </div>
+                        </div>
+                        <div class="input-form col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                            <input type="text" class="input-text form-control required-entry validate-email" placeholder="Email Address" name="order_customer_email" id="order_customer_email"/>
+                            <p id="order_customer_email_notification"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-fade" style="display: none" onclick="cancelRefundPopup()"></div>
+            <div id="refund_popup" class="refund hide">
+                <div id='order_refund_loader'>
+                    <div class="img-ajax"></div>
+                </div>
+                <div class="modal-content">                        
+                        <div class="top-form col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                            <div class="btn-cancel col-lg-3 col-md-3 col-sm-3 col-xs-3">
+                                <button onclick="cancelRefundPopup()" type="button" class="btn btn-default"><?php echo $this->__('Cancel');?></button>
+                            </div>
+                            <div class="col-lg-6 col-md-6 col-sm-6 col-xs-6"><h2><?php echo $this->__('Refund for Order') ?></h2></div>
+                            <div class="btn-refund col-lg-3 col-md-3 col-sm-3 col-xs-3">
+                                <button id="refund_offline_button" onclick="processRefundOrder()" type="submit" class="btn btn-default"><?php echo $this->__('Refund Offline');?></button>
+                            </div>
+                        </div>
+                        <div class="content-form">
+                            <div class="table-responsive">
+                               <div id="items_table"></div>
+                            </div>
+                            <div class="">
+                                <div class="credit-comment col-lg-6 col-md-6 col-sm-6 col-xs-6">
+                                    <label><?php echo $this->__('Credit Memo Comments');?></label>
+                                    <textarea id="comment_refund" type="text" class="form-control"></textarea>
+                                </div>
+                                <div class="adjustment col-lg-6 col-md-6 col-sm-6 col-xs-6 row">
+                                    <div class="form-group">
+                                        <label class="col-lg-6 col-md-6 col-sm-6 col-xs-6"><?php echo $this->__('Adjustment Refund');?></label>
+                                        <div class="col-lg-6 col-md-6 col-sm-6 col-xs-6"><input id="ajust_refund" type="text" class="input-text form-control" placeholder="<?php echo Mage::helper('core')->currency(0, true, false);  ?>" /></div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="col-lg-6 col-md-6 col-sm-6 col-xs-6"><?php echo $this->__('Adjustment Fee');?></label>
+                                        <div class="col-lg-6 col-md-6 col-sm-6 col-xs-6"><input id="ajust_fee" type="text" class="input-text form-control" placeholder="<?php echo Mage::helper('core')->currency(0, true, false);  ?>" /></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                </div>
+            </div>
+        </div>
+
+<?php } else { ?>
+        <div id="order-list" class="order-list">
+            <div id="order_list_grid">
+
+            </div>
+        </div>
+<?php   } ?>
+<script type="text/javascript">
+    var send_order_email_form = new VarienForm('send_order_email_form', true);
+    function cancelRefundPopup(){
+        $('refund_popup').addClassName('hide');
+        $D('.bg-fade').hide();
+    }
+</script>

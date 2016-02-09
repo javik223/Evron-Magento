@@ -1,0 +1,40 @@
+<?xml version="1.0"?>
+<config>
+    <modules>
+        <Vishwasnature_Editableproduct>
+            <version>0.1.0</version>
+        </Vishwasnature_Editableproduct>
+    </modules>
+    <global>
+        <blocks>
+            <editableproduct>
+                <class>Vishwasnature_Editableproduct_Block</class>
+            </editableproduct>
+            <adminhtml>
+                <rewrite>
+                    <catalog_category_tabs>Vishwasnature_Editableproduct_Block_Adminhtml_Catalog_Category_Tabs</catalog_category_tabs>
+                </rewrite>
+            </adminhtml>
+        </blocks>
+    </global>
+    <admin>
+        <routers>
+            <adminhtml>
+                <args>
+                    <modules>
+                        <Vishwasnature_Editableproduct before="Mage_Adminhtml">Vishwasnature_Editableproduct_Adminhtml</Vishwasnature_Editableproduct>
+                    </modules>
+                </args>
+            </adminhtml>
+        </routers>
+    </admin>
+    <adminhtml>
+        <layout>
+            <updates>
+                <editableproduct>
+                    <file>editableproduct.xml</file>
+                </editableproduct>
+            </updates>
+        </layout>
+    </adminhtml>
+</config>

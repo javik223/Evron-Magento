@@ -1,0 +1,318 @@
+<?php
+/**
+ * Magestore
+ * 
+ * NOTICE OF LICENSE
+ * 
+ * This source file is subject to the Magestore.com license that is
+ * available through the world-wide-web at this URL:
+ * http://www.magestore.com/license-agreement.html
+ * 
+ * DISCLAIMER
+ * 
+ * Do not edit or add to this file if you wish to upgrade this extension to newer
+ * version in the future.
+ * 
+ * @category    Magestore
+ * @package     Magestore_Inventorysupplyneeds
+ * @copyright   Copyright (c) 2012 Magestore (http://www.magestore.com/)
+ * @license     http://www.magestore.com/license-agreement.html
+ */
+
+/**
+ * Inventoryreports Helper
+ * 
+ * @category    Magestore
+ * @package     Magestore_Inventoryreports
+ * @author      Magestore Developer
+ */
+
+$requestData = $this->getRequestData();
+$group = true;
+if ($requestData['report_radio_select'] == 'sales_days') {
+    $group = false;
+}
+$reportcode = $requestData['report_radio_select'];
+$type_id = $this->getTypeId();
+$contentText = Mage::helper('inventoryreports')->getHeaderText();
+$pieData = $this->getChartPieData();
+$pieVolumeData = $this->getChartPieVolumeData();
+$columnData = $this->getChartColumnData();
+$columnVolumeData = $this->getChartColumnVolumeData();
+$title = $this->getTitle();
+?>
+<?php echo $this->getLayout()->createBlock('inventoryreports/adminhtml_reportcontent_reportbyorder_statistic')->toHtml() ?>
+
+<div class="clear fix"></div>
+<div style="float:right;margin-top:8px">
+    <span class="sales_charts_button">
+        <span onclick="activeChart(this, 'value', 'volume')" class="chart_active" id="sales_value"> <?php echo $this->__('Sales Value') ?> </span> 
+        <span onclick="activeChart(this, 'volume', 'value')" class="chart_inactive" id="sales_volume"> <?php echo $this->__('Sales Orders') ?> </span>
+    </span>
+</div>
+<div class="clear fix"></div>
+<div class="entry-edit" id="inventory-report-charts">
+    <div class="entry-edit-head">
+        <h4 class="icon-head head-edit-form fieldset-legend"><?php echo $this->__('Chart Report') ?></h4>
+        <span style="float:right">
+            <?php if($pieData && $group): ?>
+            <span onclick="showChart(this, '1')" class="chart_on" id="chart_button_1"> <?php echo $this->__('Bar Chart') ?> </span> /  
+            <span onclick="showChart(this, '2')" class="chart_on" id="chart_button_2"> <?php echo $this->__('Pie Chart') ?> </span>
+            <?php endif; ?>
+            <input type="hidden" id="chart_type" value="value" />
+        </span>
+    </div>
+    <!DOCTYPE HTML>
+    <div class="clear fix"></div>
+    <div>
+        <?php if ($columnData['series']['inventory_order']['data']): ?>
+            <div id="chart_1_value" class="chart_value" style="width:99%;">
+                <script type="text/javascript">
+                            $(function () {
+                            $_('#inventory_value_column').highcharts({
+                            title: {
+                            text: '<?php echo $contentText ?>'
+                            },
+    <?php if ($group): ?>
+                                xAxis: {
+                                categories: <?php echo $columnData['categories'] ?>
+                                },
+    <?php else: ?>
+                                xAxis: {
+                                type: 'datetime',
+                                        dateTimeLabelFormats: {month: '%e. %b',year: '%b'},
+                                        title: { text: 'Date'}
+                                },
+    <?php endif; ?>
+                            yAxis: {
+                                    min: 0,
+                                    title: {
+                                        text: '<?php echo $title ?>'
+                                    }
+                                    /*,
+                                    labels: {
+                                        formatter: function () {
+                                            return '$' + this.value;
+                                        }
+                                    } */                       
+                            },
+                            labels: {
+                                items: [{
+                                    //html: '<?php echo $contentText ?>',
+                                    style: {
+                                    left: '20px',
+                                            top: '-30px',
+                                            color: (Highcharts.theme && Highcharts.theme.textColor) || 'black'
+                                    }
+                                }]
+                            },
+                            series: [
+    <?php if ($group): ?>
+                                        {
+                                        type: 'column',
+                                                name: '<?php echo $this->__('Grand Total') ?>',
+                                                pointWidth: 70,
+                                                groupPadding: 0,
+        <?php $column = 0; ?>
+        <?php foreach ($columnData['series'] as $serie): ?>
+            <?php if (!$column == 0) echo ','; ?>
+            <?php $column++; ?>
+                                            data: <?php echo $serie['data']; ?>
+        <?php endforeach; ?>
+                                        }
+    <?php else: ?>                                    
+                                        {
+                                        type: 'spline',
+                                                name: '<?php echo $this->__('Grand Total') ?>',
+                                                data: <?php echo $columnData['series']['inventory_order']['data']; ?>,
+                                                marker: {
+                                                lineWidth: 1,
+                                                        //lineColor: Highcharts.getOptions().colors[3],
+                                                        fillColor: Highcharts.getOptions().colors[3]
+                                                }
+                                        }
+    <?php endif; ?>                                
+                            ],
+                        });
+                    });</script>
+                <div id="inventory_value_column" style="min-width: 900px; height: 450px; margin: 0 auto"></div>
+            </div>
+        <?php endif; ?>
+
+        <!--COLUMN VOLUME CHART -->
+        <?php if ($columnVolumeData['series']['inventory_order']['data']): ?>
+            <div id="chart_1_volume" style="width:100%;">
+                <script type="text/javascript">
+                            $(function () {
+                            $_('#inventory_volume_column').highcharts({
+                            title: {
+                            text: '<?php echo $contentText ?>'
+                            },
+    <?php if ($group): ?>
+                                xAxis: {
+                                categories: <?php echo $columnVolumeData['categories'] ?>
+                                },
+    <?php else: ?>
+                                xAxis: {
+                                type: 'datetime',
+                                        dateTimeLabelFormats: { // don't display the dummy year
+                                        month: '%e. %b',
+                                                year: '%b'
+                                        },
+                                        title: {
+                                        text: 'Date'
+                                        }
+                                },
+    <?php endif; ?>
+                            yAxis: {
+                                min: 0,
+                                minTickInterval: 1,
+                                title: {
+                                    text: '<?php echo $this->__('Total Orders') ?>'
+                                }
+                            },
+                                    labels: {
+                                    items: [{
+                                    //html: '<?php echo $contentText ?>',
+                                    style: {
+                                    left: '20px',
+                                            top: '-30px',
+                                            color: (Highcharts.theme && Highcharts.theme.textColor) || 'black'
+                                    }
+                                    }]
+                                    },
+                                    series: [
+    <?php if ($group): ?>
+                                        {
+                                        type: 'column',
+                                                name: '<?php echo $this->__('Total Orders') ?>',
+                                                pointWidth: 70,
+                                                groupPadding: 0,
+        <?php $column = 0; ?>
+        <?php foreach ($columnVolumeData['series'] as $volumeserie): ?>
+            <?php if (!$column == 0) echo ','; ?>
+            <?php $column++; ?>
+                                            data: <?php echo $volumeserie['data']; ?>
+        <?php endforeach; ?>
+                                        }
+    <?php else: ?>
+                                        {
+                                        type: 'spline',
+                                                 name: '<?php echo $this->__('Total Orders') ?>',
+                                                data: <?php echo $columnVolumeData['series']['inventory_order']['data']; ?>,
+                                                marker: {
+                                                lineWidth: 1,
+                                                        //lineColor: Highcharts.getOptions().colors[3],
+                                                        fillColor: Highcharts.getOptions().colors[3]
+                                                }
+                                        }
+     <?php endif; ?>                                
+                                    ]
+                            });
+                            });</script>
+                <div id="inventory_volume_column" style="min-width: 900px; height: 450px; margin: 0 auto"></div>
+            </div>
+        <?php endif; ?>
+        <!-- report  pie -->
+        <?php if ($pieData && $group): ?>
+            <div id="chart_2_value" style="width: 99%;">
+                <?php
+                $seriesPie = $pieData['series'];
+                ?>
+                <script type="text/javascript">
+                            $(function () {
+                            $_('#inventory_pie').highcharts({
+                            chart: {
+                            type: 'pie'
+                            },
+                                    title: {
+                                    text: '<?php echo $contentText ?>'
+                                    },
+                                    plotOptions: {
+                                    pie: {
+                                    depth:30,
+                                            allowPointSelect: true,
+                                            cursor: 'pointer',
+                                            dataLabels: {
+                                            enabled: true,
+                                                    format: '<b>{point.name}</b>: {point.percentage:.1f} %',
+                                                    style: {
+                                                    color: (Highcharts.theme && Highcharts.theme.contrastTextColor) || 'black'
+                                                    }
+                                            }
+                                    }
+                                    },
+                                    tooltip: {
+                                        pointFormat: '<br/><b>{point.percentage:.1f}%</b>'
+                                    },
+                                    series: [{
+                                    type: 'pie',
+                                            data: [
+    <?php echo $seriesPie ?>
+                                            ]
+                                    }]
+                            });
+                            });</script>
+                <div id="inventory_pie" style="min-width: 900px; max-height: 450px; margin: 0 auto"></div>
+            </div>
+        <?php endif; ?>
+        <!-- pie volume data -->
+        <?php if ($pieVolumeData && $group): ?>
+            <div id="chart_2_volume" style="width: 99%;">
+                <?php
+                $seriesPieVolume = $pieVolumeData['series'];
+                ?>
+                <script type="text/javascript">
+                            $(function () {
+                            $_('#inventory_pie_volume').highcharts({
+                            chart: {
+                            type: 'pie'
+                            },
+                                    title: {
+                                    text: '<?php echo $contentText ?>'
+                                    },
+                                    plotOptions: {
+                                    pie: {
+                                    depth:30,
+                                            allowPointSelect: true,
+                                            cursor: 'pointer',
+                                            dataLabels: {
+                                            enabled: true,
+                                                    format: '<b>{point.name}</b>: {point.percentage:.1f} %',
+                                                    style: {
+                                                    color: (Highcharts.theme && Highcharts.theme.contrastTextColor) || 'black'
+                                                    }
+                                            }
+                                    }
+                                    },
+                                    tooltip: {
+                                        pointFormat: '<br/><b>{point.percentage:.1f}%</b>'
+                                    },
+                                    series: [{
+                                    type: 'pie',
+                                            data: [
+    <?php echo $seriesPieVolume ?>
+                                            ]
+                                    }]
+                            });
+                            });</script>
+                <div id="inventory_pie_volume" style="min-width: 900px; max-height: 450px; margin: 0 auto"></div>
+            </div>
+        <?php endif; ?>           
+    </div>          
+</div>
+<div class="clear fix"></div>
+<script type="text/javascript" src="<?php echo $this->getJsUrl() ?>magestore/adminhtml/inventory/dashboard/lib/_JSSettings.js"></script>
+<script src="<?php echo $this->getJsUrl() ?>magestore/adminhtml/inventory/dashboard/lib/js_002"></script>
+<script src="<?php echo $this->getJsUrl() ?>magestore/adminhtml/inventory/dashboard/lib/dashboards"></script>
+
+<script type="text/javascript">
+                        var saveViewPositions = '<?php echo $this->getUrl('adminhtml/ind_dashboard/saveviewposition') ?>';
+                        var saveTabPositions = '<?php echo $this->getUrl('adminhtml/ind_dashboard/savetabposition') ?>';
+                        var form_key_dashboard = '<?php echo $this->getFormKey() ?>';</script>
+<script type="text/javascript">
+            var $sd = new InventoryDashboard.Views.Dashboards();
+            $sd.isShare = false;
+            $sd.backgroundColour = '#808080';
+            $sd.init();
+</script>

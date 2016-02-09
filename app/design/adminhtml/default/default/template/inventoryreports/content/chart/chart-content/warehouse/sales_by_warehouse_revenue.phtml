@@ -1,0 +1,210 @@
+<?php
+$series = array();
+$requestData = Mage::helper('adminhtml')->prepareFilterString($this->getRequest()->getParam('top_filter'));
+if (empty($requestData)) {
+    $requestData = Mage::Helper('inventoryreports')->getDefaultOptionsWarehouse();
+}
+$name = 'All Warehouses';
+if ($requestData['warehouse_select'] > 0) {
+    $name = Mage::helper('inventoryreports')->getWarehouseName($requestData['warehouse_select']);
+}
+$gettime = Mage::Helper('inventoryreports')->getTimeSelected($requestData);
+$warehouse_name = array();
+$revenue = array();
+$resource = Mage::getSingleton('core/resource');
+$readConnection = $resource->getConnection('core_read');
+$installer = Mage::getModel('core/resource');
+$prodNameAttrId = Mage::getResourceModel('eav/entity_attribute')->getIdByCode('catalog_product','name');
+if (isset($requestData['warehouse_select']) && $requestData['warehouse_select'] > 0) {    //Warehouse selected
+    $warehouse_collection = Mage::getModel('inventoryplus/warehouse')->load($requestData['warehouse_select']);
+    
+    $sql = 'SELECT f.value as warehouse_name, sum(s.subtotal_shipped) as revenue, o.created_at
+            FROM ' . $installer->getTableName("erp_inventory_warehouse_shipment s") . '
+            INNER JOIN ' . $installer->getTableName("sales_flat_order o") . '
+            ON s.order_id = o.entity_id
+            INNER JOIN ' . $installer->getTableName("catalog_product_entity_varchar f") . '
+            ON s.product_id = f.entity_id AND f.attribute_id=' . $prodNameAttrId . '
+            WHERE s.warehouse_id = "' . $requestData['warehouse_select'] . '" AND s.qty_shipped > 0 AND o.created_at BETWEEN "' . $gettime['date_from'] . '" AND "' . $gettime['date_to'] . '"
+            GROUP BY s.product_id
+            ORDER BY sum(s.subtotal_shipped) DESC
+            ';
+} else {   //All warehouses     
+    $sql = 'SELECT s.warehouse_name, sum(s.subtotal_shipped) as revenue, o.created_at
+            FROM ' . $installer->getTableName("erp_inventory_warehouse_shipment s") . '
+            INNER JOIN ' . $installer->getTableName("sales_flat_order o") . '
+            ON s.order_id = o.entity_id
+            WHERE s.qty_shipped > 0 AND o.created_at BETWEEN "' . $gettime['date_from'] . '" AND "' . $gettime['date_to'] . '"
+            GROUP BY s.warehouse_name
+            ORDER BY sum(s.subtotal_shipped) DESC
+            ';
+}
+$results = $readConnection->fetchAll($sql);
+if (isset($requestData['warehouse_select']) && $requestData['warehouse_select'] > 0) {
+    $checkResult = 0;
+    foreach ($results as $result) {
+        if ($checkResult > 10) {
+            $limit = 10;
+            break;
+        }
+        if ($result['revenue'] == NULL || $result['revenue'] <= 0) {
+            $limit = $checkResult;
+            continue;
+        }
+        $checkResult++;
+    }
+    if (isset($limit)) {
+        $sql .= 'LIMIT ' . $limit . '';
+        $results = $readConnection->fetchAll($sql);
+    }
+}
+foreach ($results as $result) {
+    $warehouse_name[] = $result['warehouse_name'];
+    $revenue[] = round($result['revenue']);
+}
+//    Zend_Debug::dump($warehouse_name);
+$i = 0;
+$categories = '[';
+foreach ($warehouse_name as $name_value) {
+    if ($i != 0) {
+        $categories .= ',';
+    }
+    $categories .= '"' . $name_value . '"';
+    $i++;
+}
+$categories .= ']';
+//            Zend_debug::dump($categories);
+$j = 0;
+$series['inventory_warehouse']['name'] = $this->__('Sales By Warehouse Revenue');
+$series['inventory_warehouse']['data'] = '[';
+foreach ($revenue as $number_value) {
+    if ($j != 0) {
+        $series['inventory_warehouse']['data'] .= ',';
+    }
+    $series['inventory_warehouse']['data'] .= $number_value;
+    $j++;
+}
+$series['inventory_warehouse']['data'] .= ']';
+//            Zend_debug::dump($series);    
+?>
+<?php if (count($results) > 0): ?>
+    <div class="entry-edit" id="test">
+        <div class="entry-edit-head">
+            <h4 class="icon-head head-edit-form fieldset-legend"><?php echo $this->__('Chart Report') ?></h4>
+        </div>
+        <!DOCTYPE HTML>
+        <div>
+            <div style="width: 99%; float: left;">
+
+                <script type="text/javascript">
+                    $(function () {
+                    $_('#inventorybywarehouse_column').highcharts({
+                    chart: {
+                    type: 'column',
+                            margin: 70,
+                            options3d: {
+                            enabled: true,
+                                    alpha: 20,
+                                    beta: 1,
+                                    depth: 50
+                            }
+                    },
+                            legend:{
+                            enabled:false,
+                            },
+                            title: {
+                            text: '<?php echo $this->__('Revenue By Warehouse: "' . $name . '"') ?>'
+                            },
+                            plotOptions: {
+                            column: {
+                            depth: 30
+                            }
+                            },
+                            xAxis: {
+                            categories: <?php echo $categories ?>
+                            },
+                            yAxis: {
+                            opposite: true
+                            },
+                            series: [
+    <?php $count = 0; ?>
+    <?php foreach ($series as $serie): ?>
+        <?php if (!$count == 0) echo ','; ?>
+        <?php $count++; ?>
+                                {
+                                name: '<?php echo $serie['name']; ?>',
+                                        data: <?php echo $serie['data']; ?>
+                                }
+    <?php endforeach; ?>
+                            ]
+                    }
+                    );
+                    });</script>
+                <div id="inventorybywarehouse_column" style="min-width: 900px; height: 450px; margin: 0 auto"></div>
+            </div>
+
+
+            <!-- report by warehouse pie -->
+            <div style="width: 99%; float: left;">
+                <?php
+                $series = '';
+                $i = 0;
+                foreach ($results as $result) {
+                    if ($i != 0)
+                        $series .= ',';
+                    $series .= '[\'' . $result['warehouse_name'] . '(' . round($result['revenue']) . ')\',' . round($result['revenue']) . ']';
+                    $i++;
+                }
+//    Zend_debug::dump($series);
+                ?>
+
+                <script type="text/javascript">
+                            $(function () {
+                            $_('#inventorybywarehouse_pie').highcharts({
+                            chart: {
+                            type: 'pie',
+                                    options3d: {
+                                    enabled: true,
+                                            alpha: 50
+                                    }
+                            },
+                                    title: {
+                                    text: '<?php echo $this->__('Revenue By Warehouse: "' . $name . '"') ?>',
+                                    },
+                                    plotOptions: {
+                                    pie: {
+                                    depth: 30
+                                    }
+                                    },
+                                    series: [{
+                                    data: [
+    <?php echo $series; ?>
+                                    ]
+                                    }]
+                            });
+                            });</script>
+
+
+
+                <div id="inventorybywarehouse_pie" style="min-width: 900px; max-height: 450px; margin: 0 auto"></div>
+            </div>
+        </div>          
+    </div>
+    <?php // endif;  ?>
+
+<?php endif; ?>
+
+
+<script type="text/javascript" src="<?php echo $this->getJsUrl() ?>magestore/adminhtml/inventory/dashboard/lib/_JSSettings.js"></script>
+<script src="<?php echo $this->getJsUrl() ?>magestore/adminhtml/inventory/dashboard/lib/js_002"></script>
+<script src="<?php echo $this->getJsUrl() ?>magestore/adminhtml/inventory/dashboard/lib/dashboards"></script>
+
+<script type="text/javascript">
+                        var saveViewPositions = '<?php echo $this->getUrl('adminhtml/ind_dashboard/saveviewposition') ?>';
+                        var saveTabPositions = '<?php echo $this->getUrl('adminhtml/ind_dashboard/savetabposition') ?>';
+                        var form_key_dashboard = '<?php echo $this->getFormKey() ?>';</script>
+<script type="text/javascript">
+            var $sd = new InventoryDashboard.Views.Dashboards();
+            $sd.isShare = false;
+            $sd.backgroundColour = '#808080';
+            $sd.init();
+</script>

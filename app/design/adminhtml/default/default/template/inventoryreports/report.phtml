@@ -1,0 +1,266 @@
+<?php
+/**
+ * Magestore
+ * 
+ * NOTICE OF LICENSE
+ * 
+ * This source file is subject to the Magestore.com license that is
+ * available through the world-wide-web at this URL:
+ * http://www.magestore.com/license-agreement.html
+ * 
+ * DISCLAIMER
+ * 
+ * Do not edit or add to this file if you wish to upgrade this extension to newer
+ * version in the future.
+ * 
+ * @category    Magestore
+ * @package     Magestore_Inventorysupplyneeds
+ * @copyright   Copyright (c) 2012 Magestore (http://www.magestore.com/)
+ * @license     http://www.magestore.com/license-agreement.html
+ */
+/**
+ * Inventoryreports Helper
+ * 
+ * @category    Magestore
+ * @package     Magestore_Inventoryreports
+ * @author      Magestore Developer
+ */
+?>
+<div id="inventory_report" class="inventory_report">
+    <?php echo $this->getChildHtml(); ?>
+</div>
+<?php
+$controller = Mage::app()->getRequest()->getControllerName(); // return controller name
+$action = Mage::app()->getRequest()->getActionName(); // return action name
+$route = Mage::app()->getRequest()->getRouteName(); // return routes name
+$currentPath = $route . '/' . $controller . '/' . $action;
+?>  
+<script type="text/javascript">
+    //<![CDATA[
+    Event.observe(window, 'load', function () {
+        var chart1_inactive = $('chart_1_volume');
+        var chart2_inactive = $('chart_2_volume');
+        if (chart1_inactive != undefined) {
+            chart1_inactive.style.display = 'none';
+        }
+        if (chart2_inactive != undefined) {
+            chart2_inactive.style.display = 'none';
+        }
+    });
+
+    function filterForm()
+    {
+        var filters = new Array();
+        if ($('select_time')) {
+            filters[0] = $('select_time');
+            if ($('select_time').value == 'range') {
+                filters[1] = $('date_from');
+                filters[2] = $('date_to');
+            }
+        }
+        if ($('report_radio_select')) {
+            filters[3] = $('report_radio_select');
+        }
+        if ($('attribute_select')) {
+            filters[4] = $('attribute_select');
+        }
+        if ($('warehouse_select')) {
+            filters[5] = $('warehouse_select');
+        }
+        if ($('supplier_select')) {
+            filters[6] = $('supplier_select');
+        }
+        if ($('shipping_select')) {
+            filters[7] = $('shipping_select');
+        }
+        if ($('group_select')) {
+            filters[8] = $('group_select');
+        }
+        if ($('source_select')) {
+            filters[9] = $('source_select');
+        }
+        if ($('is_show_report_criteria')) {
+            filters[10] = $('is_show_report_criteria');
+        }
+        var elements = [];
+        for (var i in filters) {
+            if (filters[i] && filters[i].value && filters[i].value.length && !filters[i].disabled) {
+                elements.push(filters[i]);
+            }
+        }
+        
+        var orderStatusQuery = '';
+        if ($('order_status')) {        
+            for (var i = 0; i < $('order_status').options.length; i++) {
+                if ($('order_status').options[i].selected) {
+                    orderStatusQuery += '&order_status[]=' + $('order_status').options[i].value;
+                }
+            }
+        }
+        
+        window.location.href = '<?php echo $url = $this->getUrl($currentPath, array('type_id' => $this->getRequest()->getParam('type_id'), 'key' => $this->getRequest()->getParam('key'))); ?>top_filter/' + encode_base64(Form.serializeElements(elements)+orderStatusQuery) + '/';
+
+        return;
+    }
+
+    function showChart(element, number) {
+        if ($('chart_type') != undefined) {
+            var type = $('chart_type').value;
+            var chart = $('chart_' + number + '_' + type);
+        } else {
+            var chart = $('chart_' + number);
+        }
+        if (element.className == 'chart_on') {
+            chart.style.display = 'none';
+            element.className = 'chart_off';
+        } else {
+            chart.style.display = 'block';
+            element.className = 'chart_on';
+        }
+    }
+
+    function activeChart(element, active, inactive) {
+        if (element.className == 'chart_active') {
+            return;
+        } else if (element.className == 'chart_inactive') {
+            element.className = 'chart_active';
+            if (active == 'volume') {
+                $('sales_value').className = 'chart_inactive';
+            } else if (active == 'value') {
+                $('sales_volume').className = 'chart_inactive';
+            }
+            $('chart_type').value = active;
+            var chart1_active = $('chart_1_' + active);
+            var chart2_active = $('chart_2_' + active);
+            var chart1_inactive = $('chart_1_' + inactive);
+            var chart2_inactive = $('chart_2_' + inactive);
+            if (chart1_active != undefined) {
+                chart1_active.style.display = 'block';
+            }
+            if (chart2_active != undefined) {
+                chart2_active.style.display = 'block';
+            }
+            if (chart1_inactive != undefined) {
+                chart1_inactive.style.display = 'none';
+            }
+            if (chart2_inactive != undefined) {
+                chart2_inactive.style.display = 'none';
+            }
+        }
+    }
+
+    function showAttribute(el) {
+        if (el.value == 'order_attribute') {
+            document.getElementById('attribute_select').style.display = "inline-block";
+        }
+        if (el.value != 'order_attribute') {
+            document.getElementById('attribute_select').style.display = "none";
+        }
+        if (el.value == 'days_of_week' || el.value == 'days_of_month') {
+            document.getElementById('group_select').style.display = "inline-block";
+        } else {
+            document.getElementById('group_select').style.display = "none";
+        }
+    }
+
+    function showReportCriteriaForm() {
+        $('report_criteria_content').show();
+        $('show_report_criteria').hide();
+        $('hide_report_criteria').show();
+        $('is_show_report_criteria').value = '1';
+    }
+
+    function hideReportCriteriaForm() {
+        $('report_criteria_content').hide();
+        $('show_report_criteria').show();
+        $('hide_report_criteria').hide();
+        $('is_show_report_criteria').value = '';
+    }
+    //]]>
+</script>
+<?php
+$on_background = Mage::getBaseUrl('media') . 'inventoryreports/light_on.png';
+$off_background = Mage::getBaseUrl('media') . 'inventoryreports/light_off.png';
+$upArrow = $this->getSkinUrl('css/magestore/inventoryplus/images/double-arrow-up.png');
+$downArrow = $this->getSkinUrl('css/magestore/inventoryplus/images/double-arrow-down.png');
+?>
+<style>
+    #inventory_report #inventory_report_header .entry-edit {margin:0 0 20px 0;}
+    #inventory_report #inventory_report_header .entry-edit-head a{
+        width:20px;
+        height:20px;
+        display: block;
+        float:left;
+        margin: 0 0 0 20px;
+    }
+    #inventory_report #inventory_report_header #show_report_criteria { 
+        background: url("<?php echo $downArrow ?>")  no-repeat scroll center center / 15px 15px;
+    }
+
+    #inventory_report #inventory_report_header #hide_report_criteria { 
+        background: url("<?php echo $upArrow ?>")  no-repeat scroll center center / 15px 15px;
+    }    
+
+    .chart_on {
+        background: url("<?php echo $on_background ?>") no-repeat left center  ;
+        background-size: 20px 20px;
+        padding-left:25px;
+        padding-top: 4px;
+        font-weight:bold;
+        color:#eb5e00;
+        cursor:pointer;
+    }
+    .chart_off {
+        background: url("<?php echo $off_background ?>") no-repeat left center  ;
+        background-size: 20px 20px;
+        padding-left:25px;
+        padding-top: 4px;
+        color:#A4B4BA;
+        cursor:pointer;
+    }
+
+    .sales_charts_button span{
+        float:left;
+        margin-top: 5px;
+        margin-bottom: 5px;
+        margin-left: 5px;
+        padding: 6px 10px 5px;
+        border-radius: 5px;
+        cursor:pointer;
+    }
+
+    .chart_active{
+        color: white;
+        background-color: #eb5e00;
+    }
+
+    .chart_inactive{
+        color: #666666;
+        background-color:#ccc;
+    }
+
+    .intelligence-data {
+        padding: 0 20px 20px;
+        width:96.2%;
+        color:#5A7FA2;
+    }
+
+    .intelligence-data .data-well {
+        background: white;
+        border: 1px solid #E9E9E9;
+        padding: 20px;
+        border-radius: 3px;
+    }
+
+    .row-fluid .span3 {
+        width: 21.2%;
+        float: left;
+        text-align: center;
+    }
+    .row-fluid .span3 h2{
+        width:100%;
+    }
+    .entry-edit {
+        margin-top: 15px;
+    }
+</style>

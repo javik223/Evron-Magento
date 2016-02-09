@@ -1,0 +1,52 @@
+
+<script type="text/javascript">
+    function showTimeDelivery(supplierId, productId)
+    {
+        url = '<?php echo $this->getUrl('adminhtml/inr_report/timedeliverybysupplier') ?>';
+        url += 'supplier_id/'+supplierId+'/product_id/'+productId;
+        TINY.box.show(url,1, 800, 400, 1);
+    }
+    
+    function showWarehouseInventory(warehouseId, productId)
+    {
+        url = '<?php echo $this->getUrl('adminhtml/inr_report/timedeliverybywarehouse') ?>';
+        url += 'warehouse_id/'+warehouseId+'/product_id/'+productId;
+        TINY.box.show(url,1, 800, 400, 1);
+    }
+    
+    function showTimeDeliveryByProduct(productId)
+    {
+        url = '<?php echo $this->getUrl('adminhtml/inr_report/timedeliverybyproduct') ?>';
+        url += 'product_id/'+productId;
+        TINY.box.show(url,1, 800, 400, 1);
+    }
+</script>
+
+<div id="inventory_report_content_product_grid" class="inventory_report_content_product_grid">
+
+    <?php
+    $filterData = new Varien_Object();
+    $requestData = Mage::helper('adminhtml')->prepareFilterString($this->getRequest()->getParam('top_filter'));
+//        Zend_debug::dump($requestData);
+        if(empty($requestData)){    //Default Grid
+            if($this->getRequest()->getParam('type_id') == 'product'){
+                echo $this->getChildHtml('report_product_productgrid_bestseller');
+            }
+        }
+        if(!empty($requestData)){   //Selected Grid
+            if($this->getRequest()->getParam('type_id') == 'product'){
+                switch ($requestData['report_radio_select']) {
+                    case 'best_seller':
+                        echo $this->getChildHtml('report_product_productgrid_bestseller');
+                        break;
+                    case 'most_stock_remain':
+                        echo $this->getChildHtml('report_product_productgrid_moststockremain');
+                        break;
+                    case 'warehousing_time_longest':
+                        echo $this->getChildHtml('report_product_productgrid_warehousingtimelongest');
+                        break;
+                }
+            }
+        }
+    ?>
+</div>

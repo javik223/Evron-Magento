@@ -1,0 +1,65 @@
+<?php
+/**
+ * Magestore
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Magestore.com license that is
+ * available through the world-wide-web at this URL:
+ * http://www.magestore.com/license-agreement.html
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade this extension to newer
+ * version in the future.
+ *
+ * @category    Magestore
+ * @package     Magestore_Inventory
+ * @copyright   Copyright (c) 2012 Magestore (http://www.magestore.com/)
+ * @license     http://www.magestore.com/license-agreement.html
+ */
+/**
+ * Inventory Adminhtml Controller
+ *
+ * @category    Magestore
+ * @package     Magestore_Inventory
+ * @author      Magestore Developer
+ */
+?>
+<div id="process_screen">
+    <div class="content-header">
+        <h3><?php echo $this->getHeaderText() ?></h3>
+    </div>
+    <div class="process-content">
+        <ul>
+            <li>
+                <img src="<?php echo $this->getSkinUrl('images/note_msg_icon.gif') ?>" class="v-middle" style="margin-right:5px"/>
+                <?php echo $this->__("Starting process execution, please wait..."); ?>
+            </li>
+            <li style="background-color:#FFD;">
+                <img src="<?php echo $this->getSkinUrl('images/fam_bullet_error.gif'); ?>" class="v-middle" style="margin-right:5px"/>
+                <?php echo $this->__("Warning: Please do not close the window during processing data"); ?>
+            </li>
+        </ul>
+        <ul id="processRows">
+        </ul>
+        <div id="progress_bar" class="progress_bar" style="display:none;">
+            <span class="percent"></span>
+            <div class="remaining-process"></div>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+    var FORM_KEY = '<?php echo $this->getFormKey(); ?>';
+    var processBar = new IMProcessBar('progress_bar');
+
+    var imProcessControl = new IMProcessControl('processRows', '<?php echo $this->getLoadDataTypeUrl() ?>',
+            '<?php echo $this->getTotalUrl() ?>', '<?php echo $this->getRunProcessUrl() ?>',
+            '<?php echo $this->getRedirectUrl() ?>', '<?php echo $this->getFormKey() ?>');
+    imProcessControl.initIcons('<?php echo $this->getSkinUrl('images/fam_bullet_success.gif') ?>',
+            '<?php echo $this->getSkinUrl('images/fam_bullet_error.gif') ?>',
+            '<?php echo $this->getSkinUrl('images/note_msg_icon.gif') ?>');
+    imProcessControl.initMessages('<?php echo $this->getErrorMessage() ?>', '<?php echo $this->getFinishMessage() ?>', '<?php echo $this->getRedirectMessage() ?>');
+    imProcessControl.initProcessBar(processBar);
+    imProcessControl.run();
+</script>

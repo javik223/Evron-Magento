@@ -1,0 +1,136 @@
+<?php
+$id = $this->getRequest()->getParam('id');
+$source = $this->getRequest()->getParam('source');
+$target = $this->getRequest()->getParam('target');
+if ($id) {
+    $requestStock = Mage::getModel('inventorywarehouse/requeststock')->load($id);
+    if ($requestStock->getData('warehouse_id_from')) {
+        $source = $requestStock->getData('warehouse_id_from');
+        $sourceName = $requestStock->getWarehouseNameFrom();
+    } elseif ($requestStock->getData('warehouse_name_from') == 'Others') {
+        $source = 'others';
+        $sourceName = 'Others';
+    }
+    $target = $requestStock->getData('warehouse_id_to');
+    $targetName = $requestStock->getData('warehouse_name_to');
+} else {
+    if ($source == 'others') {
+        $sourceName = $this->__('Others');
+    } else {
+        $sourceName = Mage::getModel('inventoryplus/warehouse')->load($source)->getWarehouseName();
+    }
+    $targetName = Mage::getModel('inventoryplus/warehouse')->load($target)->getWarehouseName();
+}
+?>
+<div class="entry-edit">
+    <div class="entry-edit-head">
+        <h4 class="icon-head head-edit-form fieldset-legend"><?php echo $this->__('Stock Request Information') ?></h4>
+    </div>
+    <div id="adjuststock_form" class="fieldset ">
+        <input name="warehouse_id_from" type="hidden" value="<?php echo $source ?>" id="warehouse_id_from"/>
+        <input name="warehouse_source" type="hidden" value="<?php echo $source ?>" id="warehouse_source"/>
+        <input name="warehouse_id_to" type="hidden" value="<?php echo $target ?>" id="warehouse_id_to"/>
+        <input name="warehouse_target" type="hidden" value="<?php echo $target ?>" id="warehouse_target"/>
+        <div style='float:left; width:30%;'>
+            <div>
+                <label for="warehouse">
+                    <strong><?php echo $this->__('Source') ?>:&nbsp;&nbsp;</strong>
+                </label>
+                <?php echo $sourceName ?>
+            </div>
+            <div>
+                <label for="warehouse">
+                    <strong><?php echo $this->__('Destination') ?>:&nbsp;&nbsp;</strong>
+                </label>
+                <?php echo $targetName ?>
+            </div>                  
+            <?php if ($id): ?>
+                <?php
+                $statusArray = array(
+                    1 => Mage::helper('inventorywarehouse')->__('Complete'),
+                    2 => Mage::helper('inventorywarehouse')->__('Canceled')
+                );
+                ?>
+                <?php $status = $requestStock->getStatus() ?>
+                <div>
+                    <label for="warehouse">
+                        <strong><?php echo $this->__('Status') ?>:&nbsp;&nbsp;</strong>
+                    </label>
+                    <?php echo $statusArray[$status] ?>
+                </div>
+                <br />
+            <?php endif ?>
+        </div>
+        <div style="float:left;">
+            <label for="warehouse"><strong><?php echo $this->__('Reason(s) for requesting stock') ?><?php if ($this->getRequest()->getParam('id')) echo ':' ?><?php echo ' ' ?></strong>
+                <?php if (!$this->getRequest()->getParam('id')): ?>
+                    <span class="required">*</span>
+                <?php endif; ?>
+            </label>
+            <br />            
+            <?php if ($this->getRequest()->getParam('id')): ?>
+                <?php echo nl2br($requestStock->getReason()) ?>
+            <?php else: ?>
+                <?php $reasonContent = ''; ?>
+                <?php if (Mage::getModel('admin/session')->getData('request_stock_reason', null)): ?>
+                    <?php $reasonContent = Mage::getModel('admin/session')->getData('request_stock_reason', null) ?>
+                    <?php Mage::getModel('admin/session')->setData('request_stock_reason', null) ?>
+                <?php endif ?>
+                <textarea id="reason" name="reason" title="<?php echo $this->__('Reason(s) for requesting stock') ?>" style="width:300px; height:50px;" rows="2" cols="15" class="required-entry  textarea"><?php echo $reasonContent ?></textarea>
+            <?php endif ?>
+        </div>
+        <div class="clear"></div>
+    </div>
+</div>
+<?php if (!$this->getRequest()->getParam('id')): ?>
+    <div class="entry-edit">
+        <div class="entry-edit-head">
+            <h4 class="icon-head head-edit-form fieldset-legend"><?php echo $this->__('Import Products to Request Stock') ?></h4>
+        </div>    
+        <div id="stocktransfering_form" class="fieldset ">
+            <div style="float:left;">
+                <div>
+                    <label for="fileToUpload">
+                        <?php echo $this->__('Please choose CSV file to import') ?>
+                    </label><br />
+                    <input type="file" name="fileToUpload[]" id="fileToUpload" onchange="fileSelected();" enctype="multipart/form-data"/>
+                    <input name="form_key" type="hidden" value="<?php echo $this->getFormKey() ?>" id="form_key"/>
+                    <button style="" onclick="uploadFile()" class="scalable task" type="button" id="Upload"><span><?php echo $this->__('Import') ?></span></button>
+                </div>            
+                <div class="clear"></div>
+                <div id="fileName">
+                </div>
+                <div id="fileSize">
+                </div>
+                <div id="fileType">
+                </div>
+                <div id="progressNumber">
+                </div>
+            </div>
+            <div id="messages" style="float: left;padding-left: 20px;width:60%;">
+                <ul class="messages">
+                    <li class="notice-msg">
+                        <ul>
+                            <li>
+                                <?php echo $this->__('If you want to request stock for a warehouse by importing loads of products, the structure of CSV file is as follows: <h1><b>SKU,QTY</b></h1>') ?>                             
+                                <?php $example = "SKU : SKU of product requested <br />" ?>                               
+                                <?php $example .= "QTY : Quantity of product requested" ?>                                                               
+                                <div style="padding-left: 20px;" ?>
+                                    <?php echo $example ?>
+                                </div>
+                            </li>
+                            <li>
+                                <div style="float:left;">                                    
+                                    <b><?php echo $this->__('Example file') ?> (<a href="<?php echo Mage::getBaseUrl('media') . 'inventorywarehouse/csv/import_product_to_request_stock.csv'; ?>"><?php echo $this->__('Download') ?></a>)</b>
+                                </div>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+            <div class="clear"></div>
+        </div>
+    </div>
+    <?php
+
+ endif ?>

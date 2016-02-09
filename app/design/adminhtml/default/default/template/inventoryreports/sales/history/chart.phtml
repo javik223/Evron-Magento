@@ -1,0 +1,415 @@
+<?php 
+        $filterData = new Varien_Object();
+        $requestData = Mage::helper('adminhtml')->prepareFilterString($this->getRequest()->getParam('top_filter'));
+        foreach ($requestData as $key => $value)
+            if (!empty($value))
+                $filterData->setData($key, $value);
+        $dateFrom = $filterData->getData('date_from',null);
+        $dateTo = $filterData->getData('date_to',null);  
+        if(!$dateFrom || !$dateTo):
+        else:
+?>
+<div class="entry-edit" id="test">
+    <div class="entry-edit-head">
+        <h4 class="icon-head head-edit-form fieldset-legend"><?php echo $this->__('Chart Report') ?></h4>
+    </div>
+    <!DOCTYPE HTML>
+    <div style="overflow-x: scroll;">
+        <div style="width: 100%; float: left;">
+            <?php
+                $filterData = new Varien_Object();
+                $requestData = Mage::helper('adminhtml')->prepareFilterString($this->getRequest()->getParam('top_filter'));
+                foreach ($requestData as $key => $value)
+                    if (!empty($value))
+                        $filterData->setData($key, $value);
+                $dateFrom = $filterData->getData('date_from', null);
+                $dateTo = $filterData->getData('date_to', null);
+                $period = $filterData->getData('period_type', null);
+                $dateFrom = $dateFrom . ' 00:00:00';
+                $dateTo = $dateTo . ' 23:59:59';
+                $dateFromOrder = Mage::getModel('core/date')->gmtDate('Y-m-d H:i:s', strtotime($dateFrom));
+                $dateToOrder = Mage::getModel('core/date')->gmtDate('Y-m-d H:i:s', strtotime($dateTo));
+                $totalOrder = 0;
+                $totalPurchaseOrdered = 0;
+                $categories = '';
+                $series = array();
+            ?>
+            <?php if($warehouseId = $this->getRequest()->getParam('warehouse_id')): ?>
+                <?php
+                    //sales collection 
+                    $collection = Mage::getResourceModel('inventoryplus/warehouse_shipment_collection')
+                                    ->addFieldToFilter('warehouse_id',$warehouseId);
+                    $resource = Mage::getSingleton('core/resource');
+                    $collection->getSelect()
+                                ->join(array('order_shipment' => $collection->getTable('sales/shipment')), '`main_table`.`shipment_id` = `order_shipment`.`entity_id` and `order_shipment`.`created_at` >= \''. $dateFrom .'\' and `order_shipment`.`created_at` <= \''. $dateTo.'\'', 
+                                        array('*')
+                                    );
+                    
+                    $purchaseOrderIds = array();
+                    // $purchaseProducts = Mage::getResourceModel('inventorypurchasing/purchaseorder_product_collection');
+                    // $purchaseProducts->getSelect()
+                                     // ->join(array('purchase_order' => $resource->getTablename('inventorypurchasing/purchaseorder')), '`purchase_order`.`purchase_on` >= \''. $dateFrom .'\' and `purchase_order`.`purchase_on` <= \''. $dateTo.'\'', 
+                                            // array('*')
+                                        // );
+                    $purchaseOrders = Mage::getResourceModel('inventorypurchasing/purchaseorder_collection')                                        
+                                                ->addFieldToFilter('purchase_on', array('gteq' => $dateFrom))
+                                                ->addFieldToFilter('purchase_on', array('lteq' => $dateTo))
+												->addFieldToFilter('status', array('neq' => '7'));
+                    if ($period == 2) {
+                        $collection->getSelect()->group(array('DATE_FORMAT(`order_shipment`.`created_at`, "%Y-%m")'));
+                        $collection->getSelect()->columns(array(
+                            'period' => 'DATE_FORMAT(`order_shipment`.`created_at`, "%Y-%m")',
+                            'total_order' => 'SUM(`main_table`.`qty_shipped`)'
+                        ));
+                        
+                        $purchaseOrders->getSelect()->group(array('DATE_FORMAT(`main_table`.`purchase_on`, "%Y-%m")'));
+                        $purchaseOrders->getSelect()->columns(array(
+                            'period' => 'DATE_FORMAT(`main_table`.`purchase_on`, "%Y-%m")',
+                            'total_purchase' => 'GROUP_CONCAT(`main_table`.`purchase_order_id` SEPARATOR \', \')'
+                        ));
+                    } elseif ($period == 3) {
+                        $collection->getSelect()->group(array('DATE_FORMAT(`order_shipment`.`created_at`, "%Y")'));
+                        $collection->getSelect()->columns(array(
+                            'period' => 'DATE_FORMAT(`order_shipment`.`created_at`, "%Y")',
+                            'total_order' => 'SUM(`main_table`.`qty_shipped`)'
+                        ));
+                        
+                        $purchaseOrders->getSelect()->group(array('DATE_FORMAT(`main_table`.`purchase_on`, "%Y")'));
+                        $purchaseOrders->getSelect()->columns(array(
+                            'period' => 'DATE_FORMAT(`main_table`.`purchase_on`, "%Y")',
+                            'total_purchase' => 'GROUP_CONCAT(`main_table`.`purchase_order_id` SEPARATOR \', \')'
+                        ));
+                    } elseif ($period == 1) {
+                        $collection->getSelect()->group(array('date(`order_shipment`.`created_at`)'));
+                        $collection->getSelect()->columns(array(
+                            'period' => 'date(`order_shipment`.`created_at`)',
+                            'total_order' => 'SUM(`main_table`.`qty_shipped`)'
+                        ));
+                        
+                        $purchaseOrders->getSelect()->group(array('date(`main_table`.`purchase_on`)'));
+                        $purchaseOrders->getSelect()->columns(array(
+                            'period' => 'date(`main_table`.`purchase_on`)',
+                            'total_purchase' => 'GROUP_CONCAT(`main_table`.`purchase_order_id` SEPARATOR \', \')'
+                        ));
+                    }
+                    
+                ?>
+            <?php else: ?>
+                <?php 
+                    //sales collection
+                    $collection = Mage::getResourceModel('sales/order_item_collection')
+                                                    ->addFieldToFilter('created_at', array('gteq' => $dateFrom))
+                                                    ->addFieldToFilter('created_at', array('lteq' => $dateTo));
+
+                    //purchase order collection
+                    $resource = Mage::getSingleton('core/resource');  
+                    $purchaseOrderIds = array();
+                    // $purchaseProducts = Mage::getResourceModel('inventorypurchasing/purchaseorder_product_collection');
+                    // $purchaseProducts->getSelect()
+                                     // ->join(array('purchase_order' => $resource->getTablename('inventorypurchasing/purchaseorder')), '`purchase_order`.`purchase_on` >= \''. $dateFrom .'\' and `purchase_order`.`purchase_on` <= \''. $dateTo.'\'', 
+                                            // array('*')
+                                        // );
+                    $purchaseOrders = Mage::getResourceModel('inventorypurchasing/purchaseorder_collection')                                        
+                                                ->addFieldToFilter('purchase_on', array('gteq' => $dateFrom))
+                                                ->addFieldToFilter('purchase_on', array('lteq' => $dateTo))
+												->addFieldToFilter('status', array('neq' => '7'));
+                    if ($period == 2) {
+                        $collection->getSelect()->group(array('DATE_FORMAT(`main_table`.`created_at`, "%Y-%m")'));
+                        $collection->getSelect()->columns(array(
+                            'period' => 'DATE_FORMAT(`main_table`.`created_at`, "%Y-%m")',
+                            'total_order' => 'SUM(`main_table`.`qty_shipped`)'
+                        ));
+
+                        $purchaseOrders->getSelect()->group(array('DATE_FORMAT(`main_table`.`purchase_on`, "%Y-%m")'));
+                        $purchaseOrders->getSelect()->columns(array(
+                            'period' => 'DATE_FORMAT(`main_table`.`purchase_on`, "%Y-%m")',
+                            'total_purchase' => 'GROUP_CONCAT(`main_table`.`purchase_order_id` SEPARATOR \', \')'
+                        ));
+                    } elseif ($period == 3) {
+                        $collection->getSelect()->group(array('DATE_FORMAT(`main_table`.`created_at`, "%Y")'));
+                        $collection->getSelect()->columns(array(
+                            'period' => 'DATE_FORMAT(`main_table`.`created_at`, "%Y")',
+                            'total_order' => 'SUM(`main_table`.`qty_shipped`)'
+                        ));
+
+                        $purchaseOrders->getSelect()->group(array('DATE_FORMAT(`main_table`.`purchase_on`, "%Y")'));
+                        $purchaseOrders->getSelect()->columns(array(
+                            'period' => 'DATE_FORMAT(`main_table`.`purchase_on`, "%Y")',
+                            'total_purchase' => 'GROUP_CONCAT(`main_table`.`purchase_order_id` SEPARATOR \', \')'
+                        ));
+                    } elseif ($period == 1) {
+                        $collection->getSelect()->group(array('date(`main_table`.`created_at`)'));
+                        $collection->getSelect()->columns(array(
+                            'period' => 'date(`main_table`.`created_at`)',
+                            'total_order' => 'SUM(`main_table`.`qty_shipped`)'
+                        ));
+
+                        $purchaseOrders->getSelect()->group(array('date(`main_table`.`purchase_on`)'));
+                        $purchaseOrders->getSelect()->columns(array(
+                            'period' => 'date(`main_table`.`purchase_on`)',
+                            'total_purchase' => 'GROUP_CONCAT(`main_table`.`purchase_order_id` SEPARATOR \', \')'
+                        ));
+                    }
+                ?>
+            <?php endif ?>
+            <?php
+                $totalOrders = 0;
+                $allDataOrders = array();
+                $allPurchaseOrders = array();
+                foreach ($collection as $col):                    
+                    $allDataOrders[$col->getPeriod()] = $col->getTotalOrder();
+                    $totalOrders += $col->getTotalOrder();
+                endforeach;
+
+                $days = (strtotime($dateTo) - strtotime($dateFrom))/(60*60*24);
+
+
+                foreach($purchaseOrders as $purchaseOrder)
+                    $allPurchaseOrders[$purchaseOrder->getPeriod()] = $purchaseOrder->getTotalPurchase();
+                $categories = '[';
+                $series['ordered']['name'] = $this->__('No. of Orders ');
+                $series['ordered']['data'] = '[';
+                $series['purchased']['name'] = $this->__('Total Purchase Order');
+                $series['purchased']['data'] = '[';
+                $count = 0;
+                if ($period == 3) {
+                    $series['averageorder']['name'] = $this->__('Average order per year');
+                    $series['averageorder']['data'] = '[';
+                    $averageorder = round(($totalOrders/$days)*365,2); 
+                    $start = $dateFrom;
+                    $end = $dateTo;
+                    $startYear = date('Y',strtotime($start));
+                    $endYear = date('Y',strtotime($end));
+                    $period = array();
+                    for($startYear;$startYear <= $endYear;$startYear++){
+                        $period[] = floatval($startYear);
+                    }      
+                    foreach ($period as $dt) {
+                        if($count != 0){
+                            $categories .= ',';
+                            $series['ordered']['data'] .= ',';                        
+                            $series['purchased']['data'] .= ',';                        
+                            $series['averageorder']['data'] .= ',';                        
+                        }
+                        $date = $dt;                       
+                        $categories .= '\''.$date.'\'';
+                        if (isset($allDataOrders[$date])) {
+                            $series['ordered']['data'] .=  $allDataOrders[$date];
+                        } else {
+                            $series['ordered']['data'] .=  0;
+                        }
+                        $series['averageorder']['data'] .=  $averageorder;
+
+                        if (isset($allPurchaseOrders[$date])) {
+
+                            $purchaseOrderIds = explode(',',$allPurchaseOrders[$date]);
+                            if($warehouseId = $this->getRequest()->getParam('warehouse_id')){
+                                $purchaseOrderProducts = Mage::getModel('inventorypurchasing/purchaseorder_productwarehouse')
+                                                                    ->getCollection()
+                                                                    ->addFieldToFilter('purchase_order_id',array('in'=>$purchaseOrderIds))                                                                    
+                                                                    ->addFieldToFilter('warehouse_id',$warehouseId);
+                                $purchaseOrderProducts->getSelect()->columns(array('total_purchase_product'=>'SUM(`main_table`.`qty_received` - `main_table`.`qty_returned`)'))
+                                                            ->group('warehouse_id');
+                            }else{
+                                $purchaseOrderProducts = Mage::getResourceModel('inventorypurchasing/purchaseorder_product_collection')
+                                                            ->addFieldToFilter('purchase_order_id',array('in'=>$purchaseOrderIds))
+                                                            ;
+                                $purchaseOrderProducts->getSelect()->columns(array('total_purchase_product'=>'SUM(`main_table`.`qty_recieved` - `main_table`.`qty_returned`)'))
+                                                            ->group('purchase_order_id');
+                            }
+                            $p = 0;
+                            foreach($purchaseOrderProducts as $pProduct)
+                                $p += $pProduct->getTotalPurchaseProduct();
+                            $series['purchased']['data'] .=  $p;
+
+                        } else {
+                            $series['purchased']['data'] .=  0;
+                        }
+                        $count++;
+                    }
+                }elseif ($period == 2) {
+                    $series['averageorder']['name'] = $this->__('Average order per month');
+                    $series['averageorder']['data'] = '[';
+                    $averageorder = round(($totalOrders/$days)*30,2); 
+                    $start = new DateTime($dateFrom);
+                    $start = $start->modify('first day of this month');
+                    $end = new DateTime($dateTo);
+                    $end = $end->modify('first day of this month');
+                    $interval = DateInterval::createFromDateString('1 month');
+                    $period = new DatePeriod($start, $interval, $end);
+
+                    foreach ($period as $dt) {
+                        if($count != 0){
+                            $categories .= ',';
+                            $series['ordered']['data'] .= ',';                        
+                            $series['purchased']['data'] .= ',';                        
+                            $series['averageorder']['data'] .= ',';                        
+                        }
+                        $series['averageorder']['data'] .=  $averageorder;
+                        $date = $dt->format("Y-m");                        
+                        $categories .= '\''.$date.'\'';
+                        if (isset($allDataOrders[$date])) {
+                            $series['ordered']['data'] .=  $allDataOrders[$date];
+                        } else {
+                            $series['ordered']['data'] .=  0;
+                        }
+
+                        if (isset($allPurchaseOrders[$date])) {
+
+                            $purchaseOrderIds = explode(',',$allPurchaseOrders[$date]);
+                            if($warehouseId = $this->getRequest()->getParam('warehouse_id')){
+                                $purchaseOrderProducts = Mage::getModel('inventorypurchasing/purchaseorder_productwarehouse')
+                                                                    ->getCollection()
+                                                                    ->addFieldToFilter('purchase_order_id',array('in'=>$purchaseOrderIds))                                                                    
+                                                                    ->addFieldToFilter('warehouse_id',$warehouseId);
+                                $purchaseOrderProducts->getSelect()->columns(array('total_purchase_product'=>'SUM(`main_table`.`qty_received` - `main_table`.`qty_returned`)'))
+                                                            ->group('warehouse_id');
+                            }else{
+                                $purchaseOrderProducts = Mage::getResourceModel('inventorypurchasing/purchaseorder_product_collection')
+                                                            ->addFieldToFilter('purchase_order_id',array('in'=>$purchaseOrderIds))
+                                                            ;
+                                $purchaseOrderProducts->getSelect()->columns(array('total_purchase_product'=>'SUM(`main_table`.`qty_recieved` - `main_table`.`qty_returned`)'))
+                                                            ->group('purchase_order_id');
+                            }
+                            $p = 0;
+                            foreach($purchaseOrderProducts as $pProduct)
+                                $p += $pProduct->getTotalPurchaseProduct();
+                            $series['purchased']['data'] .=  $p;
+
+                        } else {
+                            $series['purchased']['data'] .=  0;
+                        }
+                        $count++;
+                    }
+                } elseif ($period == 1) {
+                    $series['averageorder']['name'] = $this->__('Average order per day');
+                    $series['averageorder']['data'] = '[';
+                    $averageorder = round(($totalOrders/$days),2); 
+                    $end = $dateTo;
+                    $start = $dateFrom;
+                    $datediff = strtotime($end) - strtotime($start);
+                    $datediff = floor($datediff / (60 * 60 * 24));
+                    for ($i = 0; $i < $datediff + 1; $i++) {
+                        if($count != 0){
+                            $categories .= ',';
+                            $series['ordered']['data'] .= ',';                        
+                            $series['purchased']['data'] .= ',';                        
+                            $series['averageorder']['data'] .= ',';                        
+                        }
+                        $series['averageorder']['data'] .=  $averageorder;
+                        $date = date("Y-m-d", strtotime($start . ' + ' . $i . 'day'));
+//                        if($count % 7 == 0)
+                            $categories .= '\''.$date.'\'';
+//                        else
+//                            $categories .= null;
+                        if (isset($allDataOrders[$date])) {
+                            $series['ordered']['data'] .=  $allDataOrders[$date];
+                        } else {
+                            $series['ordered']['data'] .=  0;
+                        }
+
+                        if (isset($allPurchaseOrders[$date])) {
+
+                            $purchaseOrderIds = explode(',',$allPurchaseOrders[$date]);
+                            if($warehouseId = $this->getRequest()->getParam('warehouse_id')){
+                                $purchaseOrderProducts = Mage::getModel('inventorypurchasing/purchaseorder_productwarehouse')
+                                                                    ->getCollection()
+                                                                    ->addFieldToFilter('purchase_order_id',array('in'=>$purchaseOrderIds))                                                                    
+                                                                    ->addFieldToFilter('warehouse_id',$warehouseId);
+                                $purchaseOrderProducts->getSelect()->columns(array('total_purchase_product'=>'SUM(`main_table`.`qty_received` - `main_table`.`qty_returned`)'))
+                                                            ->group('warehouse_id');
+                            }else{
+                                $purchaseOrderProducts = Mage::getResourceModel('inventorypurchasing/purchaseorder_product_collection')
+                                                            ->addFieldToFilter('purchase_order_id',array('in'=>$purchaseOrderIds))
+                                                            ;
+                                $purchaseOrderProducts->getSelect()->columns(array('total_purchase_product'=>'SUM(`main_table`.`qty_recieved` - `main_table`.`qty_returned`)'))
+                                                            ->group('purchase_order_id');
+                            }
+                            $p = 0;
+                            foreach($purchaseOrderProducts as $pProduct)
+                                $p += $pProduct->getTotalPurchaseProduct();
+                            $series['purchased']['data'] .=  $p;
+
+                        } else {
+                            $series['purchased']['data'] .=  0;
+                        }
+                        $count++;
+                    }
+                }
+                $categories .= ']';
+                $series['ordered']['data'] .= ']';               
+                $series['purchased']['data'] .= ']';               
+                $series['averageorder']['data'] .= ']';               
+            ?>            
+            <?php if($categories && $series): ?>
+                <script type="text/javascript">
+                    $(function () {
+                        $_('#saleshistory_line').highcharts({
+                            title: {
+                                text: '<?php echo $this->__('Sales history report') ?>',
+                                x: -20 //center
+                            },
+                            subtitle: {
+                                //            text: 'Source: WorldClimate.com',
+                                //            x: -20
+                            },
+                            xAxis: {
+                                categories: <?php echo $categories ?>
+                            },
+                            yAxis: {
+                                title: {
+                                    text: '<?php echo $this->__('Sales history report') ?>'
+                                },
+                                plotLines: [{
+                                        value: 0,
+                                        width: 1,
+                                        color: '#808080'
+                                    }]
+                            },
+                            tooltip: {
+                                valueSuffix: ''
+                            },
+                            //        legend: {
+                            //            layout: 'vertical',
+                            //            align: 'right',
+                            //            verticalAlign: 'middle',
+                            //            borderWidth: 0
+                            //        },
+                            series: [
+                                <?php $count = 0 ?>
+                                <?php foreach ($series as $serie): ?>
+                                    <?php if (!$count == 0) echo ',' ?>
+                                    <?php $count++ ?>    
+                                                                                    {
+                                                                                        name: '<?php echo $serie['name'] ?>',
+                                                                                        data: <?php echo $serie['data'] ?>
+                                                                                    }
+                                <?php endforeach; ?>
+                                ]
+                            });
+                        });
+                    </script>   
+                    <div id="saleshistory_line" style="min-width: 310px; height: 400px; margin: 0 auto"></div>
+                <?php endif ?>
+        </div>            
+    </div>          
+</div>
+
+<?php endif ?>
+
+
+<script type="text/javascript" src="<?php echo $this->getJsUrl() ?>magestore/adminhtml/inventory/dashboard/lib/_JSSettings.js"></script>
+<script src="<?php echo $this->getJsUrl() ?>magestore/adminhtml/inventory/dashboard/lib/js_002"></script>
+<script src="<?php echo $this->getJsUrl() ?>magestore/adminhtml/inventory/dashboard/lib/dashboards"></script>
+
+<script type="text/javascript">
+    var saveViewPositions = '<?php echo $this->getUrl('adminhtml/ind_dashboard/saveviewposition') ?>';
+    var saveTabPositions = '<?php echo $this->getUrl('adminhtml/ind_dashboard/savetabposition') ?>';
+    var form_key_dashboard = '<?php echo $this->getFormKey() ?>';
+</script>
+<script type="text/javascript">
+    var $sd = new InventoryDashboard.Views.Dashboards();
+    $sd.isShare = false;
+    $sd.backgroundColour = '#808080';
+    $sd.init();
+</script>

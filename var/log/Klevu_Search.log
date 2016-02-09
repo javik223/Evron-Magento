@@ -1,0 +1,10 @@
+2015-12-08T04:26:28+00:00 INFO (6): [klevu_search_product_sync] Starting sync for Evron Food Store (Default Store View).
+2015-12-08T04:26:28+00:00 INFO (6): [klevu_search_product_sync] Found 0 products to delete.
+2015-12-08T04:26:28+00:00 INFO (6): [klevu_search_product_sync] Found 0 products to update.
+2015-12-08T04:26:28+00:00 INFO (6): [klevu_search_product_sync] Found 24 products to add.
+2015-12-08T04:26:32+00:00 INFO (6): [klevu_search_product_sync] Finished sync for Evron Food Store (Default Store View).
+2015-12-08T04:26:33+00:00 INFO (6): [klevu_search_product_sync] Automatically enabled Klevu Search on Frontend for Evron Food Store (Default Store View).
+2015-12-08T06:23:36+00:00 ERR (3): HTTP error: Unable to Connect to ssl://eucs2.klevu.com:443. Error #0: php_network_getaddresses: getaddrinfo failed: nodename nor servname provided, or not known
+2015-12-08T08:35:17+00:00 ERR (3): HTTP error: Unable to Connect to ssl://stats.klevu.com:443. Error #0: 
+2015-12-08T09:06:07+00:00 ERR (3): HTTP error: Read timed out after 10 seconds
+2015-12-08T11:09:50+00:00 ERR (3): HTTP error: Read timed out after 10 seconds

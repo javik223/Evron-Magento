@@ -1,0 +1,117 @@
+<!--
+ /**
+ * Magento Community Edition
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Open Software License (OSL 3.0)
+ * that is bundled with this package in the file LICENSE.txt.
+ * It is also available through the world-wide-web at this URL:
+ * http://opensource.org/licenses/osl-3.0.php
+ * If you did not receive a copy of the license and are unable to
+ * obtain it through the world-wide-web, please send an email
+ * to license@magentocommerce.com so we can send you a copy immediately.
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade Magento to newer
+ * versions in the future. If you wish to customize Magento for your
+ * needs please refer to http://www.magentocommerce.com for more information.
+ *
+ * @category   design
+ * @package    base_default
+ * @created    4th Dec, 2014 12:58pm
+ * @author     Clarion magento team<magento@clariontechnologies.co.in>
+ * @purpose    Manage one step checkout html 
+ * @copyright  Copyright (c) 2014 Clarion Technologies Pvt.Ltd
+ * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License
+ */  -->
+<div class="page-title">
+    <h1 class='h1_opc'><?php echo Mage::getStoreConfig('onestepcheckout/general/title') ?></h1>    
+  <p class="title-description"> <?php echo Mage::getStoreConfig('onestepcheckout/general/description') ?> </p>
+    <?php if (!Mage::getSingleton('customer/session')->isLoggedIn()){ ?>
+    <p class="onestepcheckout_loginarea">
+        <a href="javascript:void(0)" class="onestepcheckout_loginlink" onclick='open_login();'>
+            <?php echo $this->__('Already registered? Click here to login') ?>
+        </a>
+    </p>    
+	<?php 	
+		echo $this->getChildHtml('customer.login');
+		echo $this->getChildHtml('customer.forgot');	
+    }    
+    ?>
+</div>
+
+<?php echo $this->getMessagesBlock()->getGroupedHtml() ?>
+
+<?php
+$seq_http	= (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS']==='on');   
+?>
+<script type="text/javascript">
+	var http_type	= '<?php if($seq_http){echo 'https';}else{echo 'http';}?>'; 	
+	
+</script>
+<script type="text/javascript" src="<?php echo $this->getSkinUrl('js/onestepcheckout.js') ?>"></script>
+
+<script type="text/javascript">countryRegions = <?php echo $this->helper('directory')->getRegionJson() ?></script>
+
+<form action="" id="onestepcheckout_orderform">
+<div class="col3-set onestepcheckout_datafields">
+    <div class="col-1" style="float:left">
+        <?php echo $this->getChildHtml('billing.address') ?>
+        <?php echo $this->getChildHtml('shipping.address') ?>
+    </div>
+
+    <div class="col-2" style="float:left">
+        <?php echo $this->getChildHtml('shipping.method') ?>
+        <?php echo $this->getChildHtml('payment.method') ?>
+         <div id="checkout-coupon-discount-load">
+            <?php echo $this->getChildHtml('coupon') ?>
+        </div>
+
+        <?php if (Mage::getStoreConfig('onestepcheckout/general/comment')) : ?>
+		<div class="op_block_title">
+	    	<?php echo $this->helper('sales')->__('Comment') ?>
+	    </div>        
+        <div class="form_fields">
+            <div class="full">
+                <div class="data_area" id='comment-block'>
+                    <textarea name="order-comment" id="order-comment"><?php echo trim(Mage::getSingleton('customer/session')->getOrderCustomerComment()) ?></textarea>
+                </div>
+            </div>
+        </div>
+        <?php endif; ?>	
+        <?php echo $this->getChildHtml('review') ?>   
+    </div>
+
+   <!--  <div class="col-3" style="clear:both"> 
+        
+    </div> -->
+</div>
+ 
+</form>
+
+
+<script type="text/javascript">
+//<![CDATA[
+    var checkout = new COGOPC('onestepcheckout_orderform', {
+    	save    : '<?php echo $this->getUrl('onestepcheckout/index/saveOrder', array('_secure'=>$seq_http)) ?>',
+    	update  : '<?php echo $this->getUrl('onestepcheckout/index/updateCheckout', array('_secure'=>$seq_http)) ?>',
+        success : '<?php echo $this->getUrl('onestepcheckout/index/success', array('_secure'=>$seq_http)) ?>',
+        failure : '<?php echo $this->getUrl('checkout/cart') ?>'
+    }, "<?php echo $this->__('Please agree to all the terms and conditions.') ?>");
+
+    document.observe("dom:loaded", function() {
+        var win_triggers	= Array();
+   		$$('.checkout-agreements .agree a').each(function(item){
+   			var obj	= {
+   				el: $$('.' + item.className),
+   		   		event: 'click',
+				window: $(item.className + '-window')
+			};
+   			win_triggers.push(obj);
+        });
+		opc_window	= new COGOPC.Window({triggers: win_triggers});
+    });
+//]]>
+</script>

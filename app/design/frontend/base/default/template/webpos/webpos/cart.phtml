@@ -1,0 +1,125 @@
+<?php
+//$userId = Mage::helper('webpos/permission')->getCurrentUser();
+//$isCreateOrder =  Mage::helper('webpos/permission')->isCreateOrder($userId);
+//if ($isCreateOrder) {
+//
+?>
+
+<div class="cart">
+    <div class="manage-customer add-customer col-lg-12 col-md-12 col-sm-12 col-xs-12">
+        <div id='webpos_customer_overlay' class='hide'>
+        </div>
+        <h2  class="col-lg-9 col-md-9 col-sm-9 col-xs-9" id="add-customer" onclick="showCustomers()">
+<?php echo $this->__('Add Customer'); ?>
+        </h2>
+        <div class="button-delete col-lg-3 col-md-3 col-sm-3 col-xs-3">
+            <button class="btn btn-delete" id="remove-customer" style="display:none" onclick="removeCustomer();"><?php echo $this->__('Delete'); ?></button>
+        </div>
+    </div>
+    <div class="shopping-cart" id='webpos_cart_area'>
+        <div id='webpos_cart_overlay' class='hide'>
+        </div>
+        <!--div style="position: absolute;top: 0px;left: 0px;width: 100%;height: 100%;z-index: 10;background-color: rgba(255, 255, 255, .8);" id='webpos_cart_custom_sale' class='hide'><img id='cart_loader' style="position: absolute;top: 5px;left: 50%;z-index: 10" src='<?php //echo $this->getSkinUrl('images/icon/ajax_loader.gif');  ?>' /></div-->
+        <div id='webpos_cart'>
+<?php echo $this->getChildHtml('pos_items'); ?>
+        </div>
+        <div id='pos_totals'>
+<?php echo $this->getChildHtml('totals'); ?>
+        </div>
+    </div>
+</div>
+<div id='cart_item_sample' class='hide'>
+    <div class="product" prdid='' product_price='' itemid='' custom_price=''>
+        <div class="img-product col-lg-1 col-md-1 col-sm-1 col-xs-1">
+            <img src=''/>
+            <span class="number"><?php echo '0' ?></span>
+        </div>
+        <div class="name-product col-lg-6 col-md-6 col-sm-6 col-xs-6">
+            <div class='product_name'></div>
+            <div class='product_options'></div>
+        </div>
+        <div class="price col-lg-4 col-md-4 col-sm-4 col-xs-4">
+            <span class='webpos_item_subtotal row_total'><?php echo '0' ?></span>
+            <div class="webpos_item_original"></div>
+        </div>
+        <div class="delete col-lg-1 col-md-1 col-sm-1 col-xs-1">
+            <div class='webpos_item_subtotal'>X</div>
+        </div>
+        <div class='clear'></div>
+    </div>
+</div>
+<div class="bg-fade" style="display: none"></div>
+<!-- <div class=fade-login></div>-->
+<script type="text/javascript">
+    function showCustomers() {
+        if (!$('userid') || $('userid').value == '')
+            return;
+        if (isOffline() == true) {
+            if ($('btn-create'))
+                $('btn-create').disabled = true;
+        } else {
+            if ($('btn-create'))
+                $('btn-create').disabled = false;
+        }
+        var position = $D('#add-customer').offset();
+        if (!$D('.add-customer').hasClass('active')) {
+            $D('#popup-customer').show();
+            if ($('main_container').hasClassName('hideCategory')) {
+                $D('#popup-customer').addClass('onCheckout');
+                $D('#popup-customer').animate({top: position.top + 'px', left: $D('#order_info').offset().left + 'px'}, 500);
+            } else {
+                $D('#popup-customer').removeClass('onCheckout');
+                $D('#popup-customer').animate({top: position.top + 'px', left: (position.left - 320) + 'px'}, 500);
+            }
+            $D('.add-customer').addClass('active');
+        } else {
+            if ($('main_container').hasClassName('hideCategory')) {
+                $D('#popup-customer').animate({top: '-100vh', left: $D('#order_info').offset().left + 'px'}, 500);
+            } else {
+                $D('#popup-customer').animate({top: '-100vh', left: $D('#popup-customer').offset().left + 'px'}, 500);
+            }
+
+            $D('.add-customer').removeClass('active');
+        }
+    }
+    function searchCustomer() {
+        if (!$('userid') || $('userid').value == '')
+            return;
+        if (isOffline() == true || useLocalSearch == true)
+            return;
+        var keyword = $('search_customer').value;
+        $('customer_search_autocomplete_message').hide();
+        var url = '<?php echo $this->getUrl('webpos/index/customersearch', array('_forced_secure' => $this->getRequest()->isSecure())) ?>';
+        var request = new Ajax.Request(url, {
+            method: 'get',
+            parameters: {keyword: keyword},
+            onSuccess: function (transport) {
+                if (transport.status == 200) {
+                    var response = getResponseText(transport);
+                    if ($('customer_search_autocomplete')) {
+                        $('customer_search_autocomplete').innerHTML = transport.responseText;
+                    }
+
+                }
+            },
+        });
+
+    }
+
+<?php
+$quote = Mage::getSingleton('checkout/cart')->getQuote();
+$customer = $quote->getCustomer();
+if ($customer && $customer->getId()):
+    ?>
+        $D(document).ready(function () {
+            $D('#add-customer').addClass('active');
+            $('add-customer').innerHTML = '<p><?php echo $quote->getBillingAddress()->getFirstname() . " " . $quote->getBillingAddress()->getLastname() . "</p><span>" . $quote->getBillingAddress()->getEmail() . "</span>"; ?>';
+            $D('#add-customer').attr('onclick', 'showAddCustomer()');
+            $D('#remove-customer').show();
+        });
+<?php else: ?>
+        $D('#add-customer').removeClass('active');
+<?php endif; ?>
+</script>
+<?php
+//}?>

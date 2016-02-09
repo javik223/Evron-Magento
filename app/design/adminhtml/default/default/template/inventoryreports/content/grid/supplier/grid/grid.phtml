@@ -1,0 +1,11 @@
+<div id="inventory_report_content_supplier_grid" class="inventory_report_content_supplier_grid">
+
+    <?php
+    $filterData = new Varien_Object();
+    $requestData = Mage::helper('adminhtml')->prepareFilterString($this->getRequest()->getParam('top_filter'));
+//        Zend_debug::dump($requestData);
+        if(!empty($requestData)){   //Supplier Grid
+            echo $this->getChildHtml('report_supplier_suppliergrid_supplier');
+        }
+    ?>
+</div>

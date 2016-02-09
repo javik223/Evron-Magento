@@ -1,0 +1,22 @@
+<?php
+/*
+ * Web POS by Magestore.com
+ * Version 2.3
+ * Updated by Daniel - 12/2015
+ */
+?>
+<?php
+/**
+ * @see Magestore_Webpos_Block_Payment_Method_Cc_Ccforpos
+ */
+?>
+<?php $_code=$this->getMethodCode() ?>
+<ul class="form-list" id="payment_form_<?php echo $_code ?>" style="display:none;">
+    <li>
+        <label for="<?php echo $_code ?>_reference_no" ><?php echo $this->__('Reference No') ?></label>
+        <span class="input-box">
+            <input type="text" title="<?php echo $this->__('Reference No') ?>" class="input-text form-control" id="<?php echo $_code ?>_ref_no" name="payment[<?php echo $_code ?>_ref_no]" value="<?php echo $this->htmlEscape($this->getInfoData($_code.'_ref_no')) ?>" />
+        </span>
+    </li>
+    
+</ul>

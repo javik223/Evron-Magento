@@ -1,0 +1,169 @@
+<?php
+/**
+ * Magento
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Academic Free License (AFL 3.0)
+ * that is bundled with this package in the file LICENSE_AFL.txt.
+ * It is also available through the world-wide-web at this URL:
+ * http://opensource.org/licenses/afl-3.0.php
+ * If you did not receive a copy of the license and are unable to
+ * obtain it through the world-wide-web, please send an email
+ * to license@magento.com so we can send you a copy immediately.
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade Magento to newer
+ * versions in the future. If you wish to customize Magento for your
+ * needs please refer to http://www.magento.com for more information.
+ *
+ * @category    design
+ * @package     rwd_default
+ * @copyright   Copyright (c) 2006-2015 X.commerce, Inc. (http://www.magento.com)
+ * @license     http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
+ */
+?>
+<?php if(count($this->getItemCollection()->getItems())): ?>
+<?php $_columnCount = $this->getColumnCount(); ?>
+<div class="box-collateral box-up-sell mt-pad">
+    <h2 class="c-p gamma pb-large"><?php echo $this->__('You may also be interested in the following product(s)') ?></h2>
+    <div class="product-grid product-grid-spread">
+    <?php // $this->setColumnCount(5); // uncomment this line if you want to have another number of columns. also can be changed in layout ?>
+    <?php $this->resetItemsIterator() ?>
+
+    <?php foreach ($this->getItemCollection()->getItems() as $_product): ?>
+    <?php /*if ($i++%$_columnCount==0): ?>
+            <?php endif*/ ?>
+
+            <?php
+                // Check if item is a simple product
+            ?>
+            <?php if(!$_product->canConfigure() && $_product->isSaleable()): ?>
+            <div class="product">
+                <?php $addUrlValue = Mage::getUrl('*/*/*', array('_use_rewrite' => true, '_current' => true));
+                    $uenc = Mage::helper('core')->urlEncode($addUrlValue);
+                ?>
+
+            <form action="<?php echo $this->getAddToCartUrl($_product) ?>" method="post" id="product_addtocart_form_<?php echo $_product->getId()?>"<?php if($_product->getOptions()): ?> enctype="multipart/form-data"<?php endif; ?>  data-update-url="/checkout/cart/ajaxUpdate/id/<?php echo $_product->getId(); ?>/uenc/<?php echo $uenc; ?>/" data-added=false data-lastvalue=0 data-updateid="">
+           <?php echo $this->getBlockHtml('formkey') ?>
+           <input type="hidden" name="product_id" value="<?php echo $_product->getId() ?>" />
+            <div class="product_image">
+                <!-- Product Image -->
+                <a href="<?php echo $_product->getProductUrl() ?>" title="<?php echo $_product->getName(); ?>">
+                    <img id="product-collection-image-<?php echo $_product->getId(); ?>" src="<?php echo $this->helper('catalog/image')->init($_product, 'small_image')->resize($_imgSize); ?>" alt="<?php echo $this->stripTags($this->getImageLabel($_product, 'small_image'), null, true) ?>" height="180" /></a>
+            </div>
+
+            <!-- Product Title -->
+            <a href="<?php echo $_product->getProductUrl() ?>" title="<?php echo $_product->getName(); ?>"><h4 class="product_title"><?php echo $_product->getName(); ?></h4></a>
+
+            <!-- Product Details -->
+            <div class="product_details">
+                <div class="product_price">
+                    <?php if ($_product->getPrice() != $_product->getFinalPrice()) : ?>
+                        N<?php echo number_format($_product->getFinalPrice(), 0); ?> <span class="product_price_actual">N<?php echo number_format($_product->getPrice(), 0); ?> </span>
+                    <? else: ?>
+                          N<?php echo number_format($_product->getFinalPrice(), 0); ?> 
+                    <? endif; ?>
+                </div>
+
+                <div class="product_add-cart">
+                    <span class="icon icon-add-cart"></span>
+                </div>
+
+                <div class="product_form">
+                    <span class="icon icon-remove"></span>
+                        <input type="number" name="qty" value="<?php echo ($this->getMinimalQty($_product)?$this->getMinimalQty($_product):1) ?>" class="product_qty" min="0">
+                    <span class="icon icon-add"></span>
+                </div>
+            </div>
+
+            </form>
+            </div>
+            <?php elseif($_product->getStockItem() && $_product->getStockItem()->getIsInStock()): ?>
+
+                <div class="product">
+                <form action="<?php echo $this->helper('checkout/cart')->getAddUrl($_product) ?>" method="post" id="product_addtocart_form_<?php echo $_product->getId()?>"<?php if($_product->getOptions()): ?> enctype="multipart/form-data"<?php endif; ?>>
+                <div class="product_image">
+                    <!-- Product Image -->
+                    <a href="<?php echo $_product->getProductUrl() ?>" title="<?php echo $_product->getName(); ?>">
+                        <img id="product-collection-image-<?php echo $_product->getId(); ?>" src="<?php echo $this->helper('catalog/image')->init($_product, 'small_image')->resize($_imgSize); ?>" alt="<?php echo $this->stripTags($this->getImageLabel($_product, 'small_image'), null, true) ?>" height="180" /></a>
+                </div>
+
+                <!-- Product Title -->
+                <a href="<?php echo $_product->getProductUrl() ?>" title="<?php echo $_product->getName(); ?>"><h4 class="product_title"><?php echo $_product->getName(); ?></h4></a>
+
+                <!-- Product Details -->
+                <div class="product_details">
+
+                        <?php if ($_product->getTypeId() === 'configurable'): ?>
+                             <div class="product_price">
+                                <?php if ($_product->getPrice() != $_product->getFinalPrice() && $_product->getTypeId()) : ?>
+                                    N<?php echo number_format($_product->getFinalPrice(), 0); ?> <span class="product_price_actual">N<?php echo number_format($_product->getPrice(), 0); ?> </span>
+                                <? else: ?>
+                                      N<?php echo number_format($_product->getFinalPrice(), 0); ?> 
+                                <? endif; ?>
+                                <!-- Add to cart icon -->
+                                <div class="product_add-cart">
+                                    <span class="icon icon-add-cart"></span>
+                                </div>
+                            </div>
+                        <? else: 
+                        ?>
+                        <div class="col s-12-12 text-center details-panel">
+                            <span class="text-light text-small"><em>As low as</em></span> <strong>N<?php echo number_format($_product->getMinimalPrice(), 0); ?></strong>
+
+                            <div class="col s-12-12 text-center">
+                                <a href="<?php echo $_product->getProductUrl(); ?>" class="button button-small button-alt">Details</a>
+                            </div>
+                        </div>
+                        <?php endif; ?>
+
+                    <?php if(!$_product->isGrouped()): ?>
+                        <div class="product_form">
+                        <span class="icon icon-remove"></span>
+                            <input type="number" name="qty" value="<?php echo ($this->getMinimalQty($_product)?$this->getMinimalQty($_product):1) ?>" class="product_qty" min="0">
+                        <span class="icon icon-add"></span>
+                    </div>
+                <?php endif; ?>
+                </div>
+
+                <div class="product_options">
+                 <?php $cProduct = Mage::getModel('catalog/product')->load($_product->getId());
+                 ?>
+                    
+                   <?
+                        //check if product is a configurable type or not
+                        if ($cProduct->getData('type_id') == "configurable") :
+                            //get the configurable data from the product
+                            $config = $cProduct->getTypeInstance(true);
+
+                            //loop through the attributes
+                            foreach($config->getConfigurableAttributesAsArray($cProduct) as $attributes) :
+                                ?>
+                            <p><?php echo $attributes["label"]; ?></p>
+                             <div class="select-dropdown select-dropdown-light">
+                                <select name="super_attribute[<?php echo $attributes['attribute_id'] ?>]" id="attribute<?php echo $attributes['attribute_id'] ?>" class="dropdown-select">
+                                    <?php
+                                    foreach($attributes["values"] as $values) :
+                                    ?>
+                                        <option value="<?php echo $values["value_index"];?>" price="<?php echo  $values["pricing_value"];?>" data-label="<?php echo $values["label"]; ?>"><?php echo $values["label"];?></option>
+                                    <?
+                                    endforeach;
+                                    ?>
+                                </select>
+                                </div>
+                                <?php
+                            endforeach;
+                        endif;?>
+                </div>
+                </form>
+                </div>
+        <?php endif; ?>
+    <?php endforeach; ?>
+    </div>
+    <?php /*
+    <script type="text/javascript">decorateGeneric($$('#upsell-product-table'), ['odd','even','first','last'])</script>
+    */ ?>
+</div>
+<?php endif ?>

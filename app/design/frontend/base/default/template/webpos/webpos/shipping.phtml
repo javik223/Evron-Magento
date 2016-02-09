@@ -1,0 +1,93 @@
+<div class="modal-dialog">
+    <div class="modal-content">
+        <div id="form-shipping-address-loader"></div>
+        <div class="create-customer-fr">                
+            <form id="form-shipping-address" class="form-create" method="POST" >   
+                <input type="hidden" name="shipping[address_id]" value="<?php echo $this->getShippingAddress()->getId() ?>" id="shipping:address_id" />
+                <input type="text" id="shipping:customer_id" value="<?php echo $this->getCustomer()->getId() ?>" name="shipping[customer_id]" style="display: none" class="input-text"/>
+                <div class="top-create col-lg-12 col-md-12 col-sm-12 col-xs-12" >                        
+                    <div class="btn-cancel col-lg-3 col-md-3 col-sm-3 col-xs-3">
+                        <button type="button" class="btn btn-default" id="btn-canceledit" onclick="cancelEditAddress()">Cancel</button>
+                    </div>
+                    <div class="col-lg-6 col-md-6 col-sm-6 col-xs-6"><h2><?php echo $this->__('Edit Shipping Address') ?></h2></div>
+                    <div class="btn-save col-lg-3 col-md-3 col-sm-3 col-xs-3">
+                        <button type="button" onclick="saveShippingAddress()" class="btn btn-default">Save</button>
+                    </div>
+                </div>
+				<?php 
+				/* Daniel - updated - Customer address dropdown 20151118 */
+				if ($this->customerHasAddresses()): ?>
+					<div class="">
+                        <div class="customer_address input-box col-lg-12 col-md-12 col-sm-12 col-xs-12">                            
+                           <?php echo $this->getAddressesHtmlSelect('shipping') ?>                              
+                        </div>
+                    </div>
+				<?php endif; ?>
+				<div id='shipping_form' class='<?php if ($this->customerHasAddresses()) echo 'hide'; ?>'>
+					<div class="">
+						<div class="col-lg-6 col-md-6 col-sm-6 col-xs-6">
+							<input fieldkey="firstname" type="text" id="shipping:first_name" value="<?php echo $this->htmlEscape($this->getShippingAddress()->getFirstname()) ?>" name="shipping[firstname]" placeholder="First name" class="input-text required-entry form-control shippingdata"/>
+						</div>
+						<div class="col-lg-6 col-md-6 col-sm-6 col-xs-6">
+							<input fieldkey="lastname" type="text" id="shipping:last_name" value="<?php echo $this->htmlEscape($this->getShippingAddress()->getLastname()) ?>" name="shipping[lastname]" placeholder="Last name" class="input-text required-entry form-control shippingdata"/>
+						</div>
+					</div>
+					<div class="">
+						<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+							<input fieldkey="telephone" type="text" id="shipping:phone_number" value="<?php echo $this->htmlEscape($this->getShippingAddress()->getTelephone()) ?>" name="shipping[telephone]" placeholder="Phone" class="input-text form-control shippingdata"/>
+						</div>
+					</div>
+					<div class="">
+						<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+							<input fieldkey="street0" type="text" id="shipping:address_1" value="<?php echo $this->escapeHtml($this->getShippingAddress()->getStreet(1)) ?>" name="shipping[street][0]" placeholder="Address Line 1" class="input-text form-control shippingdata"/>
+						</div>                         
+					</div>
+					<div class="">
+						<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+							<input fieldkey="street1" type="text" id="shipping:address_2" value="<?php echo $this->escapeHtml($this->getShippingAddress()->getStreet(2)) ?>" name="shipping[street][1]" placeholder="Address Line 2" class="input-text form-control shippingdata"/>
+						</div>                         
+					</div>
+					<div class="">
+						<div class="col-lg-6 col-md-6 col-sm-6 col-xs-6">
+							<input fieldkey="city" type="text" id="shipping:city" value="<?php echo $this->escapeHtml($this->getShippingAddress()->getCity()) ?>" name="shipping[city]" placeholder="City" class="input-text form-control shippingdata"/>
+						</div>
+						<div class="col-lg-6 col-md-6 col-sm-6 col-xs-6">
+							<input fieldkey="postcode" type="text" id="shipping:zipcode" value="<?php echo $this->escapeHtml($this->getShippingAddress()->getPostcode()) ?>" name="shipping[postcode]" placeholder="Zip/Postal Code" class="input-text form-control shippingdata"/>
+						</div>
+					</div>
+					<div class="">
+						<div class="input-box col-lg-6 col-md-6 col-sm-6 col-xs-6">                            
+							<?php echo $this->getCountryHtmlSelect('shipping') ?>                              
+						</div>
+						<div class="col-lg-6 col-md-6 col-sm-6 col-xs-6">
+							<select fieldkey="region_id" class="shippingdata" id="shipping:region_id" name="shipping[region_id]" title="<?php echo $this->__('State/Province') ?>">
+								<option value=""><?php echo $this->__('Please select state or province') ?></option>
+							</select>
+							<input fieldkey="region" type="text" id="shipping:region" name="shipping[region]" value="<?php echo $this->getShippingAddress()->getRegion() ?>"  title="<?php echo $this->__('State/Province') ?>" class="input-text form-control shippingdata" style="display:none" />
+						</div>
+					</div>
+					<div class="">
+						<div class="col-lg-6 col-md-6 col-sm-6 col-xs-6">
+							<input fieldkey="company" type="text" id="shipping:company" value="<?php echo $this->escapeHtml($this->getShippingAddress()->getCompany()) ?>" name="shipping[company]" placeholder="Company" class="input-text form-control shippingdata"/>
+						</div>
+						<div class="col-lg-6 col-md-6 col-sm-6 col-xs-6">
+							<input fieldkey="fax" type="text" id="shipping:fax_number" value="<?php echo $this->escapeHtml($this->getShippingAddress()->getFax()) ?>" name="shipping[fax]" placeholder="Fax" class="input-text form-control shippingdata"/>
+						</div>
+					</div>
+					<div class="">
+						<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+							<label class="save-in-address-book"><?php echo $this->__('Save in Address Book') ?></label>
+							<input id="save_in_address_book" name="save_in_address_book" type="checkbox" data-toggle="toggle" class="input-text"/>    
+						</div>                         
+					</div>
+				</div>
+				<?php /* Daniel - updated - Customer address dropdown 20151118 */ ?>
+            </form>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+//<![CDATA[
+    new RegionUpdater('shipping:country_id', 'shipping:region', 'shipping:region_id', <?php echo $this->helper('directory')->getRegionJson() ?>);
+    //]]>
+</script>

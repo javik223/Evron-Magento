@@ -1,0 +1,321 @@
+
+<script>
+
+
+    function clickGeneral() {
+        if (!$D('#general').hasClass('active')) {
+            $D('#general').addClass('active');
+            $D('#content_general').show();
+            $D('#account').removeClass('active');
+            $D('#content_account').hide();
+            $D('.hide-button').addClass('hide');
+            $D('.title-general').show();
+            $D('.title-account').hide();
+        }
+    }
+    function clickAccount() {
+        if (!$D('#account').hasClass('active')) {
+            $D('#account').addClass('active');
+            $D('#general').removeClass('active');
+            $D('#content_account').show();
+            $D('#content_general').hide();
+            $D('.hide-button').removeClass('hide');
+            $D('.title-general').hide();
+            $D('.title-account').show();
+        }
+    }
+</script>
+
+<?php
+$userId= Mage::helper('webpos/permission')->getCurrentUser();
+$userModel = Mage::getModel('webpos/user')->load($userId);
+$name= $userModel->getDisplayName();
+$email = $userModel->getEmail();
+$logout= $userModel->getAutoLogout();
+$roleId = $userModel->getRoleId();
+$permissionArray=array();
+if ($userId) {
+    if ($roleId != 0) {
+        $roleModel = Mage::getModel('webpos/role')->load($roleId);
+        if ($roleModel->getRoleId()>0) {
+            $permissionIds = $roleModel->getPermissionIds();
+            $displayName= $roleModel->getDisplayName();
+            $permissionArray = explode(',',$permissionIds);
+        }
+    }
+    $permissionLabel = Mage::getSingleton('webpos/source_adminhtml_permission')->getOptionArray();
+    $permissionContent='';
+    foreach ($permissionArray as $permission) {
+        $permissionContent=$permissionContent.'<p>' .$permissionLabel[$permission].'</p>';
+    }
+}
+
+
+if ($userId) {
+?>
+    <div class="setting-left col-lg-5 col-md-5 col-sm-5 col-xs-5">
+        <div class="top-content">
+            <div onclick="showHideMenu('settings');" class="img-menu col-lg-1 col-md-1 col-sm-1 col-xs-1">
+			<!--
+			<img class='pointerCursor' src='<?php echo $this->getSkinUrl('images/icon/menu.png'); ?>' />
+			-->
+			</div>
+            <div class="title-page col-lg-11 col-md-11 col-sm-11 col-xs-11"><h2><?php echo $this->__('Settings');?></h2></div>
+        </div>
+        <div class="content">
+            <ul>
+                <li class="setting general active" id="general" onclick="clickGeneral()"><?php echo $this->__('General');?></li>
+                <li class="setting account" id="account" onclick="clickAccount()"><?php echo $this->__('My Account');?></li>
+            </ul>
+        </div>
+    </div>
+    <div class="setting-right col-lg-7 col-md-7 col-sm-7 col-xs-7" id="">
+        <div class="top-content">
+            <div class="title-page col-lg-12 col-md-12 col-sm-12 col-xs-12 title-general">
+                <h2><?php echo $this->__('General');?></h2>
+            </div>
+            <div class="title-page col-lg-11 col-md-11 col-sm-11 col-xs-11 title-account" style="display: none">
+                <h2><?php echo $this->__('My Account');?></h2>
+            </div>
+            <div class="col-lg-1 col-md-1 col-sm-1 col-xs-1 hide hide-button">
+                <button type="button" class="btn btn-default" id="save-password"><?php echo $this->__('Save');?></button>
+            </div>
+        </div>
+        <div class="content-general setting-content" id="content_general">
+            <h2 class="title"><?php echo $this->__('Automatically log out after a period of inactivity');?></h2>
+            <form class="content-box" method="" action="">                
+                <div class="box box1">
+                    <div class="check check1">                    
+                        <input type="checkbox" class="hide" />
+                        <label><?php echo $this->__('2 Minutes');?></label>
+                        <span class="checkicon <?php if ($logout==2) echo 'glyphicon glyphicon-ok haschoose'; ?>" id="" logout="2"></span>
+                    </div>
+                    <div class="check check2">                    
+                        <input type="checkbox" class="hide" />
+                        <label><?php echo $this->__('5 Minutes');?></label>
+                        <span class="checkicon <?php if ($logout==5) echo 'glyphicon glyphicon-ok haschoose'; ?>" id="" logout="5"></span>
+                    </div>
+                    <div class="check check3">                    
+                        <input type="checkbox " class="hide" />
+                        <label><?php echo $this->__('10 Minutes');?> </label>
+                        <span class="checkicon <?php if ($logout==10) echo 'glyphicon glyphicon-ok haschoose'; ?>" id="" logout="10"></span>
+                    </div>
+                    <div class="check check4">                    
+                        <input type="checkbox" class="hide" />
+                        <label><?php echo $this->__('15 Minutes');?></label>
+                        <span class="checkicon <?php if ($logout==15) echo 'glyphicon glyphicon-ok haschoose'; ?>" id="" logout="15"></span>
+                    </div>
+                    <div class="check check5">                    
+                        <input type="checkbox" class="hide" />                        
+                        <label><?php echo $this->__('Never');?></label>
+                        <span class="checkicon <?php if ($logout==0) echo 'glyphicon glyphicon-ok haschoose'; ?>" id="" logout="0"></span>
+                    </div>                    
+                </div>                           
+            </form>
+            <?php
+            $offlineConfig = Mage::helper('webpos')->getOfflineConfig();
+            if ($offlineConfig['enable'] || $offlineConfig['search_offline']):
+                ?>
+                <h2 class="title"><?php echo $this->__('Flush cache in local storage');?></h2>
+                <div id="flush_cache">
+                    <button onclick="flushProductCache()"><?php echo $this->__('Reload Data');?></button>
+                </div>
+            <?php endif; ?>
+        </div>
+        <div class="content-myaccount" style="display: none" id='content_account'>
+            <form action="" id="editUserInfo">
+                <h2 class="title"><?php echo $this->__('Account Information');?></h2>              
+                <div class="account-information">
+                    <div class="box">
+                        <label><?php echo $this->__('Display Name');?></label>
+                        <input type="text" name="firstname" id="username" class="form-control input-text" placeholder="Name"
+                            value="<?php if (isset($name)) echo $name;?>"
+                            />
+                    </div>
+                    <div class="box last">
+                        <label><?php echo $this->__('Email Address');?></label>
+                        <input type="text" name="emailaddress"  id="emailaddress"  class="form-control input-text" placeholder="Email Address"
+                               value="<?php if (isset($email)) echo $email;?>"
+                            />
+                    </div>
+                    <input type="text" name="userid"  id="userid" hidden="hidden"
+                           value="<?php if (isset($userId)) echo $userId;?>"/>
+                </div>
+                <h2 class="title"><?php echo $this->__('Change Password');?></h2>
+                <div class="change-password">
+                    <div class="box">
+                        <label><?php echo $this->__('Old Password');?></label>
+                        <input type="password" name="oldpassword" class="form-control input-text" placeholder="Password" id="oldpassword" />
+                    </div>
+                    <div class="box">
+                        <label><?php echo $this->__('New Password');?></label>
+                        <input type="password" name="newpassword" class="form-control input-text" placeholder="Password" id="newpassword" />
+                    </div>
+                    <div class="box last">
+                        <label><?php echo $this->__('Confirmation');?></label>
+                        <input type="password" name="confirmpassword" class="form-control input-text" placeholder="Retype New Password" id="confirmpassword" />
+                    </div>
+                </div>
+            </form>
+
+            <div  id="permissionInfo">
+                <h2 class="title"><?php echo $this->__('Role Information');?></h2>
+                <div class="permission-information">
+                    <div class="box">
+                        <label><?php echo $this->__('Role:');?> </label>
+                        <span><?php if (isset($displayName)) echo $displayName; ?></span>
+                    </div>
+                    <div class="box last box-permission">
+                        <label id="box-permission" class="form-control">
+                            <span><?php echo $this->__('Permission:');?> </span>
+<!--                            <span class="glyphicon glyphicon-chevron-up hide" aria-hidden="true"></span>
+                            <span class="glyphicon glyphicon-chevron-down" aria-hidden="true"></span>-->
+                        </label>
+                        
+                        <span id="list-permission" style="clear: both;"><?php if (isset($permissionContent)) echo $permissionContent; ?></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<script type="text/javascript">    
+<?php   if ($userId) { ?>
+        $D('#save-password').click(function () {
+            if ($D('#emailaddress').val() == '') showToastMessage('danger', 'Error', 'Please enter your email address');
+            else if ($D('#username').val() == '') showToastMessage('danger', 'Error', 'Please enter your display name');
+            else if ($D('#oldpassword').val()=='' ) {
+                showToastMessage('danger', 'Error', 'Please enter your current password to change information');
+            }
+            else if ($D('#newpassword').val() == $D('#confirmpassword').val()) {
+                $D.ajax({
+                    url: '<?php echo $this->getUrl('webpos/index/editUserInfo',array('_forced_secure' => $this->getRequest()->isSecure())); ?>',
+                    method: 'POST',
+                    dataType: 'json',
+                    data: {
+                        userId: <?php echo $userId;?>,
+                        name: $D('#username').val(),
+                        email: $D('#emailaddress').val(),
+                        oldpassword: $D('#oldpassword').val(),
+                        password: $D('#newpassword').val()
+                    },
+                    success: function (response) {
+                        var displayName = response.display_name;
+                        var email = response.email;
+                        var success = response.success;
+                        var error = response.error;
+
+                        if (displayName) {
+                            $D('#username').val(displayName);
+                            $D('#display_name .full_name').html(displayName);
+                            $D('#display_name .short_name').html(displayName.charAt(0));
+                        }
+                        if (email) {
+                            $D('#emailaddress').val(email);
+                        }
+                        if (success) {
+                            showToastMessage('success', 'Success', success);
+
+                        }
+                        if (error) {
+                            showToastMessage('danger', 'Error', error);
+                        }
+
+
+                    }
+                });
+            } else {
+                showToastMessage('danger', 'Error', 'Your new password and confirmation must be exactly matched.');
+            }
+
+
+        });
+<?php    } ?>
+
+$D('.setting-content .check').each(function() {
+    $D(this).click(function(){
+        $D('.setting-content').each(function() {
+            $D(this).find('.checkicon').removeClass('glyphicon-ok');
+            $D(this).find('.checkicon').removeClass('glyphicon');
+            $D(this).find('.checkicon').removeClass('haschoose');
+
+        });
+        $D(this). find('.checkicon').addClass('glyphicon') ;
+        $D(this). find('.checkicon').addClass('glyphicon-ok') ;
+        $D(this). find('.checkicon').addClass('haschoose') ;
+        $D.ajax({
+            url: '<?php echo $this->getUrl('webpos/index/editAutoLogout',array('_forced_secure' => $this->getRequest()->isSecure())); ?>',
+            method: 'POST',
+            dataType: 'json',
+            data: {
+                userId: <?php echo $userId;?>,
+                time: parseInt($D(this).find('.checkicon').attr("logout"))
+            },
+            success: function (response) {
+
+            }
+        });
+    });
+    var inactivityTime = function () {
+        var t;
+        document.ready = resetTimer;
+        document.onmousemove = resetTimer;
+        document.onkeypress = resetTimer;
+        jester(document).tap( function(){
+            resetTimer();
+        });
+        jester(document).doubletap( function(){
+            resetTimer();
+        });
+        jester(document).swipe( function(){
+            resetTimer();
+        });
+        jester(document).flick( function(){
+            resetTimer();
+        });
+        jester(document).pinch( function(){
+            resetTimer();
+        });
+        jester(document).pinchnarrow( function(){
+            resetTimer();
+        });
+        jester(document).pinchwiden( function(){
+            resetTimer();
+        });
+        jester(document).pinchend( function(){
+            resetTimer();
+        });
+        function logout() {
+            document.location.href='<?php echo $this->getUrl('webpos/index/logoutPost',array('_forced_secure' => $this->getRequest()->isSecure())); ?>';
+
+        }
+
+        function resetTimer() {
+            clearTimeout(t);
+            if ( $D(this). find('.haschoose').attr('logout')>0) {
+                t = setTimeout(logout, $D(this).find('.haschoose').attr('logout') * 1000 * 60);
+            }
+            // 1000 milisec = 1 sec
+        }
+    };
+
+    inactivityTime();
+
+});
+
+//function showPermission(){
+//    if(!$D('#box-permission').hasClass('active')){        
+//        $D('.glyphicon-chevron-up').removeClass('hide');
+//        $D('#list-permission').show();
+//        $D('#box-permission').addClass('active');
+//        $D('.glyphicon-chevron-down').addClass('hide');
+//    } else {
+//        $D('#list-permission').hide();
+//        $D('#box-permission').removeClass('active');
+//        $D('.glyphicon-chevron-down').removeClass('hide');
+//        $D('.glyphicon-chevron-up').addClass('hide');
+//    }
+//}
+
+</script>
+<?php }?>

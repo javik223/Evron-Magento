@@ -1,0 +1,69 @@
+<?php
+/**
+ * Magestore
+ * 
+ * NOTICE OF LICENSE
+ * 
+ * This source file is subject to the Magestore.com license that is
+ * available through the world-wide-web at this URL:
+ * http://www.magestore.com/license-agreement.html
+ * 
+ * DISCLAIMER
+ * 
+ * Do not edit or add to this file if you wish to upgrade this extension to newer
+ * version in the future.
+ * 
+ * @category    Magestore
+ * @package     Magestore_Inventoryplus
+ * @copyright   Copyright (c) 2012 Magestore (http://www.magestore.com/)
+ * @license     http://www.magestore.com/license-agreement.html
+ */
+
+/**
+ * Supplier Adminhtml Block
+ * 
+ * @category    Magestore
+ * @package     Magestore_Inventoryplus
+ * @author      Magestore Developer
+ */
+?>
+<?php $_item = $this->getItem() ?>
+<?php
+    $productId =  Mage::getModel("catalog/product")->getIdBySku($_item->getSku());
+    if(!$productId){
+        $productId = $productId = $_item->getProductId();
+    }
+    $orderItemId = $_item->getOrderItemId();
+    $shipmentId = Mage::app()->getRequest()->getParam('shipment_id');
+?>
+<?php $_product = Mage::getModel('catalog/product')->load($productId)?>
+<tr class="border">
+    <td><?php echo $this->getColumnHtml($_item, 'name') ?></td>
+    <td class="a-center">
+
+            <?php try{ ?>      
+                <?php if($this->helper('catalog/image')->init($_product, 'small_image')):?>
+                <img src="<?php echo $this->helper('catalog/image')->init($_product, 'small_image')->resize(135); ?>" width="90" height="90" />
+                <?php endif;?>
+            <?php }catch(Exception $e){
+
+            }?>
+    </td>
+    <td class="a-center"><?php echo $_item->getQty()*1 ?></td> 
+     <?php if (Mage::helper('core')->isModuleEnabled('Magestore_Inventorywarehouse')): ?>         
+    <td class="a-center">
+        <?php
+            echo Mage::helper('inventoryplus/warehouseshipment')->getWarehouseNameByShipmentIdAndOrderitemId($shipmentId,$orderItemId); 
+        ?>
+    </td>
+    <?php else: ?>
+    <td class="a-center"></td>
+    <?php endif;?>
+    
+    <?php if (Mage::helper('core')->isModuleEnabled('Magestore_Inventorybarcode')): ?>
+        <?php $shipment = Mage::getModel('sales/order_shipment')->load($shipmentId);?>
+        <td class="a-center last"><?php echo Mage::helper('inventoryplus/barcode')->getBarcodeNameByShipmentIdAndOrderitemId($shipment->getOrderId(),$_item->getOrderItemId(),$productId); ?></td>
+    <?php else: ?>
+    <td class="a-center last"></td>
+    <?php endif;?>
+</tr>

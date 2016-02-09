@@ -1,0 +1,203 @@
+<?php echo $this->getChildHtml('extraCss'); ?>
+<?php echo $this->getChildHtml('extrajs'); ?>
+<?php echo $this->getChildHtml('extraJs23'); ?>
+<?php echo $this->getChildHtml('login_webpos') ?>
+<?php echo $this->getChildHtml('popup_webpos'); ?>
+<div class="bg-create-customer" style="display: none"  onclick="hidePopupCustomer()"></div>
+<div id="create-customer" class="modal">
+    <?php echo $this->getChildHtml('create_customer_webpos'); ?>
+</div>
+<div id="bg-shipping-address" style="display: none"  onclick="cancelEditAddress();"></div>
+<div id="shipping-address" class="modal">
+    <?php echo $this->getChildHtml('shipping_webpos'); ?>
+</div>
+<div id='pos_container'>
+    <div id='main_container' class='row marginLeft5vw'>
+        <div id='menu' class=''>
+            <?php echo $this->getChildHtml('menu_webpos'); ?>
+        </div>
+        <div class="col-lg-7 col-md-7 col-sm-7 col-xs-7 col_left" id="product-left">
+            <div id='col_left_loader'>
+                <div class="img-ajax"></div>
+                <div class='loading_message'>
+                    <?php echo $this->__('Loading product information'); ?>
+                </div>
+            </div>
+            <div id='col_left_firsttime_loader'>
+                <div class="img-ajax"></div>
+                <div class='loading_message'>
+                    <?php echo $this->__('Loading products information for the first time use, this may take a few minute. Please wait...'); ?>
+                    <div id='loading_status'></div>
+                </div>
+            </div>
+            <div class='top_bar left'>
+                <!--
+                <div class="incon-menu col-lg-1 col-md-1 col-sm-1 col-xs-1">
+                    <img onclick="showHideMenu('checkout')" id='showmenu_icon' class='pointerCursor' src='<?php echo $this->getSkinUrl('images/icon/menu.png'); ?>'/>
+                </div>
+                -->
+                <div class='top_bar_right col-lg-12 col-md-12 col-sm-12 col-xs-12'>
+                    <div class='category col-lg-4 col-md-4 col-sm-4 col-xs-4 ' id='category_area'>
+                        <?php echo $this->getChildHtml('menu_webpos_category'); ?>
+                    </div>
+                    <!--
+                   <div class='product_search width10percentage' id='product_search_area'>
+                       <img onclick="showSearchForm()" id='search_icon' class='pointerCursor' src='<?php echo $this->getSkinUrl('images/icon/search.png'); ?>' />
+                   </div>
+                    -->
+                    <div class='product_search col-lg-8 col-md-8 col-sm-8 col-xs-8 ' id="product_search">
+                        <form id="product_search_form" action="" method="" onsubmit="return false;">
+                            <input  onchange="searchProduct();"  type="text" class="form-control" placeholder='<?php echo $this->__('Enter search terms or scan barcodes'); ?>' id="product_search_keyword" name="keyword"/>
+                        </form>
+                    </div>
+                    <!--
+                  <div onclick="cancelSearch()" class='col-lg-1 col-md-1 col-sm-1 col-xs-1 pointerCursor hide' id='cancel_search_icon'>
+                      <img src='<?php echo $this->getSkinUrl('images/icon/cancel.png'); ?>' />
+                  </div>
+                   
+                  <div id="global_search_autocomplete" class="autocomplete" style="z-index:10;overflow-y:auto;max-height:450px; width: 98% !important"></div>
+                    -->
+                </div>
+                <div class='clear'></div>
+            </div>
+            <div class='col_content_left'>
+                <div id='content' onscroll="loadMoreProduct()">
+                    <div id='product_content'>
+                    </div>
+                </div>                
+                <div class="customer-sale" style="display: none">
+                    <?php echo $this->getChildHtml('customer_sale'); ?>
+                </div>
+            </div>
+
+            <div class='footer '>
+                <div class="footer-content">
+                    <div class='col-lg-5 col-md-5 col-sm-5 col-xs-5' id=''>
+
+                        <div id='numberProduct'> 
+                            <?php
+                            $numberProduct = Mage::getModel('core/session')->getData('numberProduct');
+                            echo $this->__("Totals: " . $numberProduct . ' products');
+                            ?>
+                        </div>
+
+                        <div id="offline">
+                            <button id="mode_status" class='nowonline' onclick="changeOffline(this)" value='on'>Online</button>
+                            <input id="network_status" value='on' type='hidden'/>
+                        </div>
+                        <div id='status'></div>
+                        <?php if (Mage::getStoreConfig('webpos/general/enable_tills') == true): ?>
+                            <div id="till_info" class='bottom_button hide' onclick='showTillSelectPopup();'></div>
+                        <?php endif; ?>
+                    </div>
+
+                    <div class='col-lg-2 col-md-2 col-sm-2 col-xs-2' id='productPager' style="padding: 0;">
+
+                        <ul class="pager" style='<?php if ($numberProduct <= 16) echo 'display:none;'; ?>'>
+                            <li><a href="#" id='bt_previous_product_page' onclick="reloadListProduct('back', 0, '')"><span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span></a></li>
+                            <li><a href="#" id='bt_next_product_page' onclick="reloadListProduct('next', 0, '')"><span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span></a></li>
+                        </ul>
+                    </div>
+                    <div id="customer-sale-btn" class='col-lg-5 col-md-5 col-sm-5 col-xs-5'>
+                        <button   onclick="showCustomersale()" type="button" class="btn"><?php echo $this->__('Custom Sale'); ?></button>
+                    </div>
+                    <div id="cancel-sale-btn" class="col-lg-12 col-md-12 col-sm-12 col-xs-12" style="display: none">
+                        <button onclick="cancelCustomersale()" type="button" class="btn"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span><span><?php echo $this->__('Cancel'); ?></span></button>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+        <div class="col-lg-5 col-md-5 col-sm-5 col-xs-5 col_right" id="total-right">
+            <div id='col_right_loader'>
+                <div class="img-ajax"></div>
+            </div>
+            <div class='top_bar'>
+                <img title="Empty Cart" id='customer_loader' class='pointerCursor' onclick="emptyCart(empty_cart_url);" src='<?php echo $this->getSkinUrl('images/icon/clear.png'); ?>'/>
+                <?php
+                $numberItem = Mage::helper('checkout/cart')->getSummaryCount();
+                if ($numberItem != '' && $numberItem > 0) {
+                    $numberItem = Mage::helper('checkout/cart')->getSummaryCount();
+                } else {
+                    $numberItem = 0;
+                }
+                ?>
+                <h2 class="title-cart"><?php echo $this->__('Cart');?>(<span id="total_number_item"><?php echo $numberItem; ?></span>)</h2>
+                <img onclick="showCategory()" id='continue_select_product' class='pointerCursor hide' src='<?php echo $this->getSkinUrl('images/icon/back.png'); ?>'/>
+                <div class='top_bar_right'>
+                    <img title="Add Order Comment" onclick="showhideOrderCommnent('order-comment');" id='customer_edit_icon' class='pointerCursor' src='<?php echo $this->getSkinUrl('images/icon/order_comment.png'); ?>' />                    
+                </div>                                
+                <div class='clear'></div>
+                <div class="order-comment" id="order-comment" style="display: none">
+                    <div class="comment">
+                        <div class="col col-lg-7 col-md-7 col-sm-7 col-xs-7"><?php echo $this->__('Order Comment:'); ?></div>
+                        <div class="col-lg-5 col-md-5 col-sm-5 col-xs-5" style="padding:0"><button class="btn btn-warning" onclick="saveOrderComment();" style="float: right;margin-left: -11px;">Save</button></div>                                            
+                        <form>
+                            <textarea id="order-comment-content"></textarea>
+                        </form>
+                    </div>                    
+                </div>
+            </div>
+            <div class='col_content_right' id='cart_webpos_area'>
+                <div id='cart_webpos'>
+                    <?php echo $this->getChildHtml('cart_webpos'); ?>
+                </div>
+            </div>
+            <div class='footer'>
+                <?php
+                $quote = Mage::getModel('checkout/cart')->getQuote();
+                $items = $quote->getAllItems();
+                $hasError = false;
+				$quote = Mage::getBlockSingleton('checkout/cart')->getQuote();
+				$items = $quote->getAllVisibleItems();
+				if (count($items) > 0)
+					foreach ($items as $item){
+						$errorInfo = $item->getErrorInfos();
+						if (count($errorInfo) > 0 && $item->getProduct()->getSku() != 'webpos-customsale') {
+							$hasError = true;
+						}
+					}
+                $reloading_saved_order = Mage::getModel('checkout/session')->getData('reloading_order_id');
+                $holded_key = Mage::getModel('checkout/session')->getData('holded_key');
+                ?>
+                <div id='footer_right_overlay' class='<?php if (count($items) > 0) echo 'hide'; ?>'></div>
+                <!--
+                <button id='bt_remove_tax' onclick='toogleTax()'><?php echo $this->__('Remove/Add Tax'); ?></button>
+                -->
+                <div id='bt_hold_order' class="<?php if ($reloading_saved_order) echo 'unhold'; ?>" onclick="<?php if ($reloading_saved_order): ?>deleteHoldedOrderByOrderId('<?php echo $reloading_saved_order; ?>')<?php else: ?>showBeforeHoldPopup()<?php endif; ?>"><?php echo ($reloading_saved_order) ? $this->__('Unhold') : $this->__('Hold'); ?></div>
+                <div onclick="saveCart()" id='bt_checkout' class='pointerCursor <?php if ($hasError == true) echo 'hasError'; ?>'>
+                    <div class='label'><?php echo $this->__('Checkout'); ?></div>
+                    <div class='value'>
+                        <div class='' id='webpos_subtotal_button'>
+                            <?php
+                            echo Mage::app()->getStore()->formatPrice($quote->getGrandTotal());
+                            ?>                            
+                        </div>
+                        <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
+                    </div>
+                    <div class='clear'></div>
+                </div>
+                <div class='clear'></div>
+                <?php if ($reloading_saved_order): ?>
+                    <script type='text/javascript'>
+                        showHoldButton();
+                    </script>
+                <?php endif; ?>
+            </div>
+        </div>
+        <div id='order_info' class='orderHide'>
+            <div id='checkout_loader'>
+                <div class="img-ajax"></div>
+            </div>
+            <?php echo $this->getChildHtml('orderinfo_webpos'); ?>
+        </div>
+    </div>
+    <div id='orders_area' class='mainContainer'>
+        <?php echo $this->getChildHtml('order_area'); ?>
+    </div>
+    <div id='settings_area' class='mainContainer'>
+        <?php echo $this->getChildHtml('setting_area'); ?>
+    </div>
+</div>

@@ -1,0 +1,58 @@
+<?php if ($barcode->getId()): ?>
+<div class="entry-edit" >    
+        <form id="filter_form" action="" method="get"><div></div>
+            <div class="entry-edit-head" style="margin-top: 5px; cursor: pointer;" id="barcode_form-head" onclick="Fieldset.toggleCollapse('barcode_form')">
+                <h4 class="icon-head head-edit-form fieldset-legend"><?php echo $this->__('Barcode Information') ?></h4>
+                <div class="form-buttons"></div>
+            </div>
+            <div class="fieldset " id="barcode_form" style="display: none;">
+                <div class="hor-scroll">
+                    <table cellspacing="0" class="form-list">
+                        <tbody>
+
+                            <tr>
+                                <td class="label"><label><?php echo $this->__('Barcode') ?></label></td>
+                                <td class="value">
+                                    <?php echo $barcode->getBarcode() ?>
+                                </td>
+                            </tr>
+
+                            <?php $barcodeAttributes = Mage::getModel('inventorybarcode/barcodeattribute')->getCollection()->addFieldToFilter('attribute_status', 1)->addFieldToFilter('attribute_display', 1); ?>
+                            <?php foreach ($barcodeAttributes as $barcodeAttribute): ?>
+                                <tr>
+                                    <td class="label"><label><?php echo $barcodeAttribute->getAttributeName() ?></label></td>
+                                    <td class="value">
+                                        <?php echo $barcode->getData($barcodeAttribute->getAttributeCode()) ?>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                            <tr>
+                                <td class="label"><label><?php echo $this->__('Qty') ?></label></td>
+                                <td class="value">
+                                    <?php echo $barcode->getQty(); ?>                               
+                                </td>
+                            </tr>
+                            <tr>
+                                <?php
+                                $dateFormatIso = Mage::app()->getLocale()->getDateTimeFormat(Mage_Core_Model_Locale::FORMAT_TYPE_MEDIUM);
+                                $time = Mage::app()->getLocale()->date($barcode->getCreatedDate(), Varien_Date::DATETIME_INTERNAL_FORMAT)->toString($dateFormatIso);
+                                    ?>
+                                <td class="label"><label><?php echo $this->__('Created Date') ?></label></td>
+                                <td class="value">
+                                    <?php echo $time; ?>                               
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="label"><label><?php echo $this->__('Status') ?></label></td>
+                                <td class="value">
+                                    <?php echo ($barcode->getBarcodeStatus() == 1) ? $this->__('Enable') : $this->__('Disable'); ?>                               
+                                </td>
+                            </tr>
+                            
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </form>
+    </div>
+<?php endif; ?>

@@ -1,0 +1,112 @@
+<?php
+/**
+ * Magestore
+ * 
+ * NOTICE OF LICENSE
+ * 
+ * This source file is subject to the Magestore.com license that is
+ * available through the world-wide-web at this URL:
+ * http://www.magestore.com/license-agreement.html
+ * 
+ * DISCLAIMER
+ * 
+ * Do not edit or add to this file if you wish to upgrade this extension to newer
+ * version in the future.
+ * 
+ * @category    Magestore
+ * @package     Magestore_Inventorysupplyneeds
+ * @copyright   Copyright (c) 2012 Magestore (http://www.magestore.com/)
+ * @license     http://www.magestore.com/license-agreement.html
+ */
+
+/**
+ * Inventorysupplyneeds Adminhtml Controller
+ * 
+ * @category    Magestore
+ * @package     Magestore_Inventorywarehouse
+ * @author      Magestore Developer
+ */
+?>
+<?php if (!$this->getRequest()->getParam('id')): ?>
+    <?php $source = $this->getRequest()->getParam('source'); ?>
+    <?php $target = $this->getRequest()->getParam('target'); ?>
+<?php else: ?>
+    <?php $model = Mage::getModel('inventorywarehouse/sendstock')->load($this->getRequest()->getParam('id')); ?>
+    <?php $source = $model->getWarehouseIdFrom(); ?>
+    <?php $target = $model->getWarehouseIdTo(); ?>
+<?php endif; ?>
+
+<div class="entry-edit">
+    <div class="entry-edit-head">
+        <h4 class="icon-head head-edit-form fieldset-legend"><?php echo $this->__('Stock Sending Information') ?></h4>
+        <div class="form-buttons"></div>
+    </div>
+    <div id="sendstock_form" class="fieldset ">
+        <div class="hor-scroll">
+            <table cellspacing="0" class="form-list">
+                <tbody>
+                    <tr>
+                        <td class="label"><label style="font-weight: bold;" for="warehouse_id_from"><?php echo $this->__('Source Warehouse') ?>:</label></td>
+                        <td class="value">
+                            <?php if (!$this->getRequest()->getParam('id')): ?>
+                                <?php echo Mage::helper('inventorywarehouse/warehouse')->getWarehouseNameByWarehouseId($source); ?>
+                            <?php else: ?>
+                                <?php echo $model->getWarehouseNameFrom() ?>
+                            <?php endif ?>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="label"><label style="font-weight: bold;" for="warehouse_id_to"><?php echo $this->__('Destination Warehouse') ?>:</label></td>
+                        <td class="value">
+                            <?php if (!$this->getRequest()->getParam('id')): ?>
+                                <?php if($target == 'others'): ?>
+                                    <?php echo $this->__('Others') ?>
+                                <?php else: ?>
+                                    <?php echo Mage::helper('inventorywarehouse/warehouse')->getWarehouseNameByWarehouseId($target); ?>
+                                <?php endif ?>
+                            <?php else: ?>
+                                <?php echo $model->getWarehouseNameTo() ?>
+                            <?php endif ?>
+                            <input type="hidden" value="<?php echo $source; ?>" name="warehouse_source">
+                            <input type="hidden" value="<?php echo $target; ?>" name="warehouse_target">    
+                        </td>
+                    </tr>
+                    
+                    <tr>
+                        <?php if ($this->getRequest()->getParam('id')): ?>
+                            <td class="label"><label style="font-weight: bold;" for="status"><?php echo $this->__('Status') ?>: </label></td>
+                            <td class="value">
+                                <?php
+                                $statusArray = array(
+                                    1 => Mage::helper('inventorywarehouse')->__('Completed'),
+                                    2 => Mage::helper('inventorywarehouse')->__('Canceled')
+                                );
+                                ?>
+                                <?php echo $statusArray[$model->getStatus()] ?>
+                            </td>
+                        <?php endif; ?>
+                    </tr>
+                    
+                    <tr>
+                        <?php if (!$this->getRequest()->getParam('id')): ?>
+                            <td class="label"><label style="font-weight: bold;" for="reason"><?php echo $this->__('Reason(s) for sending stock') ?> <span class="required">*</span></label></td>
+                            <td class="value">
+                                <?php $reasonContent = ''; ?>
+                                <?php if (Mage::getModel('admin/session')->getData('send_stock_reason', null)): ?>
+                                    <?php $reasonContent = Mage::getModel('admin/session')->getData('send_stock_reason', null) ?>
+                                    <?php Mage::getModel('admin/session')->setData('send_stock_reason', null) ?>
+                                <?php endif ?>
+                                <textarea cols="15" rows="2" class="required-entry required-entry textarea" style="width:274px; height:200px;" title="Reason(s) for sending stock" name="reason" id="reason"><?php echo $reasonContent ?></textarea>           
+                            </td>
+                        <?php else: ?>
+                            <td class="label"><label style="font-weight: bold;" for="reason"><?php echo $this->__('Reason(s) for sending stock') ?>:</label></td>
+                            <td class="value">
+                                <?php echo $model->getReason(); ?>
+                            </td>
+                        <?php endif; ?>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

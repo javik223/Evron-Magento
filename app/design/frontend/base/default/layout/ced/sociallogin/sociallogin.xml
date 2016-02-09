@@ -1,0 +1,483 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+
+
+<!--
+
+/**
+
+ * CedCommerce
+
+ *
+
+ * NOTICE OF LICENSE
+
+ *
+
+ * This source file is subject to the Open Software License (OSL 3.0)
+
+ * that is bundled with this package in the file LICENSE.txt.
+
+ * It is also available through the world-wide-web at this URL:
+
+  * http://opensource.org/licenses/osl-3.0.php
+
+ *
+
+ * @category    Ced
+
+ * @package     Ced_SocialLogin
+
+ * @author 		CedCommerce Magento Core Team <Ced_MagentoCoreTeam@cedcommerce.com>
+
+ * @copyright   Copyright CedCommerce (http://cedcommerce.com/)
+
+ * @license     http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+
+ */
+
+
+
+/**
+
+ * SocialLogin 	layout/ced/sociallogin.xml
+
+ *
+
+ * @category   	Ced
+
+ * @package    	Ced_SocialLogin
+
+ * @author		CedCommerce Magento Core Team <Ced_MagentoCoreTeam@cedcommerce.com>
+
+ */
+
+-->
+
+
+
+<layout>
+
+    <default>
+
+        <reference name="head">
+
+            <action method="addItem"
+
+                ifconfig="ced/ced_sociallogin_google/enabled">
+
+                <type>skin_css</type>
+
+                <name>ced_sociallogin/google/css/button.css</name>
+
+            </action>
+
+            <action method="addItem"
+
+                ifconfig="ced/ced_sociallogin_facebook/enabled">
+
+                <type>skin_css</type>
+
+                <name>ced_sociallogin/facebook/css/button.css</name>
+
+            </action>
+
+            <action method="addItem"
+
+                ifconfig="ced/ced_sociallogin_twitter/enabled">
+
+                <type>skin_css</type>
+
+                <name>ced_sociallogin/twitter/css/button.css</name>
+
+            </action>
+			
+			<action method="addItem"
+
+                ifconfig="ced/ced_sociallogin_linkedin/enabled">
+
+                <type>skin_css</type>
+
+                <name>ced_sociallogin/linkedin/css/button.css</name>
+
+            </action>
+
+        </reference>
+
+    </default>
+
+
+
+    <customer_account_login>
+
+        <reference name="head">
+
+            <action method="addItem">
+
+                <type>skin_css</type>
+
+                <name>ced_sociallogin/css/styles.css</name>
+
+            </action>
+
+        </reference>
+
+        <reference name="customer_form_login">
+
+            <action method="setTemplate"><template>ced/sociallogin/customer/form/login.phtml</template></action>
+
+            <block type="persistent/form_remember" name="persistent.remember.me" template="persistent/remember_me.phtml" />
+
+            <block type="core/template" name="persistent.remember.me.tooltip" template="persistent/remember_me_tooltip.phtml" />
+
+
+
+            <block type="sociallogin/login" name="ced_sociallogin_login">
+
+                <block type="sociallogin/google_button" name="ced_google_login_button" />
+
+                <block type="sociallogin/facebook_button" name="ced_facebook_login_button" />
+
+                <block type="sociallogin/twitter_button" name="ced_twitter_login_button" />
+
+                <block type="sociallogin/linkedin_button" name="ced_linkedin_login_button" />
+
+            </block>
+
+
+
+        </reference>
+
+    </customer_account_login>
+
+    
+
+    <customer_account_create>        
+
+        <reference name="head">
+
+            <action method="addItem">
+
+                <type>skin_css</type>
+
+                <name>ced_sociallogin/css/styles.css</name>
+
+            </action>
+
+        </reference>
+
+        <reference name="customer_form_register">
+
+            <action method="setTemplate" >
+
+                <template>ced/sociallogin/customer/form/register.phtml</template>
+
+            </action>
+
+            <block type="sociallogin/register" name="ced_sociallogin_register">
+
+                <block type="sociallogin/google_button" name="ced_sociallogin_checkout_google_button" />
+
+                <block type="sociallogin/facebook_button" name="ced_sociallogin_checkout_facebook_button" />
+
+                <block type="sociallogin/twitter_button" name="ced_sociallogin_checkout_twitter_button" />
+				
+				<block type="sociallogin/linkedin_button" name="ced_sociallogin_checkout_linkedin_button" />
+
+            </block>
+
+        </reference>        
+
+    </customer_account_create>    
+
+
+
+    <customer_account>
+
+        <reference name="customer_account_navigation">
+
+            <action method="addLink" translate="label" module="sociallogin"
+
+                ifconfig="ced/ced_sociallogin_google/enabled">
+
+                <name>ced_sociallogin_google</name>
+
+                <path>cedsociallogin/account/google</path>
+
+                <label>Google SocialLogin</label>
+
+            </action>
+
+            <action method="addLink" translate="label" module="sociallogin"
+
+                ifconfig="ced/ced_sociallogin_facebook/enabled">
+
+                <name>ced_sociallogin_facebook</name>
+
+                <path>cedsociallogin/account/facebook</path>
+
+                <label>Facebook SocialLogin</label>
+
+            </action>
+
+            <action method="addLink" translate="label" module="sociallogin"
+
+                ifconfig="ced/ced_sociallogin_twitter/enabled">
+
+                <name>ced_sociallogin_twitter</name>
+
+                <path>cedsociallogin/account/twitter</path>
+
+                <label>Twitter SocialLogin</label>
+
+            </action>
+			
+			
+			<action method="addLink" translate="label" module="sociallogin"
+
+                ifconfig="ced/ced_sociallogin_linkedin/enabled">
+
+                <name>ced_sociallogin_linkedin</name>
+
+                <path>cedsociallogin/account/linkedin</path>
+
+                <label>Linkedin SocialLogin</label>
+
+            </action>
+
+        </reference>
+
+    </customer_account>
+
+
+
+    <ced_sociallogin_account_google translate="label"  module="sociallogin">
+
+        <label>Customer My Account Google SocialLogin</label>
+
+        <update handle="customer_account"/>
+
+        <reference name="head">
+
+            <action method="setTitle" translate="title" module="sociallogin">
+
+                <title>Google SocialLogin</title>
+
+            </action>
+
+            <action method="addItem">
+
+                <type>skin_css</type>
+
+                <name>ced_sociallogin/css/styles.css</name>
+
+            </action>
+
+        </reference>
+
+        <reference name="my.account.wrapper">
+
+            <block type="sociallogin/google_account" name="ced_sociallogin_google_account">
+
+                <block type="sociallogin/google_button" name="ced_sociallogin_account_google_button" />
+
+            </block>
+
+        </reference>
+
+        <reference name="customer_account_navigation">
+
+            <action method="setActive" module="sociallogin">
+
+                <path>cedsociallogin/account/google</path>
+
+            </action>
+
+        </reference>
+
+    </ced_sociallogin_account_google>
+
+
+
+   <ced_sociallogin_account_facebook translate="label"  module="sociallogin">
+
+        <label>Customer My Account Facebook SocialLogin</label>
+
+        <update handle="customer_account"/>
+
+        <reference name="head">
+
+            <action method="setTitle" translate="title" module="sociallogin">
+
+                <title>Facebook SocialLogin</title>
+
+            </action>
+
+            <action method="addItem">
+
+                <type>skin_css</type>
+
+                <name>ced_sociallogin/css/styles.css</name>
+
+            </action>
+
+        </reference>
+
+        <reference name="my.account.wrapper">
+
+            <block type="sociallogin/facebook_account" name="ced_sociallogin_facebook_account">
+
+                <block type="sociallogin/facebook_button" name="ced_sociallogin_account_facebook_button" />
+
+            </block>
+
+        </reference>
+
+        <reference name="customer_account_navigation">
+
+            <action method="setActive" module="sociallogin">
+
+                <path>cedsociallogin/account/facebook</path>
+
+            </action>
+
+        </reference>
+
+    </ced_sociallogin_account_facebook>
+
+
+
+   <ced_sociallogin_account_twitter translate="label"  module="sociallogin">
+
+        <label>Customer My Account Twitter SocialLogin</label>
+
+        <update handle="customer_account"/>
+
+        <reference name="head">
+
+            <action method="setTitle" translate="title" module="sociallogin">
+
+                <title>Twitter SocialLogin</title>
+
+            </action>
+
+            <action method="addItem">
+
+                <type>skin_css</type>
+
+                <name>ced_sociallogin/css/styles.css</name>
+
+            </action>
+
+        </reference>
+
+        <reference name="my.account.wrapper">
+
+            <block type="sociallogin/twitter_account" name="ced_sociallogin_twitter_account">
+
+                <block type="sociallogin/twitter_button" name="ced_sociallogin_account_twitter_button" />
+
+            </block>
+
+        </reference>
+
+        <reference name="customer_account_navigation">
+
+            <action method="setActive" module="sociallogin">
+
+                <path>cedsociallogin/account/twitter/</path>
+
+            </action>
+
+        </reference>
+
+    </ced_sociallogin_account_twitter>
+	
+	
+	<ced_sociallogin_account_linkedin translate="label"  module="sociallogin">
+
+        <label>Customer My Account Linkedin SocialLogin</label>
+
+        <update handle="customer_account"/>
+
+        <reference name="head">
+
+            <action method="setTitle" translate="title" module="sociallogin">
+
+                <title>Linkedin SocialLogin</title>
+
+            </action>
+
+            <action method="addItem">
+
+                <type>skin_css</type>
+
+                <name>ced_sociallogin/css/styles.css</name>
+
+            </action>
+
+        </reference>
+
+        <reference name="my.account.wrapper">
+
+            <block type="sociallogin/linkedin_account" name="ced_sociallogin_linkedin_account">
+
+                <block type="sociallogin/linkedin_button" name="ced_sociallogin_account_linkedin_button" />
+
+            </block>
+
+        </reference>
+
+        <reference name="customer_account_navigation">
+
+            <action method="setActive" module="sociallogin">
+
+                <path>cedsociallogin/account/linkedin</path>
+
+            </action>
+
+        </reference>
+
+    </ced_sociallogin_account_linkedin>
+
+
+
+    <checkout_onepage_index>
+
+        <reference name="head">
+
+            <action method="addItem">
+
+                <type>skin_css</type>
+
+                <name>ced_sociallogin/css/styles.css</name>
+
+            </action>
+
+        </reference>
+
+        <reference name="checkout.onepage.login">
+
+            <action method="setTemplate" >
+
+                <template>ced/sociallogin/checkout/onepage/login.phtml</template>
+
+            </action>
+
+            <block type="sociallogin/checkout" name="ced_sociallogin_checkout">
+
+                <block type="sociallogin/google_button" name="ced_checkout_google_button" />
+
+                <block type="sociallogin/facebook_button" name="ced_checkout_facebook_button" />
+
+                <block type="sociallogin/twitter_button" name="ced_checkout_twitter_button" />
+
+                <block type="sociallogin/linkedin_button" name="ced_checkout_linkedin_button" />
+
+            </block>
+
+        </reference>
+
+    </checkout_onepage_index>
+
+</layout>

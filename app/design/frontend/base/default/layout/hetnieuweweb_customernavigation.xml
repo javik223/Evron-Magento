@@ -1,0 +1,9 @@
+<?xml version="1.0" ?>
+<layout version="0.2.0">
+	<customer_account>
+		<reference name="customer_account_navigation">			
+			<action method="removeLinkByName" />
+			<action method="renameLinkByName" />						
+		</reference>
+	</customer_account>
+</layout>

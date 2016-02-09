@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<package>
+    <name>HetNieuweWeb_CustomerNavigation</name>
+    <version>0.2.0</version>
+    <stability>stable</stability>
+    <license uri="http://opensource.org/licenses/osl-3.0.php">OSL v3.0</license>
+    <channel>community</channel>
+    <extends/>
+    <summary>Manage customer dashboard navigation menu.</summary>
+    <description>Manage customer dashboard navigation. Easily enable/disable and rename links of customer dashboard menu in Magento backend.</description>
+    <notes>Stable release of 'Manage Customer Navigation', version 0.2.0.</notes>
+    <authors><author><name>Gerard de Visser</name><user>Gerard_de_V</user><email>gerarddevisser@gmail.com</email></author></authors>
+    <date>2014-09-29</date>
+    <time>15:04:26</time>
+    <contents><target name="mageetc"><dir><dir name="modules"><file name="HetNieuweWeb_CustomerNavigation.xml" hash="f1a404ca632ad00a7a47442ef2527587"/></dir></dir></target><target name="magecommunity"><dir><dir name="HetNieuweWeb"><dir name="CustomerNavigation"><dir name="Block"><dir name="Customer"><dir name="Account"><file name="Navigation.php" hash="8e2d6e65d6110ffc92f99ba47bae0460"/></dir></dir></dir><dir name="Helper"><file name="Data.php" hash="1a716d6550b0ed31fbd5a3aed150af38"/></dir><dir name="etc"><file name="adminhtml.xml" hash="f14a49ac17637530cb6fa53f82abfb26"/><file name="config.xml" hash="fcb8d7128d32a3704afa6586483f1548"/><file name="system.xml" hash="1668204389ee1cf1d800c828f3312c9e"/></dir></dir></dir></dir></target><target name="magedesign"><dir><dir name="frontend"><dir name="base"><dir name="default"><dir name="layout"><file name="hetnieuweweb_customernavigation.xml" hash="a64271b6066d222498330c1c93a8d978"/></dir></dir></dir></dir></dir></target></contents>
+    <compatible/>
+    <dependencies><required><php><min>5.2.0</min><max>6.0.0</max></php></required></dependencies>
+</package>

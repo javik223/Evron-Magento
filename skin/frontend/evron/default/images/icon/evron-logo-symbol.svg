@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generator: Adobe Illustrator 19.0.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+	 viewBox="-248 360.2 99 121.6" style="enable-background:new -248 360.2 99 121.6;" xml:space="preserve">
+<style type="text/css">
+	.st0{fill:url(#SVGID_1_);}
+	.st1{fill:url(#SVGID_2_);}
+	.st2{fill:#439539;}
+</style>
+<g>
+	
+		<linearGradient id="SVGID_1_" gradientUnits="userSpaceOnUse" x1="-182.3388" y1="357.5933" x2="-198.446" y2="396.2504" gradientTransform="matrix(1 0 0 -1 0 841.67)">
+		<stop  offset="0.2528" style="stop-color:#FAE8B0"/>
+		<stop  offset="1" style="stop-color:#F1CB00"/>
+	</linearGradient>
+	<circle class="st0" cx="-196" cy="451.3" r="27.3"/>
+	<g>
+		
+			<radialGradient id="SVGID_2_" cx="-209.6367" cy="386.17" r="25.7073" gradientTransform="matrix(0.9503 0 0 -0.9503 -15.4458 803.5888)" gradientUnits="userSpaceOnUse">
+			<stop  offset="0.2528" style="stop-color:#EBC0AF"/>
+			<stop  offset="1" style="stop-color:#B5121B"/>
+		</radialGradient>
+		<path class="st1" d="M-182.9,424.4c-2.1-2.2-3.9-3.6-5.2-4.3c-3.1-1.8-7.1-2.6-11.9-2.6c-7.4,0-13.3,2.8-17.7,8.4
+			c-4,5-6,11.2-6,18.5c0,6.4,2.1,11.9,6.3,16.6c4.6,5.1,10.7,7.3,18,8.3c26.7,3.9,38.1-22,38.1-22c0,8-3.2,15.4-9.7,22.2
+			c-7.7,8.2-17.5,12.3-29.4,12.3c-10,0-18.8-3.6-26.2-10.9c-7.6-7.3-11.4-16-11.4-26.1c0-12.8,4.2-23,12.7-30.5
+			c7.2-6.5,15.6-9.7,25.2-9.7c8.3,0,15.5,1.9,21.3,5.7c5.8,3.9,10.7,9.8,14.8,17.7l-49.7,27.8L-182.9,424.4z"/>
+	</g>
+	<g>
+		<path class="st2" d="M-168,407.1c-17.3-17.3-45.4-17.3-62.7,0s-17.3,45.4,0,62.7c0.3,0.3,0.6,0.6,0.9,0.9
+			c-15.3-16.4-15-42.1,1-58.1c16.3-16.3,42.7-16.3,59,0c16,16,16.3,41.7,0.9,58.1c0.3-0.3,0.6-0.6,0.9-0.9
+			C-150.6,452.5-150.6,424.4-168,407.1z"/>
+		<path class="st2" d="M-197.2,391.4c0,0-8.8-32.6,42.5-31.1c-4.7,17.1-20.7,34.2-37.8,31.6c5.7-16.1,21.7-22.3,21.7-22.3
+			S-183.7,371.2-197.2,391.4z"/>
+		<path class="st2" d="M-201.9,390.7c0,0,6.8-25.2-32.8-24c3.6,13.2,16,26.4,29.2,24.4c-4.4-12.4-16.8-17.2-16.8-17.2
+			S-212.3,375.2-201.9,390.7z"/>
+	</g>
+</g>
+</svg>

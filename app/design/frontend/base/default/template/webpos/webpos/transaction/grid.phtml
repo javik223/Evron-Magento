@@ -1,0 +1,37 @@
+<?php
+$collection = $this->getTransactionCollection();
+?>
+<table id='transaction_table' class="table-bordered webpos_bordered_table">
+    <thead>
+        <tr>
+            <th><?php echo $this->__('Time Stamp');?></th>
+            <th><?php echo $this->__('In');?></th>
+            <th><?php echo $this->__('Out');?></th>
+            <th><?php echo $this->__('Balance');?></th>
+            <th><?php echo $this->__('Order ID');?></th>
+            <th><?php echo $this->__('Cashier');?></th>
+            <th><?php echo $this->__('Location');?></th>
+            <th><?php echo $this->__('Note');?></th>
+        </tr>
+    </thead>
+    <tbody>
+        <?php
+        if (count($collection) > 0):
+            foreach ($collection as $transaction):
+                ?>
+                <tr>
+                    <td><?php echo Mage::helper('core')->formatDate($transaction->getData('created_time'), Mage_Core_Model_Locale::FORMAT_TYPE_MEDIUM, true);?></td>
+                    <td><?php echo Mage::helper('core')->currency($transaction->getData('cash_in'), true, false);?></td>
+                    <td><?php echo Mage::helper('core')->currency($transaction->getData('cash_out'), true, false);?></td>
+                    <td><?php echo Mage::helper('core')->currency($transaction->getData('current_balance'), true, false);?></td>
+                    <td><?php echo ($transaction->getData('order_id') == 'Manual')?$this->__('Other transaction'):$transaction->getData('order_id');?></td>
+                    <td><?php echo $transaction->getData('username');?></td>
+                    <td><?php echo $transaction->getData('display_name');?></td>
+                    <td><?php echo $transaction->getData('comment');?></td>
+                </tr>
+                <?php
+            endforeach;
+        endif;
+        ?>
+    </tbody>
+</table>

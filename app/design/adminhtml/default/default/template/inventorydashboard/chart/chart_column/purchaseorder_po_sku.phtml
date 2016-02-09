@@ -1,0 +1,77 @@
+<?php
+$requestData = Mage::helper('adminhtml')->prepareFilterString($this->getRequest()->getParam('top_filter'));
+$reportCode = $this->getReportCode();
+$id_box = $this->getIdBox();
+if (empty($requestData)) {
+    $requestData = array();
+    $requestData['report_radio_select'] = $reportCode;
+    $isFound = false;
+    $reportTypes = Mage::helper('inventorydashboard/constant')->getReportTypes();
+    foreach ($reportTypes as $type => $value) {
+        foreach ($value['report_code'] as $code => $value2) {
+            if (strcmp($code, $reportCode) == 0) {
+                $requestData['select_time'] = $value2['default_time_range'];
+                $isFound = true;
+                break;
+            }
+        }
+        if ($isFound == true) {
+            break;
+        }
+    }
+}
+$dataCollection = Mage::helper('inventoryreports/purchaseorder')->getCollection($requestData);
+if (is_array($dataCollection)) {
+    $collection = $dataCollection['collection'];
+} else {
+    $collection = $dataCollection;
+}
+$collection->getSelect()->order('total_value DESC');
+?>
+<div class="chart-parent-div">
+    <?php
+    $columnData = Mage::helper('inventorydashboard')->getPurchaseorderChartColumnData($collection, $requestData);
+    $categories = $columnData['categories'];
+    $series = $columnData['series'];
+    ?>
+    <script type="text/javascript">
+        $(function () {
+        $_('#<?php echo $id_box ?>').highcharts({
+        title: {
+        text: '<?php echo $this->__('Purchase Report by SKU') ?>'
+        },
+                xAxis: {
+                categories: <?php echo $columnData['categories'] ?>
+                },
+                yAxis: {
+                min: 0,
+                        title: {
+                        text: '<?php echo $columnData['name'] ?>'
+                        }
+                },
+                labels: {
+                items: [{
+                style: {
+                left: '20px',
+                        top: '-30px',
+                        color: (Highcharts.theme && Highcharts.theme.textColor) || 'black'
+                }
+                }]
+                },
+                series: [{
+                type: 'column',
+                        name: '<?php echo $columnData['name'] ?>',
+                        pointWidth: 70,
+                        groupPadding: 0,
+<?php $column = 0; ?>
+<?php foreach ($columnData['series'] as $serie): ?>
+    <?php if (!$column == 0) echo ','; ?>
+    <?php $column++; ?>
+                    data: <?php echo $serie['data']; ?>
+<?php endforeach; ?>
+                }]
+        });
+        });
+    </script>
+    <div class="chart-child-div" id="<?php echo $id_box ?>" ></div>
+</div>

@@ -1,0 +1,68 @@
+
+<?php if (!$this->getRequest()->getParam('id')): ?>
+    <div class="entry-edit">
+        <div class="entry-edit-head">
+            <h4 class="icon-head head-edit-form fieldset-legend"><?php echo $this->__('Import Products to Create Barcodes') ?></h4>
+        </div>
+        <div id="supplier_form" class="fieldset">
+            <div style="float:left;">
+                <div>
+                    <label for="fileToUpload">
+                        <?php echo $this->__('Please choose CSV file to import') ?>
+                    </label><br />
+                    <input type="file" name="fileToUpload[]" id="fileToUpload" onchange="fileSelected();" enctype="multipart/form-data"/>
+                    <input name="form_key" type="hidden" value="<?php echo $this->getFormKey() ?>" id="form_key"/>
+                    <button style="" onclick="uploadFile()" class="scalable task" type="button" id="Upload"><span><?php echo $this->__('Import') ?></span></button>
+                </div>                    
+                <div class="clear"></div>
+                <div id="fileName">
+                </div>
+                <div id="fileSize">
+                </div>
+                <div id="fileType">
+                </div>
+                <div id="progressNumber">
+                </div>
+            </div>
+            <div id="messages" style="float: left;padding-left: 20px;width:60%;">
+                <ul class="messages">
+                    <li class="notice-msg">
+                        <ul>
+                            <li>
+                                <?php echo $this->__('If you want to import loads of products to Create Barcodes') ?><br />
+                              <?php $barcodeAttributes = Mage::getModel('inventorybarcode/barcodeattribute')->getCollection()->addFieldToFilter('attribute_display',1)->addFieldToFilter('attribute_status',1)->addFieldToFilter('attribute_type','custom');?>
+                                
+                                
+                                
+                                <?php $cols = '' ?>
+                                <?php $example = "SKU : SKU of product <br />" ?>
+                                <?php $example .= "BARCODE : Value of Barcode (If you leave this field blank, barcodes will be generated automatically) <br />" ?>
+                                <?php $example .= "WAREHOUSE_ID : ID of warehouse <br />" ?>
+                                 <?php $example .= "QTY : quantity of the product using this barcode. It must be equal or less than the Total Qty. of this product in the selected warehouse or the whole system (if no warehouse is chosen).<br />" ?>
+                                <?php $example .= "BARCODE_STATUS : Status of barcode (1 is enabled, 0 is disabled)<br />" ?>
+                                
+                                <?php foreach($barcodeAttributes as $barcodeAttribute):?>
+                                    <?php $example .= strtoupper($barcodeAttribute->getAttributeCode()).' : Value of '.strtoupper($barcodeAttribute->getAttributeCode())?>
+                                    <?php $cols .= ', '.strtoupper($barcodeAttribute->getAttributeCode());?>
+                                <?php endforeach;?>
+                              
+                                <?php echo $this->__('the structure for CSV file will be:') ?><br />
+                                <?php echo "<h3><b>SKU,BARCODE,WAREHOUSE_ID,QTY,BARCODE_STATUS".$cols."</b></h3>"; ?>
+                                <div style="padding-left: 20px;" ?>
+                                    <?php echo $example ?>
+                                </div>
+                            </li>
+                            <li>
+                                <div style="float:left;">                                    
+                                    <b><?php echo $this->__('Example file ') ?><a href="<?php echo Mage::getBaseUrl('media') . 'inventorybarcode/csv/import_product_to_barcodefrompo.csv'; ?>">(<?php echo $this->__('Download') ?>)</a></b>
+                                </div>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+            <div class="clear"></div>
+        </div>
+    </div>
+    <?php
+ endif ?>

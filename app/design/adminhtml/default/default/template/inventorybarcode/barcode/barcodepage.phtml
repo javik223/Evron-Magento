@@ -1,0 +1,962 @@
+<div class="entry-edit">
+<?php $barcode = Mage::getModel('inventorybarcode/barcode')->load($this->getRequest()->getParam('id'));?>
+<?php $product = Mage::getModel('catalog/product')->load($barcode->getProductEntityId()); ?>
+<div id="general_information">
+    
+    <?php
+    $currency = Mage::app()->getStore()->getBaseCurrencyCode();
+    ?>
+    <?php if ($barcode->getId()): ?>
+        <div class="entry-edit" >            
+            <!-- product -->
+            <div style="width:32%; float:left;">
+                <div class="entry-edit-head" style="margin-top: 5px; cursor: pointer;" id="barcode_form-head">
+                    <h4 class="icon-head head-edit-form fieldset-legend"><?php echo $this->__('Product') ?></h4>
+                    <div class="form-buttons"></div>
+                </div>
+                <div class="fieldset " id="general_form">
+                    <div class="hor-scroll">
+                        <table cellspacing="0" class="form-list">
+                            <tbody>
+                                
+
+                                <tr>
+                                    <td class="label"><label><?php echo $this->__('Product Name') ?></label></td>
+                                    <td class="value">
+                                        <?php echo $product->getName() ?>
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <td class="label"><label><?php echo $this->__('Price') ?></label></td>
+                                    <td class="value">                                    
+                                        <?php echo Mage::getModel('directory/currency')->load($currency)->formatTxt($product->getPrice()) ?>
+                                    </td>
+                                </tr>
+
+    <!--
+                                <tr>
+                                    <td class="label"><label><?php echo $this->__('Qty of product') ?></label></td>
+                                    <td class="value">
+                                        <?php
+                                        $item = Mage::getModel('cataloginventory/stock_item')->loadByProduct($product);
+                                        $qty = $item->getQty();
+                                        ?>
+                                        <?php echo (int) $qty ?>
+                                    </td>
+                                </tr>
+    -->
+                                <tr>
+                                    <td class="label"><label><?php echo $this->__('Qty of Barcode') ?></label></td>
+                                    <td class="value">
+                                        <?php echo $barcode->getQty() ?>
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <td class="label"><label><?php echo $this->__('Original Qty of Barcode') ?></label></td>
+                                    <td class="value">
+                                        <?php echo $barcode->getQtyOriginal() ?>
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <td class="label"></td>
+                                    <td class="value">
+                                        <a style="text-decoration: none;" href="#product_form-head" onclick="$('product_form').show()"/><?php echo $this->__('More details')?></a>
+                                    </td>
+                                </tr>
+
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- delivery -->
+            <?php if (Mage::helper('core')->isModuleEnabled('Magestore_Inventorypurchasing')):?>
+            <div style="width:32%; float:left; margin-left: 15px;">
+                <div class="entry-edit-head" style="margin-top: 5px; cursor: pointer;" id="barcode_form-head">
+                    <h4 class="icon-head head-edit-form fieldset-legend"><?php echo $this->__('Delivery') ?></h4>
+                    <div class="form-buttons"></div>
+                </div>
+                <div class="fieldset " id="general_form">
+                    <div class="hor-scroll">
+                        <table cellspacing="0" class="form-list">
+                            <tbody>
+                                <?php 
+								$delivery = Mage::getModel('inventorypurchasing/purchaseorder_delivery')->getCollection()
+                                            ->addFieldToFilter('barcode', $barcode->getBarcode())->getFirstItem();
+								if(!$delivery->getId()){
+									$delivery = Mage::getModel('inventorypurchasing/purchaseorder_delivery')->getCollection()
+												->addFieldToFilter('purchase_order_id', $barcode->getPurchaseorderPurchaseOrderId())
+												->addFieldToFilter('product_id',$barcode->getProductEntityId())
+												->getFirstItem();
+								}
+                                $purchaseorder = Mage::getModel('inventorypurchasing/purchaseorder')->load($barcode->getPurchaseorderPurchaseOrderId());
+                                ?>
+
+                                <tr>
+                                    <td class="label"><label><?php echo $this->__('Purchase Order') ?></label></td>
+                                    <td class="value">
+                                        <?php echo $this->__('#%s', $barcode->getPurchaseorderPurchaseOrderId()); ?>
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <td class="label"><label><?php echo $this->__('Supplier') ?></label></td>
+                                    <td class="value">
+                                        <?php echo $purchaseorder->getSupplierName(); ?>
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <td class="label"><label><?php echo $this->__('Delivery Date') ?></label></td>
+                                    <td class="value">
+                                        <?php echo Mage::helper('core')->formatDate($delivery->getDeliveryDate(), 'medium', false) ?>
+                                    </td>
+                                </tr>                            
+
+                                <tr>
+                                    <td class="label"><label><?php echo $this->__('Total Qty') ?></label></td>
+                                    <td class="value">
+                                        <?php echo (int)$delivery->getQtyDelivery(); ?>
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <td class="label"><label><?php echo $this->__('Created By') ?></label></td>
+                                    <td class="value">
+                                        <?php echo $delivery->getCreatedBy(); ?>
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <td class="label"></td>
+                                    <td class="value">
+                                        <a style="text-decoration: none;" href="#purchaseorder_form-head" onclick="$('purchaseorder_form').show()"/><?php echo $this->__('More details')?></a>
+                                    </td>
+                                </tr>
+
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div style="width:32%; float:left; margin-left: 15px;">
+                <div class="entry-edit-head" style="margin-top: 5px; cursor: pointer;" id="barcode_form-head">
+                    <h4 class="icon-head head-edit-form fieldset-legend"><?php echo $this->__('Warehouse') ?></h4>
+                    <div class="form-buttons"></div>
+                </div>
+                <div class="fieldset " id="general_form" style="float:left; width:304px;">
+                    <div class="hor-scroll">
+
+                        <tbody>
+                                <?php 
+                                    $warehouseIds = explode(',', $barcode->getWarehouseWarehouseId());   
+                                ?>
+                                <div style="width:100%; float:left;">
+                                                    <div style="width: 30%; float:left; border: 1px solid #ddd; padding:0 2px;">
+                                                        <span style="font-weight: bold"><?php echo $this->__('Warehouse') ?></span>
+                                                    </div>
+                                                    <div style="width: 30%; float:left; border: 1px solid #ddd; padding:0 2px;">
+                                                        <span style="font-weight: bold"><?php echo $this->__('Qty') ?></span>
+                                                    </div>
+                                                    <div style="width: 30%; float:left; border: 1px solid #ddd; padding:0 2px;">
+                                                        <span style="font-weight: bold"><?php echo $this->__('Action') ?></span>
+                                                    </div>
+
+                                                    </div>
+                                                </div>
+                                <?php foreach($warehouseIds as $key => $warehouseId):?>
+                                    <?php $warehouse = Mage::getModel('inventoryplus/warehouse')->load($warehouseId);?>
+                                    <?php $deliveryWarehouse = Mage::getModel('inventorypurchasing/purchaseorder_delivery_warehouse')->getCollection()
+                                                                        ->addFieldToFilter('purchase_order_id', $barcode->getPurchaseorderPurchaseOrderId())
+                                                                        ->addFieldToFilter('product_id',$barcode->getProductEntityId());?>
+                                        <!-- for the barcodes was created automatic-->                                
+                                        <?php if($deliveryWarehouse->getSize()):?>
+                                                    <?php   $deliveryWarehouse->addFieldToFilter('warehouse_id', $warehouseId);?>
+
+                                                    <?php if($deliveryWarehouse->getSize()):?>
+                                                        <?php $deliveryWarehouse = $deliveryWarehouse->getFirstItem();?>
+                                                        <div style="width:30%; float:left; border: 1px solid #ddd; padding:0 2px;">
+                                                            <span><?php echo $warehouse->getWarehouseName();?></span>
+                                                        </div>
+                                                        <div style="width:30%; float:left; border: 1px solid #ddd; padding:0 2px;">
+                                                            <span><?php echo $deliveryWarehouse->getQtyDelivery();?></span>
+                                                        </div>
+                                                        <div style="width:30%; float:left; border: 1px solid #ddd; padding:0 2px;">
+                                                           <a style="text-decoration: none;" href="#warehouse_form_<?php echo $warehouseId;?>-head" onclick="$('warehouse_form_<?php echo $warehouseId;?>').show()"/><?php echo $this->__('More details')?></a>
+                                                        </div>
+                                                        <div style="width:100%;float:left"></div>
+                                                    <?php endif;?>
+                                        <!-- for the barcodes was created by hand-->
+                                        <?php else:?>
+                                                    <div style="width:30%; float:left; border: 1px solid #ddd; padding:0 2px;">
+                                                        <span><?php echo $warehouse->getWarehouseName();?></span>
+                                                    </div>
+                                                    <div style="width:30%; float:left; border: 1px solid #ddd; padding:0 2px;">
+                                                        <span><?php echo $barcode->getQty();?></span>
+                                                    </div>
+                                                    <div style="width:30%; float:left; border: 1px solid #ddd; padding:0 2px;">
+                                                       <a style="text-decoration: none;" href="#warehouse_form_<?php echo $warehouseId;?>-head" onclick="$('warehouse_form_<?php echo $warehouseId;?>').show()"/><?php echo $this->__('More details')?></a>
+                                                    </div>
+                                        <?php endif;?>
+
+                               <?php endforeach;?>
+
+                </tbody>
+
+                    </div>
+                </div>
+            </div>
+
+            <?php endif;?>
+
+    <?php endif; ?>    
+        </div>
+
+<div id="barcode_information">
+    <?php if ($barcode->getId()): ?>
+<div class="entry-edit" >    
+        <div></div>
+            <div class="entry-edit-head" style="margin-top: 5px; cursor: pointer;" id="barcode_form-head" onclick="Fieldset.toggleCollapse('barcode_form')">
+                <h4 class="icon-head head-edit-form fieldset-legend"><?php echo $this->__('Barcode Information') ?></h4>
+                <div class="form-buttons"></div>
+            </div>
+            <div class="fieldset " id="barcode_form" style="display: none;">
+                <div class="hor-scroll">
+                    <table cellspacing="0" class="form-list">
+                        <tbody>
+
+                            <tr>
+                                <td class="label"><label><?php echo $this->__('Barcode') ?></label></td>
+                                <td class="value">
+                                    <?php echo $barcode->getBarcode() ?>
+                                </td>
+                            </tr>
+
+                            <?php $barcodeAttributes = Mage::getModel('inventorybarcode/barcodeattribute')->getCollection()->addFieldToFilter('attribute_status', 1)->addFieldToFilter('attribute_display', 1); ?>
+                            <?php foreach ($barcodeAttributes as $barcodeAttribute): ?>
+                                <tr>
+                                    <td class="label"><label><?php echo $barcodeAttribute->getAttributeName() ?></label></td>
+                                    <td class="value">
+                                        <?php echo $barcode->getData($barcodeAttribute->getAttributeCode()) ?>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                            <tr>
+                                <td class="label"><label><?php echo $this->__('Qty') ?></label></td>
+                                <td class="value">
+                                    <?php echo $barcode->getQty(); ?>                               
+                                </td>
+                            </tr>
+                            <tr>
+                                <?php
+                                $dateFormatIso = Mage::app()->getLocale()->getDateTimeFormat(Mage_Core_Model_Locale::FORMAT_TYPE_MEDIUM);
+                                $time = Mage::app()->getLocale()->date($barcode->getCreatedDate(), Varien_Date::DATETIME_INTERNAL_FORMAT)->toString($dateFormatIso);
+                                    ?>
+                                <td class="label"><label><?php echo $this->__('Created Date') ?></label></td>
+                                <td class="value">
+                                    <?php echo $time; ?>                               
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="label"><label><?php echo $this->__('Status') ?></label></td>
+                                <td class="value">
+                                    <?php echo ($barcode->getBarcodeStatus() == 1) ? $this->__('Enable') : $this->__('Disable'); ?>                               
+                                </td>
+                            </tr>
+                            
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        
+    </div>
+<?php endif; ?>
+    
+</div>
+<div id="product_information">
+    <?php if($product->getId()):?>
+<div class="entry-edit" >
+    <div></div>
+        <div class="entry-edit-head" style="margin-top: 5px; cursor: pointer;" id="product_form-head" onclick="Fieldset.toggleCollapse('product_form')">
+            <h4 class="icon-head head-edit-form fieldset-legend"><?php echo $this->__('Product Information') ?></h4>
+            <div class="form-buttons"></div>
+        </div>
+        <div class="fieldset " id="product_form" style="display:none">
+            <div class="hor-scroll">
+                <table cellspacing="0" class="form-list">
+                    <tbody>
+                        
+                        <?php if($product->getImage()!='no_selection'):?>
+                        <tr>
+                            <td class="label"><label><?php echo $this->__('Image') ?></label></td>
+                            <td class="value">
+                                <?php try{?>
+                                <?php if(Mage::helper('catalog/image')->init($product, 'image')):?>
+                                    <img src="<?php echo Mage::helper('catalog/image')->init($product, 'image')->resize(150); ?>" width="150px" />
+                                <?php endif;?>
+                                <?php }catch(Exception $e){
+                                    
+                                }?>
+                                
+                            </td>
+                        </tr>
+                        <?php endif;?>
+                        <tr>
+                            <td class="label"><label><?php echo $this->__('Name') ?></label></td>
+                            <td class="value">
+                                <?php echo $product->getName() ?>
+                            </td>
+                        </tr>
+                        <?php if($product->getSku()):?>
+                        <tr>
+                            <td class="label"><label><?php echo $this->__('SKU') ?></label></td>
+                            <td class="value">
+                                <?php echo $product->getSku() ?>
+                            </td>
+                        </tr>
+                        <?php endif;?>
+                        <?php if($product->getPrice()):?>
+                        <tr>
+                            <td class="label"><label><?php echo $this->__('Price') ?></label></td>
+                            <td class="value">
+                                <?php echo Mage::getModel('directory/currency')->load($currency)->formatTxt($product->getPrice()); ?>
+                            </td>
+                        </tr>
+                        <?php endif;?>
+                        
+                            <?php if($product->getCost()):?>
+                                <tr>
+                                    <td class="label"><label><?php echo $this->__('Cost') ?></label></td>
+                                    <td class="value">                                    
+                                        <?php echo Mage::getModel('directory/currency')->load($currency)->formatTxt($product->getCost()) ?> 
+                                    </td>
+                                </tr>
+                            <?php endif; ?>
+                            
+                            <?php if(count($product->getData('group_price'))):?>
+                                <tr>
+                                    <td class="label"><label><?php echo $this->__('Group Price') ?></label></td>
+                                    <td class="value">  
+                                            <div style="width:100%; float:left;">
+                                                <div style="width: 20%; float:left; border: 1px solid #ddd; padding:0 2px;">
+                                                    <span style="font-weight: bold"><?php echo $this->__('Website') ?></span>
+                                                </div>
+                                                <div style="width: 20%; float:left; border: 1px solid #ddd; padding:0 2px;">
+                                                    <span style="font-weight: bold"><?php echo $this->__('Customer Group') ?></span>
+                                                </div>
+                                                <div style="width: 20%; float:left; border: 1px solid #ddd; padding:0 2px;">
+                                                    <span style="font-weight: bold"><?php echo $this->__('Price') ?></span>
+                                                </div>
+                                            </div>
+                                    
+                                        <?php foreach($product->getData('group_price') as $groupPrice):?>
+                                        
+                                            <div style="width:100%; float:left;">
+                                                <?php 
+                                                    if($groupPrice['website_id']==0){
+                                                        $website = $this->__('All Websites');
+                                                    }else{
+                                                        $website = Mage::app()->getWebsite($groupPrice['website_id'])->getName();
+                                                    }
+                                                ?>
+                                                <div style="width: 20%; float:left; border: 1px solid #ddd; padding:0 2px;">
+                                                    <span><?php echo $website; ?></span>
+                                                </div>
+                                                <?php
+                                                    if($groupPrice['all_groups']!=0){
+                                                        $group = $this->__('All Groups');
+                                                    }else{
+                                                        $group =  Mage::getModel('customer/group')->load($groupPrice['cust_group'])->getCustomerGroupCode();
+                                                       
+                                                    }
+                                                ?>
+                                                <div style="width: 20%; float:left; border: 1px solid #ddd; padding:0 2px;">
+                                                    <span><?php echo $group ?></span>
+                                                </div>
+                                                
+                                                <div style="width: 20%; float:left; border: 1px solid #ddd; padding:0 2px;">
+                                                    <span><?php echo Mage::getModel('directory/currency')->load($currency)->formatTxt($groupPrice['price']); ?></span>
+                                                </div>
+                                            </div>
+                                       
+                                        <?php endforeach; ?> 
+                                    </td>
+                                </tr>
+                            <?php endif; ?>
+                                
+                            <?php if(count($product->getData('tier_price'))):?>
+                                <tr>
+                                    <td class="label"><label><?php echo $this->__('Tier Price') ?></label></td>
+                                    <td class="value">  
+                                            <div style="width:100%; float:left;">
+                                                <div style="width: 20%; float:left; border: 1px solid #ddd; padding:0 2px;">
+                                                    <span style="font-weight: bold"><?php echo $this->__('Website') ?></span>
+                                                </div>
+                                                <div style="width: 20%; float:left; border: 1px solid #ddd; padding:0 2px;">
+                                                    <span style="font-weight: bold"><?php echo $this->__('Customer Group') ?></span>
+                                                </div>
+                                                <div style="width: 20%; float:left; border: 1px solid #ddd; padding:0 2px;">
+                                                    <span style="font-weight: bold"><?php echo $this->__('Qty') ?></span>
+                                                </div>
+                                                <div style="width: 20%; float:left; border: 1px solid #ddd; padding:0 2px;">
+                                                    <span style="font-weight: bold"><?php echo $this->__('Price') ?></span>
+                                                </div>
+                                            </div>
+                                       
+                                        <?php foreach($product->getData('tier_price') as $groupPrice):?>
+                                            <div style="width:100%; float:left;">
+                                                <?php 
+                                                    if($groupPrice['website_id']==0){
+                                                        $website = $this->__('All Websites');
+                                                    }else{
+                                                        $website = Mage::app()->getWebsite($groupPrice['website_id'])->getName();
+                                                    }
+                                                ?>
+                                                <div style="width: 20%; float:left; border: 1px solid #ddd; padding:0 2px;">
+                                                    <span><?php echo $website; ?></span>
+                                                </div>
+                                                <?php
+                                                    if($groupPrice['all_groups']!=0){
+                                                        $group = $this->__('All Groups');
+                                                    }else{
+                                                        $group =  Mage::getModel('customer/group')->load($groupPrice['cust_group'])->getCustomerGroupCode();
+                                                    }
+                                                ?>
+                                                <div style="width: 20%; float:left; border: 1px solid #ddd; padding:0 2px;">
+                                                    <span><?php echo $group ?></span>
+                                                </div>
+                                                
+                                                <div style="width: 20%; float:left; border: 1px solid #ddd; padding:0 2px;">
+                                                    <span><?php echo (int)$groupPrice['price_qty'] ?></span>
+                                                </div>
+                                                
+                                                <div style="width: 20%; float:left; border: 1px solid #ddd; padding:0 2px;">
+                                                    <span><?php echo Mage::getModel('directory/currency')->load($currency)->formatTxt($groupPrice['price']); ?></span>
+                                                </div>
+                                            </div>
+                                      
+                                        <?php endforeach; ?> 
+                                    </td>
+                                </tr>
+                            <?php endif; ?>
+                                
+                            <?php if($product->getSpecialPrice()):?>
+                                <tr>
+                                    <td class="label"><label><?php echo $this->__('Special Price') ?></label></td>
+                                    <td class="value">                                    
+                                        <?php echo Mage::getModel('directory/currency')->load($currency)->formatTxt($product->getSpecialPrice()) ?> (<?php echo $this->__('From "%s" to "%s"',Mage::helper('core')->formatDate($product->getSpecialFromDate(), 'medium', false),Mage::helper('core')->formatDate($product->getSpecialToDate(), 'medium', false))?>)
+                                    </td>
+                                </tr>
+                            <?php endif; ?>
+                        <?php if($product->getWeight()):?>
+                        <tr>
+                            <td class="label"><label><?php echo $this->__('Weight') ?></label></td>
+                            <td class="value">
+                                <?php echo (int)$product->getWeight() ?>
+                            </td>
+                        </tr>
+                        <?php endif;?>
+                        <?php if($product->getManufacturer()):?>
+                        <?php 
+                        $attributes = Mage::getResourceModel('eav/entity_attribute_collection')
+                                    ->setEntityTypeFilter($product->getResource()->getTypeId())
+                                            ->addFieldToFilter('attribute_code', 'manufacturer');
+                        $attribute = $attributes->getFirstItem()->setEntity($product->getResource());
+                        $manufacturers = $attribute->getSource()->getAllOptions(false);
+                        
+                        ?>
+                        <tr>
+                            <td class="label"><label><?php echo $this->__('Manufacturer') ?></label></td>
+                            <td class="value">
+                                <?php foreach($manufacturers as $manufacturer):?>
+                                    <?php if($manufacturer['value']==$product->getManufacturer()):?>
+                                        <?php echo $manufacturer['label'] ?>
+                                    <?php endif;?>
+                                <?php endforeach;?>
+                            </td>
+                        </tr>
+                        <?php endif;?>
+                        <?php if($product->getColor()):?>
+                        <tr>
+                            <td class="label"><label><?php echo $this->__('Color') ?></label></td>
+                            <td class="value">
+                                <?php echo $product->getColor() ?>
+                            </td>
+                        </tr>
+                        <?php endif;?>
+                        
+                        <tr>
+                                <td class="label"><label><?php echo $this->__('Qty') ?></label></td>
+                                <td class="value">                                  
+                                    <?php echo (int)$qty ?>
+                                </td>
+                            </tr>
+                        
+                        <tr>
+                            <td class="label"><label><?php echo $this->__('Stock Availability') ?></label></td>
+                            <td class="value">
+                                <?php echo ($product->getIsInStock()==1)?$this->__('In Stock'):$this->__('Our Of Stock'); ?>
+                            </td>
+                        </tr>
+                        
+                        <tr>
+                            <td class="label"><label><?php echo $this->__('Status') ?></label></td>
+                            <td class="value">
+                                 <?php echo ($product->getStatus()==1)? $this->__('Enable'):$this->__('Disable'); ?>                               
+                            </td>
+                        </tr>
+                        
+                        <tr>
+                            <td class="label"></td>
+                            <td class="value">
+                                <a style="text-decoration: none; cursor: pointer;" onclick="window.open('<?php echo Mage::helper("adminhtml")->getUrl('adminhtml/catalog_product/edit/',array('id'=> $product->getId()));?>', '_blank', 'scrollbars=yes, resizable=yes, width=1000, height=600, top=50, left=300')"/><?php echo $this->__('More details')?></a>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    
+</div>
+<?php endif;?>    
+</div>
+
+    <?php $warehouseIds = explode(',', $barcode->getWarehouseWarehouseId());?>  
+    <?php foreach($warehouseIds as $key => $id):?>
+        <div id="warehouse_information">
+        <?php $warehouse = Mage::getModel('inventoryplus/warehouse')->load($id);?>
+        <?php if ($warehouse->getId()): ?>
+        <div class="entry-edit" >
+            <div></div>
+                <div class="entry-edit-head" style="margin-top: 5px; cursor: pointer;" id="warehouse_form_<?php echo $warehouse->getId()?>-head" onclick="Fieldset.toggleCollapse('warehouse_form_<?php echo $warehouse->getId()?>')">
+                    <h4 class="icon-head head-edit-form fieldset-legend"><?php echo $this->__('Warehouse Information') ?> : <?php echo $warehouse->getWarehouseName()?></h4>
+                    <div class="form-buttons"></div>
+                </div>
+                <div class="fieldset " id="warehouse_form_<?php echo $warehouse->getId()?>" style="display:none">
+                    <div class="hor-scroll">
+                        <table cellspacing="0" class="form-list">
+                            <tbody>
+
+                                <tr>
+                                    <td class="label"><label><?php echo $this->__('Warehouse Name') ?></label></td>
+                                    <td class="value">
+                                        <?php echo $warehouse->getWarehouseName() ?>
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <td class="label"><label><?php echo $this->__('Manager\'s Name') ?></label></td>
+                                    <td class="value">
+                                        <?php echo $warehouse->getManagerName() ?>
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <td class="label"><label><?php echo $this->__('Manager\'s Email') ?></label></td>
+                                    <td class="value">
+                                        <?php echo $warehouse->getManagerEmail() ?>
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <td class="label"><label><?php echo $this->__('Telephone') ?></label></td>
+                                    <td class="value">
+                                        <?php echo $warehouse->getTelephone() ?>
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <td class="label"><label><?php echo $this->__('Address') ?></label></td>
+                                    <td class="value">
+                                        <?php echo $warehouse->getStreet() ?>
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <td class="label"><label><?php echo $this->__('City') ?></label></td>
+                                    <td class="value">
+                                        <?php echo $warehouse->getCity() ?>
+                                    </td>
+                                </tr>
+
+                                <?php if($warehouse->getState() || $warehouse->getStateId()):?>
+                                <tr>
+                                    <td class="label"><label><?php echo $this->__('State/Province') ?></label></td>
+                                    <td class="value">
+                                        <?php if($warehouse->getState()):?>
+                                            <?php echo $warehouse->getState(); ?>
+                                        <?php else:?>
+                                            <?php
+                                                $region = Mage::getModel('directory/region')->load($warehouse->getStateId());
+                                                echo $region->getName();
+                                            ?>
+                                        <?php endif;?>
+                                    </td>
+                                </tr>
+                                <?php endif;?>
+
+                                <tr>
+                                    <td class="label"><label><?php echo $this->__('Zip/Postal Code') ?></label></td>
+                                    <td class="value">
+                                        <?php echo $warehouse->getPostcode(); ?>
+                                    </td>
+                                </tr> 
+
+                                <?php
+                                try{
+                                $countryModel = Mage::getModel('directory/country')->loadByCode($warehouse->getCountryId());
+
+                                $countryName = $countryModel->getName();
+                                }catch(Exception $e){
+                                    $countryName = '';
+                                }
+                                ?>
+                                <tr>
+                                    <td class="label"><label><?php echo $this->__('Country') ?></label></td>
+                                    <td class="value">
+                                        <?php echo $countryName; ?>
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <td class="label"><label><?php echo $this->__('Status') ?></label></td>
+                                    <td class="value">
+                                         <?php echo ($warehouse->getStatus()==1)? $this->__('Enable'):$this->__('Disable'); ?>
+                                    </td>
+                                </tr>
+
+
+                                <tr>
+                                    <td class="label"></td>
+                                    <td class="value">
+                                        <a style="text-decoration: none; cursor: pointer;" onclick="window.open('<?php echo Mage::helper("adminhtml")->getUrl("adminhtml/inp_warehouse/edit/", array("id" => $warehouse->getId())); ?>', '_blank', 'scrollbars=yes, resizable=yes, width=1000, height=600, top=50, left=300')"/><?php echo $this->__('More details') ?></a>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            
+        </div>
+    <?php endif; ?>
+            </div>
+    <?php endforeach;?>
+
+<?php if (Mage::helper('core')->isModuleEnabled('Magestore_Inventorypurchasing')):?>
+<div id="supplier_information">
+    <?php $supplier = Mage::getModel('inventorypurchasing/supplier')->load($barcode->getSupplierSupplierId());?>
+    <?php if ($supplier->getId()): ?>
+    <div class="entry-edit" >
+        <div></div>
+            <div class="entry-edit-head" style="margin-top: 5px; cursor: pointer;" id="supplier_search_form-head" onclick="Fieldset.toggleCollapse('supplier_search_form')">
+                <h4 class="icon-head head-edit-form fieldset-legend"><?php echo $this->__('Supplier Information') ?></h4>
+                <div class="form-buttons"></div>
+            </div>
+            <div class="fieldset " id="supplier_search_form" style="display:none">
+                <div class="hor-scroll">
+                    <table cellspacing="0" class="form-list">
+                        <tbody>
+
+                            <tr>
+                                <td class="label"><label><?php echo $this->__('Supplier Name') ?></label></td>
+                                <td class="value">
+                                    <?php echo $supplier->getSupplierName() ?>
+                                </td>
+                            </tr>
+                            
+                            <tr>
+                                <td class="label"><label><?php echo $this->__('Contact Name') ?></label></td>
+                                <td class="value">
+                                    <?php echo $supplier->getContactName() ?>
+                                </td>
+                            </tr>
+                            
+                            <tr>
+                                <td class="label"><label><?php echo $this->__('Email') ?></label></td>
+                                <td class="value">
+                                    <?php echo $supplier->getSupplierEmail() ?>
+                                </td>
+                            </tr>
+                            
+                            <tr>
+                                <td class="label"><label><?php echo $this->__('Telephone') ?></label></td>
+                                <td class="value">
+                                    <?php echo $supplier->getTelephone() ?>
+                                </td>
+                            </tr>
+                            
+                            <tr>
+                                <td class="label"><label><?php echo $this->__('Fax') ?></label></td>
+                                <td class="value">
+                                    <?php echo $supplier->getFax() ?>
+                                </td>
+                            </tr>
+                            
+                            <tr>
+                                <td class="label"><label><?php echo $this->__('Address') ?></label></td>
+                                <td class="value">
+                                    <?php echo $supplier->getStreet() ?>
+                                </td>
+                            </tr>
+                            
+                            <tr>
+                                <td class="label"><label><?php echo $this->__('City') ?></label></td>
+                                <td class="value">
+                                    <?php echo $supplier->getCity() ?>
+                                </td>
+                            </tr>
+                            
+                            <?php if($supplier->getState() || $supplier->getStateId()):?>
+                            <tr>
+                                <td class="label"><label><?php echo $this->__('State/Province') ?></label></td>
+                                <td class="value">
+                                    <?php if($supplier->getState()):?>
+                                        <?php echo $supplier->getState(); ?>
+                                    <?php else:?>
+                                        <?php
+                                            $region = Mage::getModel('directory/region')->load($supplier->getStateId());
+                                            echo $region->getName();
+                                        ?>
+                                    <?php endif;?>
+                                </td>
+                            </tr>
+                            <?php endif;?>
+                            
+                            <tr>
+                                <td class="label"><label><?php echo $this->__('Zip/Postal Code') ?></label></td>
+                                <td class="value">
+                                    <?php echo $supplier->getPostcode(); ?>
+                                </td>
+                            </tr> 
+                            
+                            <?php
+                            $countryModel = Mage::getModel('directory/country')->loadByCode($supplier->getCountryId());
+
+                            $countryName = $countryModel->getName();
+                            ?>
+                            <tr>
+                                <td class="label"><label><?php echo $this->__('Country') ?></label></td>
+                                <td class="value">
+                                    <?php echo $countryName; ?>
+                                </td>
+                            </tr>
+                            
+                            <tr>
+                                <td class="label"><label><?php echo $this->__('Website') ?></label></td>
+                                <td class="value">
+                                    <a href="<?php echo $supplier->getWebsite(); ?>"/><?php echo $supplier->getWebsite(); ?></a>
+                                </td>
+                            </tr>
+                            
+                            <tr>
+                                <td class="label"><label><?php echo $this->__('No. of Orders ') ?></label></td>
+                                <td class="value">
+                                    <?php echo $supplier->getTotalOrder(); ?>
+                                </td>
+                            </tr>
+                            <?php
+                                $currency = Mage::app()->getStore()->getBaseCurrencyCode();			
+                        
+                            ?>
+                            <tr>
+                                <td class="label"><label><?php echo $this->__('Purchase Order') ?></label></td>
+                                <td class="value">
+                                    <?php echo Mage::getModel('directory/currency')->load($currency)->formatTxt($supplier->getPurchaseOrder()); ?>
+                                </td>
+                            </tr>
+                            
+                            <tr>
+                                <td class="label"><label><?php echo $this->__('Return Order') ?></label></td>
+                                <td class="value">
+                                    <?php echo Mage::getModel('directory/currency')->load($currency)->formatTxt($supplier->getReturnOrder()); ?>
+                                </td>
+                            </tr>
+                            
+                            <tr>
+                                <td class="label"><label><?php echo $this->__('Last Purchase Order') ?></label></td>
+                                <td class="value">
+                                    <?php echo Mage::helper('core')->formatDate($supplier->getLastPurchaseOrder(), 'full', false); ?>
+                                </td>
+                            </tr>
+                            
+                            <tr>
+                                <td class="label"><label><?php echo $this->__('Status') ?></label></td>
+                                <td class="value">
+                                    <?php echo ($supplier->getSupplierStatus()==1)? $this->__('Enable'):$this->__('Disable'); ?>
+                                </td>
+                            </tr>
+                                                       
+                            
+                            <tr>
+                                <td class="label"></td>
+                                <td class="value">
+                                    <a style="text-decoration: none; cursor: pointer;" onclick="window.open('<?php echo Mage::helper("adminhtml")->getUrl("adminhtml/inpu_supplier/edit/", array("id" => $supplier->getId())); ?>', '_blank', 'scrollbars=yes, resizable=yes, width=1000, height=600, top=50, left=300')"/><?php echo $this->__('More details') ?></a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        
+    </div>
+<?php endif; ?>    
+</div>
+<div id="purchaseorder_information">
+    <?php $purchaseorder = Mage::getModel('inventorypurchasing/purchaseorder')->load($barcode->getPurchaseorderPurchaseOrderId());?>
+    <?php if ($purchaseorder->getId()): ?>
+    <div class="entry-edit" >
+        <div></div>
+            <div class="entry-edit-head" style="margin-top: 5px; cursor: pointer;" id="purchaseorder_form-head" onclick="Fieldset.toggleCollapse('purchaseorder_form')">
+                <h4 class="icon-head head-edit-form fieldset-legend"><?php echo $this->__('Purchase Order Information') ?></h4>
+                <div class="form-buttons"></div>
+            </div>
+            <div class="fieldset " id="purchaseorder_form" style="display:none">
+                <div class="hor-scroll">
+                    <table cellspacing="0" class="form-list">
+                        <tbody>
+
+                            <tr>
+                                <td class="label"><label><?php echo $this->__('ID') ?></label></td>
+                                <td class="value">
+                                    <?php echo $this->__('PO#').$purchaseorder->getId() ?>
+                                </td>
+                            </tr>
+                            
+                            <tr>
+                                <td class="label"><label><?php echo $this->__('Order Created On') ?></label></td>
+                                <td class="value">
+                                    <?php echo Mage::helper('core')->formatDate($purchaseorder->getPurchaseOn(), 'full', false); ?>
+                                </td>
+                            </tr>
+                            
+                            <tr>
+                                <td class="label"><label><?php echo $this->__('Billing Name') ?></label></td>
+                                <td class="value">
+                                    <?php echo $purchaseorder->getBillName(); ?>
+                                </td>
+                            </tr>
+                            <?php
+                            $warehouseIds = $purchaseorder->getWarehouseId();
+                            $warehouseIds = explode(',', $warehouseIds);
+                            ?>
+                            <tr>
+                                <td class="label"><label><?php echo $this->__('Warehouse') ?></label></td>
+                                <td class="value">
+                                    <?php foreach($warehouseIds as $warehouseId):?>
+                                        <?php $warehousename = Mage::getModel('inventoryplus/warehouse')->load($warehouseId)->getWarehouseName();?>
+                                        <?php echo $warehousename; ?><br/>
+                                    <?php endforeach;?>
+                                </td>
+                            </tr>
+                            
+                            <tr>
+                                <td class="label"><label><?php echo $this->__('Start shipping date') ?></label></td>
+                                <td class="value">
+                                    <?php echo Mage::helper('core')->formatDate($purchaseorder->getStartedDate(), 'full', false); ?>
+                                </td>
+                            </tr>
+                            
+                            <tr>
+                                <td class="label"><label><?php echo $this->__('Cancellation date') ?></label></td>
+                                <td class="value">
+                                    <?php echo Mage::helper('core')->formatDate($purchaseorder->getCanceledDate(), 'full', false); ?>
+                                </td>
+                            </tr>
+                            
+                            <tr>
+                                <td class="label"><label><?php echo $this->__('Expected delivery date') ?></label></td>
+                                <td class="value">
+                                    <?php echo Mage::helper('core')->formatDate($purchaseorder->getExpectedDate(), 'full', false); ?>
+                                </td>
+                            </tr>
+                            
+                            <tr>
+                                <td class="label"><label><?php echo $this->__('Payment date') ?></label></td>
+                                <td class="value">
+                                    <?php echo Mage::helper('core')->formatDate($purchaseorder->getPaymentDate(), 'full', false); ?>
+                                </td>
+                            </tr>
+                            <?php $shippingMethods = Mage::helper('inventorypurchasing/purchaseorder')->getShippingMethod();?>
+                            <tr>
+                                <td class="label"><label><?php echo $this->__('Shipping via') ?></label></td>
+                                <td class="value">
+                                    <?php echo $shippingMethods[$purchaseorder->getShipVia()];?>
+                                </td>
+                            </tr>
+                            
+                            <?php $paymentMethods = Mage::helper('inventorypurchasing/purchaseorder')->getPaymentTerms();?>
+                            <tr>
+                                <td class="label"><label><?php echo $this->__('Payment terms') ?></label></td>
+                                <td class="value">
+                                    <?php echo $paymentMethods[$purchaseorder->getPaymentTerm()];?>
+                                </td>
+                            </tr>
+                            
+                            <tr>
+                                <td class="label"><label><?php echo $this->__('Currency') ?></label></td>
+                                <td class="value">
+                                    <?php echo $purchaseorder->getCurrency();?>
+                                </td>
+                            </tr>
+                            
+                            <tr>
+                                <td class="label"><label><?php echo $this->__('Currency Exchange Rate') ?></label></td>
+                                <td class="value">
+                                    <?php echo $purchaseorder->getChangeRate();?>
+                                </td>
+                            </tr>
+              
+                            <tr>
+                                <td class="label"><label><?php echo $this->__('Tax Rate') ?></label></td>
+                                <td class="value">
+                                    
+                                    <?php echo Mage::getModel('directory/currency')->load($purchaseorder->getCurrency())->formatTxt($purchaseorder->getTaxRate()); ?>
+                                </td>
+                            </tr>
+              
+                            <tr>
+                                <td class="label"><label><?php echo $this->__('Shipping Cost') ?></label></td>
+                                <td class="value">
+                                    
+                                    <?php echo Mage::getModel('directory/currency')->load($purchaseorder->getCurrency())->formatTxt($purchaseorder->getShippingCost()); ?>
+                                </td>
+                            </tr>
+              
+                            <tr>
+                                <td class="label"><label><?php echo $this->__('Supplier') ?></label></td>
+                                <td class="value">
+                                    
+                                    <?php echo $supplierInfo = Mage::helper('inventorypurchasing/purchaseorder')->getSupplierInfoByPurchaseOrderId($purchaseorder->getId()); ?>
+                                </td>
+                            </tr>
+                            
+                            
+
+                            <tr>
+                                <td class="label"><label><?php echo $this->__('Status') ?></label></td>
+                                <td class="value">
+                                    <?php $status = Mage::helper('inventorypurchasing/purchaseorder')->getReturnOrderStatus();?>
+                                    <?php echo $status[$purchaseorder->getStatus()]; ?>                               
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="label"></td>
+                                <td class="value">
+                                    <a style="text-decoration: none; cursor: pointer;" onclick="window.open('<?php echo Mage::helper("adminhtml")->getUrl("adminhtml/inpu_purchaseorders/edit/", array("id" => $purchaseorder->getId())); ?>', '_blank', 'scrollbars=yes, resizable=yes, width=1000, height=600, top=50, left=300')"/><?php echo $this->__('More details') ?></a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        
+    </div>
+<?php endif; ?>    
+</div>
+<?php endif;?>
+</div>

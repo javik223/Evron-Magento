@@ -1,0 +1,159 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Magestore
+ * 
+ * NOTICE OF LICENSE
+ * 
+ * This source file is subject to the Magestore.com license that is
+ * available through the world-wide-web at this URL:
+ * http://www.magestore.com/license-agreement.html
+ * 
+ * DISCLAIMER
+ * 
+ * Do not edit or add to this file if you wish to upgrade this extension to newer
+ * version in the future.
+ * 
+ * @category    Magestore
+ * @package     Magestore_Inventory
+ * @copyright   Copyright (c) 2012 Magestore (http://www.magestore.com/)
+ * @license     http://www.magestore.com/license-agreement.html
+ */
+-->
+<config>
+    <menu>
+        <inventoryplus module="inventoryplus" translate="title">
+            <title>Inventory Management</title>
+            <sort_order>71</sort_order>
+            <action>adminhtml/inp_dashboard</action>            
+        </inventoryplus>
+    </menu>
+    <inventoryplus_menu> 
+        <stock_onhand module="inventoryplus" translate="title">
+            <title>Stock On-Hand</title>
+            <icon>fa-cube</icon>
+            <sort_order>20</sort_order>
+            <children>
+                <managestock module="inventoryplus" translate="title">
+                    <title>Inventory</title>
+                    <sort_order>0</sort_order>    
+                    <action>adminhtml/inp_stock</action>             
+                </managestock>                          
+                <adjust_stock module="inventoryplus" translate="title">
+                    <title>Adjust Stock</title>
+                    <sort_order>10</sort_order>    
+                    <action>adminhtml/inp_adjuststock</action>             
+                </adjust_stock>                               
+            </children>                      
+        </stock_onhand>   
+        <stock_in module="inventoryplus" translate="title">
+            <title>Stock Receiving</title>
+            <icon>fa-arrow-circle-o-right</icon>
+            <sort_order>30</sort_order>
+        </stock_in>   
+        <stock_out module="inventoryplus" translate="title">
+            <title>Stock Issuing</title>
+            <icon>fa-arrow-circle-o-left</icon>
+            <sort_order>40</sort_order>
+        </stock_out>                                 
+        <warehouse module="inventoryplus" translate="title">
+            <title>Warehouses</title>
+            <icon>fa-bank</icon>
+            <sort_order>50</sort_order>
+            <action>adminhtml/inp_warehouse</action>         
+        </warehouse>                
+        <settings module="inventoryplus" translate="title">
+            <title>Settings</title>
+            <icon>fa-gear</icon>
+            <sort_order>100</sort_order>
+            <children>  
+                <general module="inventoryplus" translate="title">
+                    <title>General</title>
+                    <sort_order>100</sort_order> 
+                    <children>  
+                        <config module="inventoryplus" translate="title">
+                            <title>Configuration</title>
+                            <sort_order>0</sort_order> 
+                            <action>adminhtml/system_config/edit/section/inventoryplus</action>  
+                        </config>       
+                    </children>                      
+                </general>       
+            </children>            
+        </settings>        
+    </inventoryplus_menu>    
+    <acl>
+        <resources>
+            <all>
+                <title>Allow Everything</title>
+            </all>
+            <admin>
+                <children>
+                    <system>
+                        <children>
+                            <config>
+                                <children>
+                                    <inventoryplus module="inventoryplus" translate="title">
+                                        <title>Inventory Management</title>
+                                        <sort_order>71</sort_order>
+                                    </inventoryplus>
+                                </children>
+                            </config>
+                        </children>
+                    </system>
+                    <inventoryplus module="inventoryplus" translate="title">
+                        <title>Inventory Management</title>
+                        <sort_order>71</sort_order>  
+                        <children>       
+                            <stock_onhand module="inventoryplus" translate="title">
+                                <title>Stock On-Hand</title>
+                                <sort_order>20</sort_order>
+                                <children>
+                                    <managestock module="inventoryplus" translate="title">
+                                        <title>Inventory</title>
+                                        <sort_order>0</sort_order>    
+                                        <action>adminhtml/inp_stock</action>             
+                                    </managestock>                          
+                                    <adjust_stock module="inventoryplus" translate="title">
+                                        <title>Adjust Stock</title>
+                                        <sort_order>10</sort_order>    
+                                        <action>adminhtml/inp_adjuststock</action>             
+                                    </adjust_stock>                               
+                                </children>                      
+                            </stock_onhand>   
+                            <stock_in module="inventoryplus" translate="title">
+                                <title>Stock Receiving</title>
+                                <sort_order>30</sort_order>
+                            </stock_in>   
+                            <stock_out module="inventoryplus" translate="title">
+                                <title>Stock Issuing</title>
+                                <sort_order>40</sort_order>
+                            </stock_out>                                 
+                            <warehouse module="inventoryplus" translate="title">
+                                <title>Warehouses</title>
+                                <sort_order>50</sort_order>
+                                <action>adminhtml/inp_warehouse</action>         
+                            </warehouse>                
+                            <settings module="inventoryplus" translate="title">
+                                <title>Settings</title>
+                                <sort_order>100</sort_order>
+                                <children>  
+                                    <general module="inventoryplus" translate="title">
+                                        <title>General</title>
+                                        <sort_order>100</sort_order> 
+                                        <children>  
+                                            <config module="inventoryplus" translate="title">
+                                                <title>Configuration</title>
+                                                <sort_order>0</sort_order> 
+                                                <action>adminhtml/system_config/edit/section/inventoryplus</action>  
+                                            </config>       
+                                        </children>                      
+                                    </general>       
+                                </children>            
+                            </settings>                                               
+                        </children>                      
+                    </inventoryplus>
+                </children>
+            </admin>
+        </resources>
+    </acl>
+</config>

@@ -1,0 +1,5 @@
+<?php for($i=0;$i<intval($numberCopies);$i++): ?>
+<div style="margin:5px; padding:5px; text-align: center; float:left; width: <?php echo $width ?>px; height: <?php echo $height ?>px; overflow: hidden;vertical-align: middle;<?php if($displayBorder=='1'): ?> border: 1px solid gray; <?php endif ?>">
+	<img width="<?php echo $width*0.9 ?>" height="<?php echo $height*0.6 ?>" src="<?php echo $this->getUrl('adminhtml/inb_printbarcode/general',array('barcode_id'=>$barcode->getId())) ?>"/>
+</div>
+<?php endfor; ?>

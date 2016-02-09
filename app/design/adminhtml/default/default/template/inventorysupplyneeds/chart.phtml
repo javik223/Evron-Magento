@@ -1,0 +1,352 @@
+<?php
+/**
+ * Magestore
+ * 
+ * NOTICE OF LICENSE
+ * 
+ * This source file is subject to the Magestore.com license that is
+ * available through the world-wide-web at this URL:
+ * http://www.magestore.com/license-agreement.html
+ * 
+ * DISCLAIMER
+ * 
+ * Do not edit or add to this file if you wish to upgrade this extension to newer
+ * version in the future.
+ * 
+ * @category    Magestore
+ * @package     Magestore_Inventorysupplyneeds
+ * @copyright   Copyright (c) 2012 Magestore (http://www.magestore.com/)
+ * @license     http://www.magestore.com/license-agreement.html
+ */
+
+/**
+ * Inventorysupplyneeds Adminhtml Controller
+ * 
+ * @category    Magestore
+ * @package     Magestore_Inventorysupplyneeds
+ * @author      Magestore Developer
+ */
+?>
+<?php
+$date = date('Y-m-d');
+$current = date('m-Y');
+$last = date('m-Y' ,  strtotime($date) . " -12 month");
+$D = array();
+$main_title = "Total sales from ".$last." to ". $current;
+$productId = $this->getRequest()->getParam('product_id');
+$data = '[';
+for ($i = 1; $i < 13; $i++) {
+    $orderIds = array();
+    $month_qty = array();
+    $j = $i - 1;
+    $today = strftime('%Y-%m', strtotime(date("Y-m-d", strtotime($date)) . " -$j month"));
+    $lastperiod = strftime('%Y-%m', strtotime(date("Y-m-d", strtotime($date)) . " -$i month"));   
+    $resource = Mage::getSingleton('core/resource');        
+    $readConnection = $resource->getConnection('core_read');
+    $results = '';
+    $purchaseOrderIds = array();
+    $sql = 'SELECT distinct(`entity_id`) FROM '.$resource->getTableName('sales/order').' where (`created_at` >= \''. $lastperiod .'\') and (`created_at` <= \''. $today .'\')';             
+    $results = $readConnection->fetchAll($sql);                
+    $orderIds = $results;    
+    $order_item = Mage::getModel('sales/order_item')->getCollection()
+            ->addFieldToFilter('product_id', $productId)
+            ->addFieldToFilter('order_id', array('in' => $orderIds));
+    
+    foreach ($order_item as $item) {        
+        $qtyShipped = $item->getQtyShipped();
+        if($qtyShipped == 0  && $item->getParentItemId()){                                        
+            $parentId = $item->getParentItemId();
+            $parent = Mage::getModel('sales/order_item')->load($parentId);
+            if($parent->getProductType() == 'configurable'){
+                $qtyShipped = $parent->getQtyShipped();                
+            }
+        }
+        array_push($month_qty, $qtyShipped);
+    }
+    $data .= '["' . $lastperiod . '",' . array_sum($month_qty).'] ,';    
+}
+$data .= ']';
+?>
+
+
+<!--Highchart theme-->
+<script>
+/**
+ * Dark theme for Highcharts JS
+ * @author Torstein Honsi
+ */
+
+// Load the fonts
+Highcharts.createElement('link', {
+   href: '//fonts.googleapis.com/css?family=Unica+One',
+   rel: 'stylesheet',
+   type: 'text/css'
+}, null, document.getElementsByTagName('head')[0]);
+
+Highcharts.theme = {
+   colors: ["#2b908f", "#90ee7e", "#f45b5b", "#7798BF", "#aaeeee", "#ff0066", "#eeaaee",
+      "#55BF3B", "#DF5353", "#7798BF", "#aaeeee"],
+   chart: {
+      backgroundColor: {
+         linearGradient: { x1: 0, y1: 0, x2: 1, y2: 1 },
+         stops: [
+            [0, '#2a2a2b'],
+            [1, '#3e3e40']
+         ]
+      },
+      style: {
+         fontFamily: "'Unica One', sans-serif"
+      },
+      plotBorderColor: '#606063'
+   },
+   title: {
+      style: {
+         color: '#E0E0E3',
+         textTransform: 'uppercase',
+         fontSize: '20px'
+      }
+   },
+   subtitle: {
+      style: {
+         color: '#E0E0E3',
+         textTransform: 'uppercase'
+      }
+   },
+   xAxis: {
+      gridLineColor: '#707073',
+      labels: {
+         style: {
+            color: '#E0E0E3'
+         }
+      },
+      lineColor: '#707073',
+      minorGridLineColor: '#505053',
+      tickColor: '#707073',
+      title: {
+         style: {
+            color: '#A0A0A3'
+
+         }
+      }
+   },
+   yAxis: {
+      gridLineColor: '#707073',
+      labels: {
+         style: {
+            color: '#E0E0E3'
+         }
+      },
+      lineColor: '#707073',
+      minorGridLineColor: '#505053',
+      tickColor: '#707073',
+      tickWidth: 1,
+      title: {
+         style: {
+            color: '#A0A0A3'
+         }
+      }
+   },
+   tooltip: {
+      backgroundColor: 'rgba(0, 0, 0, 0.85)',
+      style: {
+         color: '#F0F0F0'
+      }
+   },
+   plotOptions: {
+      series: {
+         dataLabels: {
+            color: '#B0B0B3'
+         },
+         marker: {
+            lineColor: '#333'
+         }
+      },
+      boxplot: {
+         fillColor: '#505053'
+      },
+      candlestick: {
+         lineColor: 'white'
+      },
+      errorbar: {
+         color: 'white'
+      }
+   },
+   legend: {
+      itemStyle: {
+         color: '#E0E0E3'
+      },
+      itemHoverStyle: {
+         color: '#FFF'
+      },
+      itemHiddenStyle: {
+         color: '#606063'
+      }
+   },
+   credits: {
+      style: {
+         color: '#666'
+      }
+   },
+   labels: {
+      style: {
+         color: '#707073'
+      }
+   },
+
+   drilldown: {
+      activeAxisLabelStyle: {
+         color: '#F0F0F3'
+      },
+      activeDataLabelStyle: {
+         color: '#F0F0F3'
+      }
+   },
+
+   navigation: {
+      buttonOptions: {
+         symbolStroke: '#DDDDDD',
+         theme: {
+            fill: '#505053'
+         }
+      }
+   },
+
+   // scroll charts
+   rangeSelector: {
+      buttonTheme: {
+         fill: '#505053',
+         stroke: '#000000',
+         style: {
+            color: '#CCC'
+         },
+         states: {
+            hover: {
+               fill: '#707073',
+               stroke: '#000000',
+               style: {
+                  color: 'white'
+               }
+            },
+            select: {
+               fill: '#000003',
+               stroke: '#000000',
+               style: {
+                  color: 'white'
+               }
+            }
+         }
+      },
+      inputBoxBorderColor: '#505053',
+      inputStyle: {
+         backgroundColor: '#333',
+         color: 'silver'
+      },
+      labelStyle: {
+         color: 'silver'
+      }
+   },
+
+   navigator: {
+      handles: {
+         backgroundColor: '#666',
+         borderColor: '#AAA'
+      },
+      outlineColor: '#CCC',
+      maskFill: 'rgba(255,255,255,0.1)',
+      series: {
+         color: '#7798BF',
+         lineColor: '#A6C7ED'
+      },
+      xAxis: {
+         gridLineColor: '#505053'
+      }
+   },
+
+   scrollbar: {
+      barBackgroundColor: '#808083',
+      barBorderColor: '#808083',
+      buttonArrowColor: '#CCC',
+      buttonBackgroundColor: '#606063',
+      buttonBorderColor: '#606063',
+      rifleColor: '#FFF',
+      trackBackgroundColor: '#404043',
+      trackBorderColor: '#404043'
+   },
+
+   // special colors for some of the
+   legendBackgroundColor: 'rgba(0, 0, 0, 0.5)',
+   background2: '#505053',
+   dataLabelsColor: '#B0B0B3',
+   textColor: '#C0C0C0',
+   contrastTextColor: '#F0F0F3',
+   maskColor: 'rgba(255,255,255,0.3)'
+};
+
+// Apply the theme
+Highcharts.setOptions(Highcharts.theme);
+</script>
+
+<!-- charts -->
+<div id="container" style="min-width: 800px; height: 400px; margin: 0 auto"></div>
+<script>      
+    var chart = new Highcharts.Chart({
+
+        chart: {
+            renderTo: 'container',
+            type: 'column'
+        },
+        title: {
+            text: "<?php echo $main_title; ?>"
+        },        
+        xAxis: {            
+            type: 'category',
+            labels: {
+                rotation: -45,
+                style: {
+                    fontSize: '13px',
+                    fontFamily: 'Verdana, sans-serif'
+                }
+            }
+        },
+        yAxis: {
+            min: 1,
+            minRange: 5,
+            title: {
+                text: 'Total qty order'
+            }
+        },
+        legend: {
+            enabled: false
+        },
+        tooltip: {
+            pointFormat: 'Total orders: <b>{point.y:.1f} qty</b>'
+        },
+        plotOptions: {
+            series: {
+                dataLabels:{
+                    enabled:true,
+                    formatter:function(){
+                        if(this.y > 0)
+                            return this.y;
+                    }
+                }
+            }
+        },
+        series: [{
+            name: 'Population',
+            data: <?php echo $data ?>,
+            dataLabels: {                
+                enabled: true,
+                rotation: -90,
+                color: '#FFFFFF',
+                align: 'right',                
+                y: 10, // 10 pixels down from the top
+                style: {
+                    fontSize: '13px',
+                    fontFamily: 'Verdana, sans-serif'
+                }                 
+            }
+        }]
+    });
+
+</script>

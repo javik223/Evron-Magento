@@ -1,0 +1,125 @@
+<?php
+/**
+ * Magestore
+ * 
+ * NOTICE OF LICENSE
+ * 
+ * This source file is subject to the Magestore.com license that is
+ * available through the world-wide-web at this URL:
+ * http://www.magestore.com/license-agreement.html
+ * 
+ * DISCLAIMER
+ * 
+ * Do not edit or add to this file if you wish to upgrade this extension to newer
+ * version in the future.
+ * 
+ * @category    Magestore
+ * @package     Magestore_Inventoryreports
+ * @copyright   Copyright (c) 2012 Magestore (http://www.magestore.com/)
+ * @license     http://www.magestore.com/license-agreement.html
+ */
+/**
+ * Inventoryreports Helper
+ * 
+ * @category    Magestore
+ * @package     Magestore_Inventoryreports
+ * @author      Magestore Developer
+ */
+?>
+<div class="report_box entry-edit">
+    <fieldset>
+        <h2 class="mbl"><?php echo $this->getProduct()->getName() ?></h2>
+        <div class="report_list">
+            <span class="report_image sales"> </span>
+            <div id="container_product_history_report" style="height: 400px; margin: 0 auto;"></div>
+            <script>
+                new Highcharts.Chart({
+                    chart: {
+                        renderTo: 'container_product_history_report',
+                        type: 'line',
+                        height: 350,
+                        width: 415,
+                        zoomType: 'xy'
+                    },
+                    colors: ['#33CCFF', '#00FF00', '#FF0000'],
+                    title: {
+                        text: '<?php echo $this->__('Stock history in last 365 days') ?>',
+                        x: -20 //center
+                    },
+                    xAxis: [{
+                            type: 'datetime',
+                            dateTimeLabelFormats: {
+                                day: '%e of %b'
+                            },
+                            crosshair: true
+                        }],
+                    yAxis: [{
+                            labels: {
+                                format: '{value}',
+                                style: {
+                                    color: Highcharts.getOptions().colors[1]
+                                }
+                            },
+                            title: {
+                                text: '<?php echo $this->__('Qty') ?>',
+                                style: {
+                                    color: Highcharts.getOptions().colors[1]
+                                }
+                            }
+                        }],
+                    legend: {
+                        layout: 'horizontal',
+                        align: 'left',
+                        verticalAlign: 'bottom',
+                        borderWidth: 0,
+                        backgroundColor: (Highcharts.theme && Highcharts.theme.legendBackgroundColor) || '#FFFFFF'
+                    },
+                    plotOptions: {
+                        spline: {
+                            marker: {
+                                enabled: false
+                            }
+                        }
+                    },
+                    series: [
+                        {
+                            yAxis: 0,
+                            name: '<?php echo $this->__('Sold Qty') ?>',
+                            type: 'spline',
+                            data: [<?php echo $this->getSalesReportData() ?>],
+                        },
+                        {
+                            yAxis: 0,
+                            name: '<?php echo $this->__('Purchased Qty') ?>',
+                            type: 'spline',
+                            data: [<?php echo $this->getPurchaseReportData() ?>],
+                        }                        
+                        ]
+                });</script>
+        </div>
+        <div style="margin:50px 20px 0;" class="clear fix">
+            <div id="dashboard_diagram_totals" class="box">
+                <div class="entry-edit" style="float:none">
+                    <table cellspacing="0" width="100%">
+                        <tbody>
+                            <tr>
+                                <td class="a-center bold">
+                                    <span><?php echo $this->__('Sold Qty') ?></span><br>
+                                    <span style="font-size:18px; color:#EA7601;" class="nowrap"><span class="price"><?php echo $this->getSoldQty() ?></span><span style="font-size:14px; color:#DE8946;"></span></span>
+                                </td>
+                                <td class="a-center bold">
+                                    <span><?php echo $this->__('Purchased Qty') ?></span><br>
+                                    <span style="font-size:18px; color:#EA7601;" class="nowrap"><span class="price"><?php echo $this->getPurchasedQty() ?></span><span style="font-size:14px; color:#DE8946;"></span></span>
+                                </td>
+                                <td class="a-center bold">
+                                    <span><?php echo $this->__('On-Hand Qty') ?></span><br>
+                                    <span style="font-size:18px; color:#EA7601;" class="nowrap"><span class="price"><?php echo $this->getOnHandQty() ?></span><span style="font-size:14px; color:#DE8946;"></span></span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </fieldset>
+</div>

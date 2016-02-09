@@ -1,0 +1,210 @@
+<?php
+$series = array();
+$total_data = array();
+$product_name = array();
+$productIds = array();
+$difference = array();
+$phyids = '';
+$requestData = Mage::helper('adminhtml')->prepareFilterString($this->getRequest()->getParam('top_filter'));
+if (empty($requestData)) {
+    $requestData = Mage::Helper('inventoryreports')->getDefaultOptionsWarehouse();
+}
+$name = 'All Warehouses';
+if ($requestData['warehouse_select'] > 0) {
+    $name = Mage::helper('inventoryreports')->getWarehouseName($requestData['warehouse_select']);
+}
+$warehouse_name = Mage::getModel('inventoryplus/warehouse')->load($requestData['warehouse_select'])->getWarehouseName();
+$gettime = Mage::Helper('inventoryreports')->getTimeSelected($requestData);
+$resource = Mage::getSingleton('core/resource');
+$readConnection = $resource->getConnection('core_read');
+$installer = Mage::getModel('core/resource');
+
+if ($requestData['warehouse_select']) {
+    $warehouse_id = $requestData['warehouse_select'];
+    $query = 'SELECT DISTINCT p.product_id, t.physicalstocktaking_id
+                FROM '.$installer->getTableName("erp_inventory_physicalstocktaking t").'
+                LEFT JOIN '.$installer->getTableName("erp_inventory_physicalstocktaking_product p").'
+                ON t.physicalstocktaking_id = p.physicalstocktaking_id
+                WHERE t.status > 0 AND t.warehouse_id = "' . $warehouse_id . '" AND t.created_at BETWEEN "' . $gettime['date_from'] . '" AND "' . $gettime['date_to'] . '"'
+    ;
+
+    $results = $readConnection->fetchAll($query);
+    if ($results) {
+        foreach ($results as $value) {
+            $productIds[] = $value['product_id'];
+            if ($phyids == '') {
+                $phyids = "('" . $value['physicalstocktaking_id'] . "'";
+            } else {
+                $phyids .= ',';
+                $phyids .= "'" . $value['physicalstocktaking_id'] . "'";
+            }
+        }
+        $phyids .= ")";
+    } else {
+        $phyids = "('0')";
+    }
+    //Zend_Debug::Dump($phyids);die();
+    $productIds = Mage::helper('inventoryreports')->checkProductInWarehouse($productIds, $warehouse_id);
+    $collection = Mage::getModel('catalog/product')->getCollection()
+            ->addAttributeToSelect('*')
+            ->addFieldToFilter('entity_id', array('in' => $productIds));
+    $collection->joinField('old_qty', 'inventoryphysicalstocktaking/physicalstocktaking_product', 'old_qty', 'product_id=entity_id', '{{table}}.old_qty IS NOT NULL AND {{table}}.old_qty > 0 AND {{table}}.physicalstocktaking_id IN ' . $phyids, 'left');
+    $collection->joinField('adjust_qty', 'inventoryphysicalstocktaking/physicalstocktaking_product', 'adjust_qty', 'product_id=entity_id', '{{table}}.adjust_qty IS NOT NULL AND {{table}}.adjust_qty > 0 AND {{table}}.physicalstocktaking_id IN ' . $phyids, 'left');
+    $collection->getSelect()->columns(array('difference' => new Zend_Db_Expr("SUM(at_adjust_qty.adjust_qty) - SUM(at_old_qty.old_qty)")));
+    $collection->getSelect()->group('e.entity_id');
+    $total_difference = 0;
+    if (count($collection) > 0) {
+        foreach ($collection as $col) {
+            if(abs($col->getDifference()) != 0){
+            $total_data[$col->getEntityId()]['product_name'] = Mage::getModel('catalog/product')->load($col->getEntityId())->getName();
+            $total_data[$col->getEntityId()]['difference'] = $col->getDifference();
+            }
+        }
+    }
+}
+
+foreach ($total_data as $result) {
+    $product_name[] = $result['product_name'];
+    $difference[] = $result['difference'];
+}
+$i = 0;
+$categories = '[';
+foreach ($product_name as $name_value) {
+    if ($i != 0) {
+        $categories .= ',';
+    }
+    $categories .= '"' . preg_replace('/[^a-zA-Z0-9_ %\[\]\.\(\)%&-]/s', '', $name_value) . '"';
+    $i++;
+}
+$categories .= ']';
+$j = 0;
+$series['inventory_warehouse']['data'] = '[';
+foreach ($difference as $number_value) {
+    if (abs($number_value) != 0) {
+        if ($j != 0) {
+            $series['inventory_warehouse']['data'] .= ',';
+        }
+        $series['inventory_warehouse']['data'] .= abs($number_value);
+		$j++;
+    }   
+}
+$series['inventory_warehouse']['data'] .= ']';
+?>
+<?php if ($j > 0): ?>
+    <div class="entry-edit" id="test">
+        <div class="entry-edit-head">
+            <h4 class="icon-head head-edit-form fieldset-legend"><?php echo $this->__('Chart Report') ?></h4>
+        </div>
+        <!DOCTYPE HTML>
+        <div>
+            <div style="width: 99%; float: left;">
+                <script type="text/javascript">
+                    $(function () {
+                        $_('#inventorybywarehouse_column').highcharts({
+                        chart: {
+                        type: 'column',
+                                margin: 70,
+                                options3d: {
+                                enabled: true,
+                                        alpha: 20,
+                                        beta: 1,
+                                        depth: 50
+                                }
+                        },
+                                legend: {
+                                enabled:false
+                                },
+                                title: {
+                                text: '<?php echo $this->__('Total Qty. Variance by Warehouse: "' . $warehouse_name . '"') ?>'
+                                },
+                                plotOptions: {
+                                column: {
+                                depth: 30
+                                }
+                                },
+                                xAxis: {
+                                categories: <?php echo $categories ?>
+                                },
+                                yAxis: {
+                                opposite: true
+                                },
+                                series: [
+    <?php $count = 0; ?>
+    <?php foreach ($series as $serie): ?>
+        <?php if (!$count == 0) echo ','; ?>
+        <?php $count++; ?>
+                                    {
+
+                                        data: <?php echo $serie['data']; ?>
+                                    }
+    <?php endforeach; ?>
+                                ]
+                    });
+                    });</script>
+                <div id="inventorybywarehouse_column" style="min-width: 900px; height: 450px; margin: 0 auto"></div>
+            </div>
+
+
+            <!-- report by warehouse pie -->
+            <div style="width: 99%; float: left;">
+                <?php
+                $pieSeries = '';
+                $i = 0;
+                foreach ($total_data as $result) {
+                    if ($i != 0 && $result['difference'] != 0){
+                        $pieSeries .= ',';
+                        $pieSeries .= '{name:\'' . $result['product_name'] . '(' . abs($result['difference']) . ' items)\',y:' . abs($result['difference']) . '}';
+                        $i++;
+                    } else if($i == 0 && $result['difference'] != 0) {
+                        $pieSeries .= '{name:\'' . $result['product_name'] . '(' . abs($result['difference']) . ' items)\',y:' . abs($result['difference']) . '}';
+                        $i++;
+                    }
+                }
+                ?>
+                <script type="text/javascript">
+                            $(function () {
+                                $_('#inventorybywarehouse_pie').highcharts({
+                                    chart: {
+                                        type: 'pie',
+                                        options3d: {
+                                            enabled: true,
+                                            alpha: 50
+                                        }
+                                    },
+                                    title: {
+                                        text: '<?php echo $this->__('Total Qty. Variance by Warehouse: "' . $warehouse_name . '"') ?>',
+                                    },
+                                    plotOptions: {
+                                        pie: {
+                                            depth: 30
+                                        }
+                                    },
+                                    series: [{
+                                            data: [
+    <?php echo $pieSeries; ?>
+                                            ]
+                                        }]
+                                });
+                            });</script>
+                <div id="inventorybywarehouse_pie" style="min-width: 900px; max-height: 450px; margin: 0 auto"></div>
+            </div>
+        </div>          
+    </div>
+<?php endif; ?>
+
+
+
+<script type="text/javascript" src="<?php echo $this->getJsUrl() ?>magestore/adminhtml/inventory/dashboard/lib/_JSSettings.js"></script>
+<script src="<?php echo $this->getJsUrl() ?>magestore/adminhtml/inventory/dashboard/lib/js_002"></script>
+<script src="<?php echo $this->getJsUrl() ?>magestore/adminhtml/inventory/dashboard/lib/dashboards"></script>
+
+<script type="text/javascript">
+                var saveViewPositions = '<?php echo $this->getUrl('adminhtml/ind_dashboard/saveviewposition') ?>';
+                var saveTabPositions = '<?php echo $this->getUrl('adminhtml/ind_dashboard/savetabposition') ?>';
+                var form_key_dashboard = '<?php echo $this->getFormKey() ?>';</script>
+<script type="text/javascript">
+    var $sd = new InventoryDashboard.Views.Dashboards();
+    $sd.isShare = false;
+    $sd.backgroundColour = '#808080';
+    $sd.init();
+</script>

@@ -1,0 +1,75 @@
+<?php
+$lastOrderId = $lastOrderIncrementid = $lastOrderGrandtotal = $lastOrderCreatedDate = $lastOrderTotalDue = 0;
+$canCancel = 'true';
+$printLink = $lastOrderStatus = $lastOrderStatusLabel = '';
+$orderlist_html = $this->getChildHtml('order_list');
+$canShip = 'true';
+$userId = Mage::helper('webpos/permission')->getCurrentUser();
+$isOrderThisUser=Mage::helper('webpos/permission')->isOrderThisUser($userId);
+$isOtherStaff=Mage::helper('webpos/permission')->isOtherStaff($userId);
+$isAllOrder=Mage::helper('webpos/permission')->isAllOrder($userId);
+
+if ($isAllOrder||($isOrderThisUser&&$isOtherStaff)) {
+    $orders = Mage::getModel('sales/order')->getCollection()
+        ->addFieldToFilter('webpos_admin_id',array('nin' => ''))
+        ->addFieldToFilter('status', array('neq' => 'holded'))
+        ->setOrder('entity_id','DESC')
+        ->setPageSize(1)
+        ->getFirstItem();
+} elseif ($isOrderThisUser) {
+    $orders  = Mage::getModel('sales/order')->getCollection()
+        ->addFieldToFilter('webpos_admin_id',$userId)
+        ->addFieldToFilter('status', array('neq' => 'holded'))
+        ->setOrder('entity_id', 'DESC')
+        ->setPageSize(1)
+        ->getFirstItem();
+} elseif ($isOtherStaff) {
+    $orders = Mage::getModel('sales/order')->getCollection()
+        ->addFieldToFilter('webpos_admin_id', array('neq' => ''))
+        ->addFieldToFilter('webpos_admin_id', array('neq' => $userId))
+        ->addFieldToFilter('status', array('neq' => 'holded'))
+        ->setOrder('entity_id', 'DESC')
+        ->setPageSize(1)
+        ->getFirstItem();
+}
+$canManageOrder= Mage::helper('webpos/permission')->canManageOrder($userId,$orders->getId());
+if(count($orders) == 1){
+    $lastOrderId = $orders->getEntityId();
+    $lastOrderIncrementid = $orders->getIncrementId();
+    $lastOrderGrandtotal = Mage::helper('core')->currency($orders->getBaseGrandTotal(), true, false);
+    $lastOrderCreatedDate = Mage::helper('core')->formatDate($orders->getCreatedAt(), Mage_Core_Model_Locale::FORMAT_TYPE_FULL, false);
+    $lastOrderStatus = $orders->getStatus();
+    $lastOrderStatusLabel = $orders->getStatusLabel();
+    $canCancel = ($orders->canCancel())?'true':'false';
+    $canShip = ($orders->canShip())?'true':'false';
+    $lastOrderTotalDue = Mage::helper('core')->currency($orders->getBaseTotalDue(), true, false);
+    $printLink = $this->getUrl('webpos/order/print', array('order_id' => $lastOrderId,'_forced_secure' => $this->getRequest()->isSecure()));
+    $allInvoiceIds = array();
+    $invoices = Mage::getResourceModel('sales/order_invoice_collection')
+        ->setOrderFilter($orders->getId())
+        ->load();
+    if(count($invoices) > 0)
+        foreach ($invoices as $invoice) {
+            $allInvoiceIds[] = $invoice->getId();
+        }
+}
+$result = array('review' => $orderlist_html,
+    'lastOrderId' => $lastOrderId,
+    'lastOrderIncrementid' => $lastOrderIncrementid,
+    'lastOrderGrandtotal' => $lastOrderGrandtotal,
+    'lastOrderCreatedDate' => $lastOrderCreatedDate,
+    'lastOrderStatus' => $lastOrderStatus,
+    'lastOrderStatusLabel' => $lastOrderStatusLabel,
+    'lastOrderTotalDue' => $lastOrderTotalDue,
+    'printLink' => $printLink,
+    'canCancel' => $canCancel,
+    'invoiceId' => 'null',
+    'canManage' => $canManageOrder,
+    'canShip'   => $canShip
+);
+if(isset($allInvoiceIds[0])){
+    $result['invoiceId'] = $allInvoiceIds[0];
+}
+
+echo Zend_Json::encode($result);
+?>

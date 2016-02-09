@@ -1,0 +1,245 @@
+<div class="entry-edit" id="test">
+    <div class="entry-edit-head">
+        <h4 class="icon-head head-edit-form fieldset-legend"><?php echo $this->__('Chart Report') ?></h4>
+    </div>
+    <!DOCTYPE HTML>
+    <div>
+        <div style="width: 33%; float: left;">
+            <?php
+            $resource = Mage::getSingleton('core/resource');
+            $filterData = new Varien_Object();
+            $requestData = Mage::helper('adminhtml')->prepareFilterString($this->getRequest()->getParam('top_filter'));
+            foreach ($requestData as $key => $value)
+                if (!empty($value))
+                    $filterData->setData($key, $value);
+            $dateFrom = $filterData->getData('date_from');
+            $dateTo = $filterData->getData('date_to');
+            if (!$dateTo) {
+                $dateTo = now();
+            } else {
+                $dateTo .= ' 23:59:59';
+            }
+            $collection = Mage::getModel('inventoryplus/warehouse_shipment')->getCollection();
+            $collection->getSelect()
+                    ->joinLeft(
+                            array('shipment_item' => $resource->getTableName('sales/shipment_item')), "main_table.shipment_id = shipment_item.parent_id" .
+                            " and main_table.product_id = shipment_item.product_id" .
+                            " and shipment_item.order_item_id = main_table.item_id", array('*')
+                    )
+                    ->join(
+                            array('shipment' => $resource->getTableName('sales/shipment')), "main_table.shipment_id = shipment.entity_id" .
+                            " and shipment.created_at between '$dateFrom' and '$dateTo'", array(''))
+                    ->join(
+                            array('warehouse' => $resource->getTableName('inventoryplus/warehouse')), "main_table.warehouse_id = warehouse.warehouse_id", array('*')
+                    )
+            ;
+            $collection->getSelect()->group(array('warehouse.warehouse_id'));
+            $collection->getSelect()->columns(array(
+                'warehouse_name' => 'warehouse.warehouse_name',
+                'total_shipment' => 'SUM(main_table.qty_shipped)',
+                'sales_total' => 'SUM(shipment_item.qty * shipment_item.price)'
+            ));
+            $categories = '[';
+            $series['total_shipment']['name'] = $this->__('Total Qty Sold');
+            $series['total_shipment']['data'] = '[';
+            $series['sales_total']['name'] = $this->__('Total Sales Amount %s', Mage::app()->getLocale()->currency(Mage::app()->getStore()->getCurrentCurrencyCode())->getSymbol());
+            $series['sales_total']['data'] = '[';
+            $i = 0;
+            foreach ($collection as $col) {
+                if ($i != 0) {
+                    $categories .= ',';
+                    $series['total_shipment']['data'] .= ',';
+                    $series['sales_total']['data'] .= ',';
+                }
+                $categories .= '\'' . $col->getWarehouseName() . '\'';
+                $series['total_shipment']['data'] .= floatval($col->getData('total_shipment'));
+                $series['sales_total']['data'] .= floatval($col->getData('sales_total'));
+                $i++;
+            }
+            $categories .= ']';
+            $series['total_shipment']['data'] .= ']';
+            $series['sales_total']['data'] .= ']';
+            ?>
+            <script type="text/javascript">
+                $(function () {
+                    $_('#container').highcharts({
+                        chart: {
+                            type: 'column'
+                        },
+                        title: {
+                            text: '<?php echo $this->__('Sales Report by Warehouse') ?>'
+                        },
+                        subtitle: {
+                            text: ''
+                        },
+                        xAxis: {
+                            categories: <?php echo $categories ?>
+                        },
+                        yAxis: {
+                            min: 0,
+                            title: {
+                                text: ''
+                            }
+                        },
+                        tooltip: {
+                            headerFormat: '<span style="font-size:10px">{point.key}</span><table>',
+                            pointFormat: '<tr><td style="color:{series.color};padding:0">{series.name}: </td>' +
+                                '<td style="padding:0"><b>{point.y:.0f} </b></td></tr>',
+                            footerFormat: '</table>',
+                            shared: true,
+                            useHTML: true
+                        },
+                        plotOptions: {
+                            column: {
+                                pointPadding: 0.2,
+                                borderWidth: 0
+                            }
+                        },
+                        series: [
+<?php $count = 0; ?>
+<?php foreach ($series as $serie): ?>
+    <?php if (!$count == 0) echo ','; ?>
+    <?php $count++; ?>    
+                            {
+                                name: '<?php echo $serie['name']; ?>',
+                                data: <?php echo $serie['data']; ?>
+                            }
+<?php endforeach; ?>
+                ]
+            });
+        });
+            </script>
+
+
+            <div id="container" style="min-width: 310px; height: 400px; margin: 0 auto"></div>
+        </div>
+        <div style="width: 33%; float: left;">
+            <!-- Pie chart -->
+
+            <?php
+            $series = '';
+            $i = 0;
+            foreach ($collection as $col) {
+                $qtyShipped = 0;
+                if ($col->getData('total_shipment'))
+                    $qtyShipped = $col->getData('total_shipment');
+                if ($i != 0)
+                    $series .= ',';
+                $series .= '[\'' . $col->getWarehouseName() . '(' . $qtyShipped . ' items)\',' . $qtyShipped . ']';
+                $i++;
+            }
+            ?>
+            <script type="text/javascript">
+                $(function () {
+                    $_('#container_pie_totalship').highcharts({
+                        chart: {
+                            plotBackgroundColor: null,
+                            plotBorderWidth: 1,//null,
+                            plotShadow: false
+                        },
+                        title: {
+                            text: '<?php echo $this->__('Total Qty Sold') ?>',
+                            x: -20 //center
+                        },        
+                        tooltip: {
+                            pointFormat: '{series.name}: <b>{point.percentage:.1f} %</b>'
+                        },
+                        plotOptions: {
+                            pie: {
+                                allowPointSelect: true,
+                                cursor: 'pointer',
+                                dataLabels: {
+                                    enabled: true,
+                                    format: '<b>{point.name}</b>: {point.percentage:.1f} %',
+                                    style: {
+                                        color: (Highcharts.theme && Highcharts.theme.contrastTextColor) || 'black'
+                                    }
+                                }
+                            }
+                        },
+                        series: [{
+                                type: 'pie',
+                                name: '<?php echo $this->__('Total Qty Sold') ?>',
+                                data: [                
+<?php echo $series ?>
+                        ]
+                    }]
+            });
+        });
+            </script>
+
+            <div id="container_pie_totalship" style="min-width: 310px; max-height: 400px; margin: 0 auto"></div>
+        </div>
+
+        <div style="width: 33%; float: left;">
+            <?php
+            $series = '';
+            $i = 0;
+            foreach ($collection as $col) {
+                $totalSales = 0;
+                if ($col->getData('sales_total'))
+                    $totalSales = $col->getData('sales_total');
+                if ($i != 0)
+                    $series .= ',';
+                $series .= '[\'' . $col->getWarehouseName() . '(' . Mage::helper('core')->currency($totalSales) . ')\',' . $totalSales . ']';
+                $i++;
+            }
+            ?>
+            <script type="text/javascript">
+                $(function () {
+                    $_('#container_pie').highcharts({
+                        chart: {
+                            plotBackgroundColor: null,
+                            plotBorderWidth: 1,//null,
+                            plotShadow: false
+                        },
+                        title: {
+                            text: '<?php echo $this->__('Total Sales Amount %s', Mage::app()->getLocale()->currency(Mage::app()->getStore()->getCurrentCurrencyCode())->getSymbol()) ?>',
+                            x: -20 //center
+                        },        
+                        tooltip: {
+                            pointFormat: '{series.name}: <b>{point.percentage:.1f} %</b>'
+                        },
+                        plotOptions: {
+                            pie: {
+                                allowPointSelect: true,
+                                cursor: 'pointer',
+                                dataLabels: {
+                                    enabled: true,
+                                    format: '<b>{point.name}</b>: {point.percentage:.1f} %',
+                                    style: {
+                                        color: (Highcharts.theme && Highcharts.theme.contrastTextColor) || 'black'
+                                    }
+                                }
+                            }
+                        },
+                        series: [{
+                                type: 'pie',
+                                name: '<?php echo $this->__('Total Sales Amount %s', Mage::app()->getLocale()->currency(Mage::app()->getStore()->getCurrentCurrencyCode())->getSymbol()) ?>',
+                                data: [                
+<?php echo $series ?>
+                        ]
+                    }]
+            });
+        });
+            </script>
+
+            <div id="container_pie" style="min-width: 310px; max-height: 400px; margin: 0 auto"></div>
+        </div>
+    </div>
+</div>
+<script type="text/javascript" src="<?php echo $this->getJsUrl() ?>magestore/adminhtml/inventory/dashboard/lib/_JSSettings.js"></script>
+<script src="<?php echo $this->getJsUrl() ?>magestore/adminhtml/inventory/dashboard/lib/js_002"></script>
+<script src="<?php echo $this->getJsUrl() ?>magestore/adminhtml/inventory/dashboard/lib/dashboards"></script>
+
+<script type="text/javascript">
+    var saveViewPositions = '<?php echo $this->getUrl('adminhtml/ind_dashboard/saveviewposition') ?>';
+    var saveTabPositions = '<?php echo $this->getUrl('adminhtml/ind_dashboard/savetabposition') ?>';
+    var form_key_dashboard = '<?php echo $this->getFormKey() ?>';
+</script>
+<script type="text/javascript">
+    var $sd = new InventoryDashboard.Views.Dashboards();
+    $sd.isShare = false;
+    $sd.backgroundColour = '#808080';
+    $sd.init();
+</script>

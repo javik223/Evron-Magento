@@ -1,0 +1,216 @@
+
+<?php
+$currency = Mage::app()->getStore()->getBaseCurrencyCode();
+?>
+<?php if ($barcode->getId()): ?>
+    <div class="entry-edit" >
+        <div style="float:left; width: 100%; margin-bottom: 10px; ">
+		<?php if($barcode->getBarcodeStatus() != 0): ?>
+        <button type="button" onclick="javascript:window.open('<?php echo $this->getUrl('adminhtml/inb_printbarcode/selecttemplate', array('barcode' => $barcode->getId())) ?>', '_blank', 'scrollbars=yes, resizable=yes, width=750, height=500, left=80, menubar=yes');" value="<?php echo $this->__('Print Barcode') ?>"><span><span><?php echo $this->__('Print Barcode') ?></span></span></span></button>
+		<?php endif; ?>
+        </div>
+        <!-- product -->
+        <div style="width:32%; float:left;">
+            <div class="entry-edit-head" style="margin-top: 5px; cursor: pointer;" id="barcode_form-head">
+                <h4 class="icon-head head-edit-form fieldset-legend"><?php echo $this->__('Product') ?></h4>
+                <div class="form-buttons"></div>
+            </div>
+            <div class="fieldset " id="general_form">
+                <div class="hor-scroll">
+                    <table cellspacing="0" class="form-list">
+                        <tbody>
+                            <?php $product = Mage::getModel('catalog/product')->load($barcode->getProductEntityId()); ?>
+
+                            <tr>
+                                <td class="label"><label><?php echo $this->__('Product Name') ?></label></td>
+                                <td class="value">
+                                    <?php echo $product->getName() ?>
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td class="label"><label><?php echo $this->__('Price') ?></label></td>
+                                <td class="value">                                    
+                                    <?php echo Mage::getModel('directory/currency')->load($currency)->formatTxt($product->getPrice()) ?>
+                                </td>
+                            </tr>
+
+<!--
+                            <tr>
+                                <td class="label"><label><?php echo $this->__('Qty of product') ?></label></td>
+                                <td class="value">
+                                    <?php
+                                    $item = Mage::getModel('cataloginventory/stock_item')->loadByProduct($product);
+                                    $qty = $item->getQty();
+                                    ?>
+                                    <?php echo (int) $qty ?>
+                                </td>
+                            </tr>
+-->
+                            <tr>
+                                <td class="label"><label><?php echo $this->__('Qty of Barcode') ?></label></td>
+                                <td class="value">
+                                    <?php echo $barcode->getQty() ?>
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td class="label"><label><?php echo $this->__('Original Qty of Barcode') ?></label></td>
+                                <td class="value">
+                                    <?php echo $barcode->getQtyOriginal() ?>
+                                </td>
+                            </tr>
+                            
+                            <tr>
+                                <td class="label"></td>
+                                <td class="value">
+                                    <a style="text-decoration: none;" href="#product_form-head" onclick="$('product_form').show()"/><?php echo $this->__('More details')?></a>
+                                </td>
+                            </tr>
+
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <!-- delivery -->
+        <?php if (Mage::helper('core')->isModuleEnabled('Magestore_Inventorypurchasing')):?>
+        <div style="width:32%; float:left; margin-left: 15px;">
+            <div class="entry-edit-head" style="margin-top: 5px; cursor: pointer;" id="barcode_form-head">
+                <h4 class="icon-head head-edit-form fieldset-legend"><?php echo $this->__('Delivery') ?></h4>
+                <div class="form-buttons"></div>
+            </div>
+            <div class="fieldset " id="general_form">
+                <div class="hor-scroll">
+                    <table cellspacing="0" class="form-list">
+                        <tbody>
+                            <?php 
+                            $delivery = Mage::getModel('inventorypurchasing/purchaseorder_delivery')->getCollection()
+                                        ->addFieldToFilter('purchase_order_id', $barcode->getPurchaseorderPurchaseOrderId())
+                                        ->addFieldToFilter('product_id',$barcode->getProductEntityId())
+                                        ->getFirstItem();
+                            $purchaseorder = Mage::getModel('inventorypurchasing/purchaseorder')->load($barcode->getPurchaseorderPurchaseOrderId());
+                            ?>
+                            
+                            <tr>
+                                <td class="label"><label><?php echo $this->__('Purchase Order') ?></label></td>
+                                <td class="value">
+                                    <?php echo $this->__('#%s', $barcode->getPurchaseorderPurchaseOrderId()); ?>
+                                </td>
+                            </tr>
+                            
+                            <tr>
+                                <td class="label"><label><?php echo $this->__('Supplier') ?></label></td>
+                                <td class="value">
+                                    <?php echo $purchaseorder->getSupplierName(); ?>
+                                </td>
+                            </tr>
+                            
+                            <tr>
+                                <td class="label"><label><?php echo $this->__('Delivery Date') ?></label></td>
+                                <td class="value">
+                                    <?php echo Mage::helper('core')->formatDate($delivery->getDeliveryDate(), 'medium', false) ?>
+                                </td>
+                            </tr>                            
+                            
+                            <tr>
+                                <td class="label"><label><?php echo $this->__('Total Qty') ?></label></td>
+                                <td class="value">
+                                    <?php echo (int)$delivery->getQtyDelivery(); ?>
+                                </td>
+                            </tr>
+                            
+                            <tr>
+                                <td class="label"><label><?php echo $this->__('Created By') ?></label></td>
+                                <td class="value">
+                                    <?php echo $delivery->getCreatedBy(); ?>
+                                </td>
+                            </tr>
+                            
+                            <tr>
+                                <td class="label"></td>
+                                <td class="value">
+                                    <a style="text-decoration: none;" href="#purchaseorder_form-head" onclick="$('purchaseorder_form').show()"/><?php echo $this->__('More details')?></a>
+                                </td>
+                            </tr>
+
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <div style="width:32%; float:left; margin-left: 15px;">
+            <div class="entry-edit-head" style="margin-top: 5px; cursor: pointer;" id="barcode_form-head">
+                <h4 class="icon-head head-edit-form fieldset-legend"><?php echo $this->__('Warehouse') ?></h4>
+                <div class="form-buttons"></div>
+            </div>
+            <div class="fieldset " id="general_form" style="float:left; width:382px;">
+                <div class="hor-scroll">
+                   
+                    <tbody>
+                            <?php 
+                                $warehouseIds = explode(',', $barcode->getWarehouseWarehouseId());   
+                            ?>
+                            <div style="width:100%; float:left;">
+                                                <div style="width: 30%; float:left; border: 1px solid #ddd; padding:0 2px;">
+                                                    <span style="font-weight: bold"><?php echo $this->__('Warehouse') ?></span>
+                                                </div>
+                                                <div style="width: 30%; float:left; border: 1px solid #ddd; padding:0 2px;">
+                                                    <span style="font-weight: bold"><?php echo $this->__('Qty') ?></span>
+                                                </div>
+                                                <div style="width: 30%; float:left; border: 1px solid #ddd; padding:0 2px;">
+                                                    <span style="font-weight: bold"><?php echo $this->__('Action') ?></span>
+                                                </div>
+                                                
+                                                </div>
+                                            </div>
+                            <?php foreach($warehouseIds as $key => $warehouseId):?>
+                                <?php $warehouse = Mage::getModel('inventoryplus/warehouse')->load($warehouseId);?>
+                                <?php $deliveryWarehouse = Mage::getModel('inventorypurchasing/purchaseorder_delivery_warehouse')->getCollection()
+                                                                    ->addFieldToFilter('purchase_order_id', $barcode->getPurchaseorderPurchaseOrderId())
+                                                                    ->addFieldToFilter('product_id',$barcode->getProductEntityId());?>
+                                    <!-- for the barcodes was created automatic-->                                
+                                    <?php if($deliveryWarehouse->getSize()):?>
+                                                <?php   $deliveryWarehouse->addFieldToFilter('warehouse_id', $warehouseId);?>
+                                    
+                                                <?php if($deliveryWarehouse->getSize()):?>
+                                                    <?php $deliveryWarehouse = $deliveryWarehouse->getFirstItem();?>
+                                                    <div style="width:30%; float:left; border: 1px solid #ddd; padding:0 2px;">
+                                                        <span><?php echo $warehouse->getWarehouseName();?></span>
+                                                    </div>
+                                                    <div style="width:30%; float:left; border: 1px solid #ddd; padding:0 2px;">
+                                                        <span><?php echo $deliveryWarehouse->getQtyDelivery();?></span>
+                                                    </div>
+                                                    <div style="width:30%; float:left; border: 1px solid #ddd; padding:0 2px;">
+                                                       <a style="text-decoration: none;" href="#warehouse_form_<?php echo $warehouseId;?>-head" onclick="$('warehouse_form_<?php echo $warehouseId;?>').show()"/><?php echo $this->__('More details')?></a>
+                                                    </div>
+                                                    <div style="width:100%;float:left"></div>
+                                                <?php endif;?>
+                                    <!-- for the barcodes was created by hand-->
+                                    <?php else:?>
+                                                <div style="width:30%; float:left; border: 1px solid #ddd; padding:0 2px;">
+                                                    <span><?php echo $warehouse->getWarehouseName();?></span>
+                                                </div>
+                                                <div style="width:30%; float:left; border: 1px solid #ddd; padding:0 2px;">
+                                                    <span><?php echo $barcode->getQty();?></span>
+                                                </div>
+                                                <div style="width:30%; float:left; border: 1px solid #ddd; padding:0 2px;">
+                                                   <a style="text-decoration: none;" href="#warehouse_form_<?php echo $warehouseId;?>-head" onclick="$('warehouse_form_<?php echo $warehouseId;?>').show()"/><?php echo $this->__('More details')?></a>
+                                                </div>
+                                    <?php endif;?>
+                                                                 
+                           <?php endforeach;?>
+                 
+            </tbody>
+                    
+                </div>
+            </div>
+        </div>
+        
+        <?php endif;?>
+        
+        
+    </div>
+<?php endif; ?>

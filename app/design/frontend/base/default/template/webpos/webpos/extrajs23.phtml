@@ -1,0 +1,89 @@
+<script type="text/javascript">
+    var saving_till_url = '<?php echo $this->getUrl('*/payment/saveTill', array('_forced_secure' => $this->getRequest()->isSecure())) ?>';
+    var get_holded_order_url = '<?php echo $this->getUrl('*/payment/getOnholdList', array('_forced_secure' => $this->getRequest()->isSecure())) ?>';
+    var hold_order_url = '<?php echo $this->getUrl('*/payment/holdOrder', array('_forced_secure' => $this->getRequest()->isSecure())) ?>';
+    var reload_order_url = '<?php echo $this->getUrl('*/payment/reloadOrder', array('_forced_secure' => $this->getRequest()->isSecure())) ?>';
+    var cancel_holded_order_url = '<?php echo $this->getUrl('*/payment/cancelHoldedOrder', array('_forced_secure' => $this->getRequest()->isSecure())) ?>';
+    var hold_order_error_message = '<?php echo $this->__('The order cannot be put on hold!'); ?>';
+    var hold_order_success_message = '<?php echo $this->__('The order has been put on hold. You can continue processing it later.'); ?>';
+    var blocked_popup_message = '<?php echo $this->__('Cannot print the receipt automatically because your browser has blocked the auto-popup request. Please change your browser setting and try again!'); ?>';
+    var auto_print_receipt = '<?php echo Mage::getStoreConfig('webpos/receipt/auto_print', Mage::app()->getStore()->getId()); ?>';
+    var hoding_order = canceling_holded_order = reloading_order = reloadinng_holded_list = saving_till = false;
+    var print_popup = '';
+    var hold_label = '<?php echo $this->__('Hold'); ?>';
+    var unhold_label = '<?php echo $this->__('Unhold'); ?>';
+    var reports_label = '<?php echo $this->__('Reports'); ?>';
+    var x_report_name = '<?php echo $this->__('X - Report'); ?>';
+    var z_report_name = '<?php echo $this->__('Z - Report'); ?>';
+	var bt_reload_order_label = '<?php echo $this->__('Reload'); ?>';
+	var bt_delete_holded_order_label = '<?php echo $this->__('Delete'); ?>';
+    var eod_report_name = '<?php echo $this->__('End of the day report'); ?>';
+    var transaction_not_saved_message = '<?php echo $this->__('This transaction cannot be saved. Please make sure that you have inputted transaction value.'); ?>';
+    var cancel_hold_order_success_message = '<?php echo $this->__('The order has been cancelled successfully'); ?>';
+    var cancel_hold_order_error_message = '<?php echo $this->__('There is an unexpected error occuring during canceling the order'); ?>';
+    var report_not_saved_message = '<?php echo $this->__('This report cannot be saved.'); ?>';
+    var enable_till = '<?php echo Mage::getStoreConfig('webpos/general/enable_tills'); ?>';
+    var get_transaction_grid_url = '<?php echo $this->getUrl('webpos/payment/getTransactionGrid', array('_forced_secure' => $this->getRequest()->isSecure())); ?>';
+    var get_currentbalance_url = '<?php echo $this->getUrl('webpos/payment/getCurrentBalance', array('_forced_secure' => $this->getRequest()->isSecure())); ?>';
+    var new_transaction_url = '<?php echo $this->getUrl('webpos/payment/newTransaction'); ?>';
+    var set_transactionflag_url = '<?php echo Mage::helper("adminhtml")->getUrl('webpos/payment/setTransacFlag') ?>';
+    var x_report_url = '<?php echo Mage::helper("adminhtml")->getUrl('webpos/payment/getXreport') ?>';
+    var z_report_url = '<?php echo Mage::helper("adminhtml")->getUrl('webpos/payment/getZreport') ?>';
+    var eod_report_url = '<?php echo Mage::helper("adminhtml")->getUrl('webpos/payment/getEndOfDayReport') ?>';
+    var save_zreport_url = '<?php echo Mage::helper("adminhtml")->getUrl('webpos/payment/saveZReport') ?>';
+    var toogle_tax_url = '<?php echo $this->getUrl('webpos/payment/toogleTax', array('_forced_secure' => $this->getRequest()->isSecure())) ?>';
+    var store_id = '<?php echo Mage::app()->getStore()->getId(); ?>';
+	var reports_section = new webposArea('reports_area', '-100vw', '0px', '99px', '0px');
+    document.addEventListener("DOMContentLoaded", function(event) {
+        if (enable_till == true) {
+            var till_data = localGet('webpos_till');
+            if (till_data == null && $('userid').value != '') {
+                showTillSelectPopup();
+            } else {
+                if (till_data.till_id) {
+                    if ($('till_info')) {
+                        $('till_info').innerHTML = till_data.till_name;
+                        $('till_info').removeClassName('hide');
+                    }
+                }
+            }
+        }
+		var needreload = localGet('needreload');
+		if (needreload == 'yes') {
+			if (enable_till == true) {
+				showTillSelectPopup();
+			}
+			localDelete('needreload');
+			if (useLocalSearch == true) {
+				flushProductCache();
+			} else {
+				var categoryId = $('category_dropdown').getAttribute('selectedcategory');
+				if (categoryId != null && typeof categoryId != 'undefined') {
+					var catitems = $$('.catitem');
+					if (catitems.length > 0) {
+						catitems.each(function (el) {
+							var catid = el.getAttribute('catid');
+							if (catid == categoryId) {
+								el.click();
+								return false;
+							}
+						});
+					}
+				} else {
+					reloadListProduct('category', '<?php echo Mage::app()->getStore()->getRootCategoryId();?>', '<?php echo $this->__('All Categories'); ?>');
+				}
+			}
+		}
+    });
+    function zReportPrint(transfer, diff_total) {
+        var report_print_url = '<?php echo Mage::getUrl('webpos/payment/reportprint', array('report_type' => 'z-report')); ?>' + 'transfer_amout/' + transfer + '/diff_total/' + diff_total;
+        window.open(report_print_url, "_blank", "scrollbars=yes, resizable=yes, width=500, height=700");
+    }
+	function webposChangeStore(store_url) {
+		var confirmChange = confirm("<?php echo $this->__('Current order will be cancelled!');?>");
+		if (confirmChange == true) {
+			localSet('needreload', 'yes');
+			setLocation(store_url);
+		}
+	}
+</script>

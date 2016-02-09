@@ -1,0 +1,24 @@
+.submit_ajax_button{
+    background:url(images/success.gif) no-repeat;
+    float: left;
+    width: 17px;
+    height: 17px;
+    clear: both;
+    margin: 2px 1px 2px 2px;
+}
+.cancel_button{
+    background:url(images/cancel_icon.gif) no-repeat;
+    float: left;
+    width: 17px;
+    height: 17px;
+    margin: 2px 0 2px 1px;
+}
+.editableinfo{
+    float: left;
+    background-color: #fff;
+}
+.ediatblename{
+    width: 230px;
+}
+.editableCssClass:hover{background-color: #73FFE8;}
+.hidden_custom_part{display: none;}

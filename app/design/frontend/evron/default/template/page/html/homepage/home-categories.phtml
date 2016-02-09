@@ -1,0 +1,28 @@
+<div class="pb-large s-hide">&nbsp;</div>
+
+<div class="featured-categories">
+	<h1 class="omega c-p text-space-1 text-center mt-pad">SHOP FRESH FOOD, MEAT &amp; PANTRY GOODS</h1>
+
+	<?php
+		// Retrieve all rot category items and display those with images
+	?>
+	<div class="row owl-carousel">			
+		<?php $_helper = Mage::helper('catalog/category') ?>
+		<?php $_categories = $_helper->getStoreCategories() ?>
+		<?php $currentCategory = Mage::registry('current_category') ?>
+		<?php if (count($_categories) > 0): ?>
+		        <?php foreach($_categories as $_category): ?>
+		        	<?php $_category = Mage::getModel('catalog/category')->load($_category->getId()) ?>
+
+						<?php if(!empty($_category->getImageUrl())): ?>
+		                <a class="item" href="<?php echo $_helper->getCategoryUrl($_category) ?>" title="<?php echo $_category->getName() ?>">
+		                  	<img src="<?php echo $_category->getImageUrl();?>" alt="<?php echo $_category->getName(); ?>">
+		                  	<h5><?php echo $_category->getName(); ?></h5>
+		                </a>
+		                <?php endif; ?>
+		        <?php endforeach; ?>
+		<?php endif; ?>
+	</div>
+</div>
+
+<div class="pb-large">&nbsp;</div><div class="pb-large s-hide">&nbsp;</div>

@@ -1,0 +1,73 @@
+<?php
+/**
+ * Magestore
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Magestore.com license that is
+ * available through the world-wide-web at this URL:
+ * http://www.magestore.com/license-agreement.html
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade this extension to newer
+ * version in the future.
+ *
+ * @category    Magestore
+ * @package     Magestore_Inventory
+ * @copyright   Copyright (c) 2012 Magestore (http://www.magestore.com/)
+ * @license     http://www.magestore.com/license-agreement.html
+ */
+
+/**
+ * Inventory Adminhtml Controller
+ *
+ * @category    Magestore
+ * @package     Magestore_Inventory
+ * @author      Magestore Developer
+ */
+?>
+<?php
+$stockNotice = Mage::getStoreConfig('inventoryplus/notice/stock_notice');
+$noticeFor = Mage::getStoreConfig('inventoryplus/notice/notice_for');
+if ($stockNotice == 1) {
+    if (!Mage::helper('inventorylowstock')->hasSupplier()) {
+        $messages = $this->getMessageNoSupplier();
+        $normalMessages = array();
+    } else {
+        if ($noticeFor == 2) {
+            $messages = $this->getSystemNotice();
+            $normalMessages = $this->getSystemNoticeNormal();
+        } elseif ($noticeFor == 1) {
+            $messages = $this->getWarehouseNotice();
+            $normalMessages = $this->getWarehouseNoticeNormal();
+        } else {
+            $messages = $this->getBothNotice();
+            $normalMessages = $this->getBothNoticeNormal();
+        }
+    }
+    ?>
+    <?php if (count($messages) || count($normalMessages)) { ?>
+        <div class="notification-inventory-global">
+            <?php if(count($messages)): ?>
+                <strong class="label-red"><?php echo $this->__('Emergency Low Stock Notification(s):') ?></strong>
+                <br/>
+                <?php
+                foreach ($messages as $message) {
+                    echo '<span>'.$message.'</span>';
+                }
+            ?>
+            <?php endif; ?>
+                
+            <?php if(count($normalMessages)): ?>
+                <strong class="label"><?php echo $this->__('Normal Low Stock Notification(s):') ?></strong>
+                <br/>
+                <?php
+                foreach ($normalMessages as $message) {
+                    echo '<span>'.$message.'</span>';
+                }
+                ?>
+            <?php endif; ?>
+        </div>
+    <?php } ?>
+<?php }; ?>

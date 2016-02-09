@@ -1,0 +1,74 @@
+<?php
+$filterData = new Varien_Object();
+$requestData = Mage::helper('adminhtml')->prepareFilterString($this->getRequest()->getParam('top_filter'));
+foreach ($requestData as $key => $value)
+    if (!empty($value))
+        $filterData->setData($key, $value);
+?>
+<div class="content-header">
+    <table cellspacing="0">
+        <tbody><tr>
+                <td style="width:50%;"><h3 class="icon-head head-adminhtml-inventory"><?php echo $this->__('Sales Report by Warehouse'); ?></h3></td>
+            </tr>
+        </tbody></table>
+</div>
+<div class="entry-edit">
+    <div class="entry-edit-head">
+        <h4 class="icon-head head-edit-form fieldset-legend"><?php echo $this->__('Select Criteria to Show Report') ?></h4>
+    </div>
+    <div id="date_picker_form" class="fieldset ">
+        <div  class="input-box">
+            <!--form id="filter-form" action="<?php echo Mage::helper('core/url')->getCurrentUrl(); ?>" method="POST"-->
+            <label><?php echo $this->__('From:'); ?> </label>
+            &nbsp; &nbsp;
+            <input name="date_from" id="date_from" type="text" size="20" value="<?php echo $filterData->getDateFrom(); ?>">
+            <img title="Select date" id="btn-date-picker-from" src="<?php echo Mage::getBaseUrl(Mage_Core_Model_Store::URL_TYPE_SKIN) . 'adminhtml/default/default/images/grid-cal.gif'; ?>" class="v-middle">
+            <label><?php echo $this->__('To:'); ?> </label>
+            &nbsp; &nbsp;
+            <input name="date_to" id="date_to" type="text" size="20" value="<?php echo $filterData->getDateTo(); ?>">
+            <img title="Select date" id="btn-date-picker-to" src="<?php echo Mage::getBaseUrl(Mage_Core_Model_Store::URL_TYPE_SKIN) . 'adminhtml/default/default/images/grid-cal.gif'; ?>" class="v-middle">          
+            <button onclick="filterFormSubmit();return false;" ><?php echo $this->__('Show Report'); ?></button>
+
+            <!--form-->
+
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    //<![CDATA[
+    Calendar.setup({
+        inputField : 'date_from',
+        ifFormat : "%Y-%m-%d",
+        daFormat : "%Y-%m-%d",
+        button : 'btn-date-picker-from',
+        align : 'Bl',
+        singleClick : true
+    });
+    Calendar.setup({
+        inputField : 'date_to',
+        ifFormat : "%Y-%m-%d",
+        daFormat : "%Y-%m-%d",
+        button : 'btn-date-picker-to',
+        align : 'Bl',
+        singleClick : true
+    });
+   
+    
+    function filterFormSubmit() {
+        var filters = new Array();
+        filters[0] = $('date_from');
+        filters[1] = $('date_to');
+//        filters[3] = $('period_type');
+        var elements = [];
+        for(var i in filters){
+            if(filters[i].value && filters[i].value.length && !filters[i].disabled) elements.push(filters[i]);
+        }
+        //var validator  = new Validation('filter-form');
+        //if (validator.validate()) {
+        window.location.href = '<?php echo $this->getFilterUrl(); ?>top_filter/'+encode_base64(Form.serializeElements(elements))+'/';
+        //}
+        return;
+    }
+    //]]>                   
+</script>

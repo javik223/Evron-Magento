@@ -1,0 +1,241 @@
+<?php
+$currency = Mage::app()->getStore()->getBaseCurrencyCode();
+?>
+<?php if($product->getId()):?>
+<div class="entry-edit" >
+    <form id="filter_form" action="" method="get"><div></div>
+        <div class="entry-edit-head" style="margin-top: 5px; cursor: pointer;" id="product_form-head" onclick="Fieldset.toggleCollapse('product_form')">
+            <h4 class="icon-head head-edit-form fieldset-legend"><?php echo $this->__('Product Information') ?></h4>
+            <div class="form-buttons"></div>
+        </div>
+        <div class="fieldset " id="product_form" style="display:none">
+            <div class="hor-scroll">
+                <table cellspacing="0" class="form-list">
+                    <tbody>
+                        
+                        <?php if($product->getImage()!='no_selection'):?>
+                        <tr>
+                            <td class="label"><label><?php echo $this->__('Image') ?></label></td>
+                            <td class="value">
+                                <?php try{?>
+                                <?php if(Mage::helper('catalog/image')->init($product, 'image')):?>
+                                    <img src="<?php echo Mage::helper('catalog/image')->init($product, 'image')->resize(150); ?>" width="150px" />
+                                <?php endif;?>
+                                <?php }catch(Exception $e){
+                                    
+                                }?>
+                                
+                            </td>
+                        </tr>
+                        <?php endif;?>
+                        <tr>
+                            <td class="label"><label><?php echo $this->__('Name') ?></label></td>
+                            <td class="value">
+                                <?php echo $product->getName() ?>
+                            </td>
+                        </tr>
+                        <?php if($product->getSku()):?>
+                        <tr>
+                            <td class="label"><label><?php echo $this->__('SKU') ?></label></td>
+                            <td class="value">
+                                <?php echo $product->getSku() ?>
+                            </td>
+                        </tr>
+                        <?php endif;?>
+                        <?php if($product->getPrice()):?>
+                        <tr>
+                            <td class="label"><label><?php echo $this->__('Price') ?></label></td>
+                            <td class="value">
+                                <?php echo Mage::getModel('directory/currency')->load($currency)->formatTxt($product->getPrice()); ?>
+                            </td>
+                        </tr>
+                        <?php endif;?>
+                        
+                            <?php if($product->getCost()):?>
+                                <tr>
+                                    <td class="label"><label><?php echo $this->__('Cost') ?></label></td>
+                                    <td class="value">                                    
+                                        <?php echo Mage::getModel('directory/currency')->load($currency)->formatTxt($product->getCost()) ?> 
+                                    </td>
+                                </tr>
+                            <?php endif; ?>
+                            
+                            <?php if(count($product->getData('group_price'))):?>
+                                <tr>
+                                    <td class="label"><label><?php echo $this->__('Group Price') ?></label></td>
+                                    <td class="value">  
+                                            <div style="width:100%; float:left;">
+                                                <div style="width: 20%; float:left; border: 1px solid #ddd; padding:0 2px;">
+                                                    <span style="font-weight: bold"><?php echo $this->__('Website') ?></span>
+                                                </div>
+                                                <div style="width: 20%; float:left; border: 1px solid #ddd; padding:0 2px;">
+                                                    <span style="font-weight: bold"><?php echo $this->__('Customer Group') ?></span>
+                                                </div>
+                                                <div style="width: 20%; float:left; border: 1px solid #ddd; padding:0 2px;">
+                                                    <span style="font-weight: bold"><?php echo $this->__('Price') ?></span>
+                                                </div>
+                                            </div>
+                                    
+                                        <?php foreach($product->getData('group_price') as $groupPrice):?>
+                                        
+                                            <div style="width:100%; float:left;">
+                                                <?php 
+                                                    if($groupPrice['website_id']==0){
+                                                        $website = $this->__('All Websites');
+                                                    }else{
+                                                        $website = Mage::app()->getWebsite($groupPrice['website_id'])->getName();
+                                                    }
+                                                ?>
+                                                <div style="width: 20%; float:left; border: 1px solid #ddd; padding:0 2px;">
+                                                    <span><?php echo $website; ?></span>
+                                                </div>
+                                                <?php
+                                                    if($groupPrice['all_groups']!=0){
+                                                        $group = $this->__('All Groups');
+                                                    }else{
+                                                        $group =  Mage::getModel('customer/group')->load($groupPrice['cust_group'])->getCustomerGroupCode();
+                                                       
+                                                    }
+                                                ?>
+                                                <div style="width: 20%; float:left; border: 1px solid #ddd; padding:0 2px;">
+                                                    <span><?php echo $group ?></span>
+                                                </div>
+                                                
+                                                <div style="width: 20%; float:left; border: 1px solid #ddd; padding:0 2px;">
+                                                    <span><?php echo Mage::getModel('directory/currency')->load($currency)->formatTxt($groupPrice['price']); ?></span>
+                                                </div>
+                                            </div>
+                                       
+                                        <?php endforeach; ?> 
+                                    </td>
+                                </tr>
+                            <?php endif; ?>
+                                
+                            <?php if(count($product->getData('tier_price'))):?>
+                                <tr>
+                                    <td class="label"><label><?php echo $this->__('Tier Price') ?></label></td>
+                                    <td class="value">  
+                                            <div style="width:100%; float:left;">
+                                                <div style="width: 20%; float:left; border: 1px solid #ddd; padding:0 2px;">
+                                                    <span style="font-weight: bold"><?php echo $this->__('Website') ?></span>
+                                                </div>
+                                                <div style="width: 20%; float:left; border: 1px solid #ddd; padding:0 2px;">
+                                                    <span style="font-weight: bold"><?php echo $this->__('Customer Group') ?></span>
+                                                </div>
+                                                <div style="width: 20%; float:left; border: 1px solid #ddd; padding:0 2px;">
+                                                    <span style="font-weight: bold"><?php echo $this->__('Qty') ?></span>
+                                                </div>
+                                                <div style="width: 20%; float:left; border: 1px solid #ddd; padding:0 2px;">
+                                                    <span style="font-weight: bold"><?php echo $this->__('Price') ?></span>
+                                                </div>
+                                            </div>
+                                       
+                                        <?php foreach($product->getData('tier_price') as $groupPrice):?>
+                                            <div style="width:100%; float:left;">
+                                                <?php 
+                                                    if($groupPrice['website_id']==0){
+                                                        $website = $this->__('All Websites');
+                                                    }else{
+                                                        $website = Mage::app()->getWebsite($groupPrice['website_id'])->getName();
+                                                    }
+                                                ?>
+                                                <div style="width: 20%; float:left; border: 1px solid #ddd; padding:0 2px;">
+                                                    <span><?php echo $website; ?></span>
+                                                </div>
+                                                <?php
+                                                    if($groupPrice['all_groups']!=0){
+                                                        $group = $this->__('All Groups');
+                                                    }else{
+                                                        $group =  Mage::getModel('customer/group')->load($groupPrice['cust_group'])->getCustomerGroupCode();
+                                                    }
+                                                ?>
+                                                <div style="width: 20%; float:left; border: 1px solid #ddd; padding:0 2px;">
+                                                    <span><?php echo $group ?></span>
+                                                </div>
+                                                
+                                                <div style="width: 20%; float:left; border: 1px solid #ddd; padding:0 2px;">
+                                                    <span><?php echo (int)$groupPrice['price_qty'] ?></span>
+                                                </div>
+                                                
+                                                <div style="width: 20%; float:left; border: 1px solid #ddd; padding:0 2px;">
+                                                    <span><?php echo Mage::getModel('directory/currency')->load($currency)->formatTxt($groupPrice['price']); ?></span>
+                                                </div>
+                                            </div>
+                                      
+                                        <?php endforeach; ?> 
+                                    </td>
+                                </tr>
+                            <?php endif; ?>
+                                
+                            <?php if($product->getSpecialPrice()):?>
+                                <tr>
+                                    <td class="label"><label><?php echo $this->__('Special Price') ?></label></td>
+                                    <td class="value">                                    
+                                        <?php echo Mage::getModel('directory/currency')->load($currency)->formatTxt($product->getSpecialPrice()) ?> (<?php echo $this->__('From "%s" to "%s"',Mage::helper('core')->formatDate($product->getSpecialFromDate(), 'medium', false),Mage::helper('core')->formatDate($product->getSpecialToDate(), 'medium', false))?>)
+                                    </td>
+                                </tr>
+                            <?php endif; ?>
+                        <?php if($product->getWeight()):?>
+                        <tr>
+                            <td class="label"><label><?php echo $this->__('Weight') ?></label></td>
+                            <td class="value">
+                                <?php echo (int)$product->getWeight() ?>
+                            </td>
+                        </tr>
+                        <?php endif;?>
+                        <?php if($product->getManufacturer()):?>
+                        <?php 
+                        $attributes = Mage::getResourceModel('eav/entity_attribute_collection')
+                                    ->setEntityTypeFilter($product->getResource()->getTypeId())
+                                            ->addFieldToFilter('attribute_code', 'manufacturer');
+                        $attribute = $attributes->getFirstItem()->setEntity($product->getResource());
+                        $manufacturers = $attribute->getSource()->getAllOptions(false);
+                        
+                        ?>
+                        <tr>
+                            <td class="label"><label><?php echo $this->__('Manufacturer') ?></label></td>
+                            <td class="value">
+                                <?php foreach($manufacturers as $manufacturer):?>
+                                    <?php if($manufacturer['value']==$product->getManufacturer()):?>
+                                        <?php echo $manufacturer['label'] ?>
+                                    <?php endif;?>
+                                <?php endforeach;?>
+                            </td>
+                        </tr>
+                        <?php endif;?>
+                                              
+                        <tr>
+                                <td class="label"><label><?php echo $this->__('Qty') ?></label></td>
+                                <td class="value">                                  
+                                    <?php echo (int)$qty ?>
+                                </td>
+                            </tr>
+                        
+                        <tr>
+                            <td class="label"><label><?php echo $this->__('Stock Availability') ?></label></td>
+                            <td class="value">
+                                <?php echo ($product->getIsInStock()==1)?$this->__('In Stock'):$this->__('Our Of Stock'); ?>
+                            </td>
+                        </tr>
+                        
+                        <tr>
+                            <td class="label"><label><?php echo $this->__('Status') ?></label></td>
+                            <td class="value">
+                                 <?php echo ($product->getStatus()==1)? $this->__('Enable'):$this->__('Disable'); ?>                               
+                            </td>
+                        </tr>
+                        
+                        <tr>
+                            <td class="label"></td>
+                            <td class="value">
+                                <a style="text-decoration: none; cursor: pointer;" onclick="window.open('<?php echo Mage::helper("adminhtml")->getUrl('adminhtml/catalog_product/edit/',array('id'=> $product->getId()));?>', '_blank', 'scrollbars=yes, resizable=yes, width=1000, height=600, top=50, left=300')"/><?php echo $this->__('More details')?></a>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </form>
+</div>
+<?php endif;?>
+

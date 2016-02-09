@@ -1,0 +1,548 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Magestore
+ * 
+ * NOTICE OF LICENSE
+ * 
+ * This source file is subject to the Magestore.com license that is
+ * available through the world-wide-web at this URL:
+ * http://www.magestore.com/license-agreement.html
+ * 
+ * DISCLAIMER
+ * 
+ * Do not edit or add to this file if you wish to upgrade this extension to newer
+ * version in the future.
+ * 
+ * @category    Magestore
+ * @package     Magestore_Webpos
+ * @copyright   Copyright (c) 2012 Magestore (http://www.magestore.com/)
+ * @license     http://www.magestore.com/license-agreement.html
+ */
+-->
+<config>
+    <modules>
+        <Magestore_Webpos>
+            <version>0.2.3</version>
+        </Magestore_Webpos>
+    </modules>
+    <frontend>
+        <!-- Fix error - HTTPS -->
+        <secure_url>
+            <checkout_cart>/checkout/cart</checkout_cart>
+            <webpos>/webpos</webpos>
+        </secure_url>
+        <!-- end -->
+        <routers>
+            <webpos>
+                <use>standard</use>
+                <args>
+                    <module>Magestore_Webpos</module>
+                    <frontName>webpos</frontName>
+                </args>
+            </webpos>
+        </routers>
+        <layout>
+            <updates>
+                <webpos>
+                    <file>webpos.xml</file>
+                </webpos>
+            </updates>
+        </layout>
+        <translate>
+            <modules>
+                <Magestore_Webpos>
+                    <files>
+                        <default>Magestore_Webpos.csv</default>
+                    </files>
+                </Magestore_Webpos>
+            </modules>
+        </translate>
+		
+        <events>
+		
+            <!-- webpos skip active payment method -->
+            <payment_method_is_active>
+                <observers>
+                    <webpos_observers>
+                        <type>singleton</type>
+                        <class>webpos/observer</class>
+                        <method>skipPaymentMethod</method>
+                    </webpos_observers>
+                </observers>
+            </payment_method_is_active>
+            <!-- end webpos skip active payment method -->
+            <!--place order -->
+            <sales_order_place_after>
+                <observers>
+                    <webpos_observers>
+                        <type>singleton</type>
+                        <class>webpos/observer</class>
+                        <method>orderPlaceAfter</method>
+                    </webpos_observers>
+                </observers>
+            </sales_order_place_after>
+            <!-- end place order -->
+            <!-- paypal -->
+            <paypal_prepare_line_items>
+                <observers>
+                    <magestore_webpos_paypal_prepare_line_items>
+                        <type>singleton</type>
+                        <class>webpos/giftwrap</class>
+                        <method>paypal_prepare_line_items</method>
+                    </magestore_webpos_paypal_prepare_line_items>
+                </observers>
+            </paypal_prepare_line_items>
+            <!-- paypal -->
+			
+            <sales_quote_collect_totals_before>
+                <observers>
+                    <webpos_observers>
+                        <type>singleton</type>
+                        <class>webpos/observer</class>
+                        <method>salesQuoteCollectTotalsBefore</method>
+                    </webpos_observers>
+                </observers>
+            </sales_quote_collect_totals_before>
+        </events>
+    </frontend>
+    <admin>
+        <routers>
+            <adminhtml>
+                <args>
+                    <modules>
+                        <magestore_webpos
+                            after="Mage_Adminhtml">Magestore_Webpos_Adminhtml</magestore_webpos>
+                    </modules>
+                </args>
+            </adminhtml>
+        </routers>
+    </admin>
+    <adminhtml>
+        <layout>
+            <updates>
+                <webpos>
+                    <file>webpos.xml</file>
+                </webpos>
+            </updates>
+        </layout>
+        <translate>
+            <modules>
+                <Magestore_Webpos>
+                    <files>
+                        <default>Magestore_Webpos.csv</default>
+                    </files>
+                </Magestore_Webpos>
+            </modules>
+        </translate>
+    </adminhtml>   
+    <global>
+        <models>
+            <webpos>
+                <class>Magestore_Webpos_Model</class>
+                <resourceModel>webpos_mysql4</resourceModel>
+            </webpos>
+            <webpos_mysql4>
+                <class>Magestore_Webpos_Model_Mysql4</class>
+                <entities>
+                    <admin>
+                        <table>webpos_admin</table>
+                    </admin>
+                    <survey>
+                        <table>webpos_survey</table>
+                    </survey>
+                    <user>
+                        <table>webpos_user</table>
+                    </user>
+
+                    <posorder>
+                        <table>webpos_order</table>
+                    </posorder>
+
+                    <userlocation>
+                        <table>webpos_user_location</table>
+                    </userlocation>
+                    <transaction>
+                        <table>webpos_transaction</table>
+                    </transaction>
+                    <role>
+                        <table>webpos_role</table>
+                    </role>
+                    <products>
+                        <table>webpos_products</table>
+                    </products>
+                    <report>
+                        <table>webpos_xreport</table>
+                    </report>
+                    <till>
+                        <table>webpos_till</table>
+                    </till>
+                </entities>
+            </webpos_mysql4>
+            <!-- Daniel - updated - share account on webpos 
+           <customer>
+                   <rewrite>
+                           <config_share>Magestore_Webpos_Model_Customer_Config_Share</config_share>
+                   </rewrite>
+           </customer>
+            end -->
+            <!-- Daniel - updated - always able to checkout as guest on webpos -->
+            <sales>
+                <rewrite>
+                    <quote>Magestore_Webpos_Model_Sales_Quote</quote>
+                </rewrite>
+            </sales>
+            <!-- end -->
+            <!-- Mr Jack -->
+            <sales>
+                <rewrite>
+                    <quote_address_total_shipping>Magestore_Webpos_Model_Sales_Quote_Address_Total_Shipping</quote_address_total_shipping>
+                </rewrite>
+            </sales>
+            <salesrule>
+                <rewrite>
+                    <quote_discount>Magestore_Webpos_Model_Quote_Discount</quote_discount>
+                </rewrite>
+            </salesrule>
+            <!-- end -->
+        </models>
+        <resources>
+            <webpos_setup>
+                <setup>
+                    <module>Magestore_Webpos</module>
+                </setup>
+                <connection>
+                    <use>core_setup</use>
+                </connection>
+            </webpos_setup>
+            <webpos_write>
+                <connection>
+                    <use>core_write</use>
+                </connection>
+            </webpos_write>
+            <webpos_read>
+                <connection>
+                    <use>core_read</use>
+                </connection>
+            </webpos_read>
+        </resources>
+        <blocks>
+            <webpos>
+                <class>Magestore_Webpos_Block</class>
+            </webpos>
+            <payment>  
+                <rewrite>  
+                    <form_cc>Magestore_Webpos_Block_Payment_Cc</form_cc>
+                    <form_ccsave>Magestore_Webpos_Block_Payment_Ccsave</form_ccsave>                      
+                </rewrite>  
+            </payment>
+            <!-- fix error - conflict - merge JS -->
+            <page>
+                <rewrite>
+                    <html_head>Magestore_Webpos_Block_Html_Head</html_head>
+                </rewrite>
+            </page>		
+            <!--adminhtml>
+                <rewrite>
+                    <sales_order_grid>Magestore_Webpos_Block_Adminhtml_Order_Grid</sales_order_grid>
+                </rewrite>
+            </adminhtml-->
+            <!-- end -->
+        </blocks>
+        <helpers>
+            <webpos>
+                <class>Magestore_Webpos_Helper</class>
+            </webpos>
+            <!--            <rewardpointsrule>
+                <rewrite>
+                    <calculation_earning>Magestore_Webpos_Helper_Rewrite_Earning</calculation_earning>
+                    <calculation_spending>Magestore_Webpos_Helper_Rewrite_Spending</calculation_spending>
+                </rewrite>
+            </rewardpointsrule>-->
+        </helpers>
+        <sales>
+            <quote>
+                <totals>
+                    <weboposgiftwrap>
+                        <class>webpos/sales_quote_address_total_giftwrap</class>
+                        <after>wee,discount,tax,tax_subtotal,grand_total</after>
+                    </weboposgiftwrap>					
+                    <webposdiscount>
+                        <class>webpos/sales_quote_address_total_discount</class>
+                        <after>wee,discount,tax,tax_subtotal,shipping,grand_total,subtotal</after>
+                    </webposdiscount>
+                    <webpos_cash>
+                        <class>webpos/total_quote_cash</class>
+                        <after>webposdiscount,grand_total</after>
+                    </webpos_cash>					
+                    <webpos_change>
+                        <class>webpos/total_quote_change</class>
+                        <after>webpos_cash</after>
+                    </webpos_change>						
+                </totals>
+            </quote>
+            <order_invoice>
+                <totals>
+                    <weboposgiftwrap>
+                        <class>webpos/sales_order_invoice_total_giftwrap</class>
+                    </weboposgiftwrap>
+                    <webposdiscount>
+                        <class>webpos/sales_order_invoice_total_discount</class>
+                    </webposdiscount>
+                    <webpos_cash>
+                        <class>webpos/total_invoice_cash</class>
+                        <after>grand_total</after>
+                    </webpos_cash>
+                    <webpos_change>
+                        <class>webpos/total_invoice_change</class>
+                        <after>grand_total,webpos_cash</after>
+                    </webpos_change>
+                </totals>
+            </order_invoice>
+            <!-- Daniel - fix bug - creditmemo -->
+            <order_creditmemo>
+                <totals>
+                    <weboposgiftwrap>
+                        <class>webpos/sales_order_creditmemo_total_giftwrap</class>
+                    </weboposgiftwrap>
+                    <webposdiscount>
+                        <class>webpos/sales_order_creditmemo_total_discount</class>
+                    </webposdiscount>
+                    <webpos_cash>
+                        <class>webpos/total_creditmemo_cash</class>
+                        <after>grand_total</after>
+                    </webpos_cash>
+                    <webpos_change>
+                        <class>webpos/total_creditmemo_change</class>
+                        <after>grand_total,webpos_cash</after>
+                    </webpos_change>
+                </totals>
+            </order_creditmemo>
+            <!-- end -->
+        </sales>
+        <fieldsets>
+            <sales_convert_quote_address>
+                <webpos_cash>
+                    <to_order>*</to_order>
+                </webpos_cash>
+                <webpos_base_cash>
+                    <to_order>*</to_order>
+                </webpos_base_cash>
+                <webpos_change>
+                    <to_order>*</to_order>
+                </webpos_change>
+                <webpos_base_change>
+                    <to_order>*</to_order>
+                </webpos_base_change>
+                <webpos_giftwrap_amount>
+                    <to_order>*</to_order>
+                </webpos_giftwrap_amount>
+                <webpos_discount_amount>
+                    <to_order>*</to_order>
+                </webpos_discount_amount>                
+            </sales_convert_quote_address>
+            <sales_convert_quote_payment>
+                <ccforpos_ref_no>
+                    <to_order_payment>*</to_order_payment>
+                </ccforpos_ref_no>
+            </sales_convert_quote_payment>
+        </fieldsets>
+        <pdf>
+            <totals>
+                <webpos_cash translate="title">
+                    <title>Amount Tendered</title>
+                    <source_field>webpos_cash</source_field>
+                    <model>webpos/total_pdf_cash</model>
+                    <font_size>7</font_size>
+                    <display_zero>0</display_zero>
+                    <sort_order>651</sort_order>
+                </webpos_cash>
+                <webpos_change translate="title">
+                    <title>POS Change</title>
+                    <source_field>webpos_change</source_field>
+                    <model>webpos/total_pdf_change</model>
+                    <font_size>7</font_size>
+                    <display_zero>0</display_zero>
+                    <sort_order>651</sort_order>
+                </webpos_change>
+            </totals>		
+        </pdf>
+        <events>
+            <sales_quote_item_set_product>
+                <observers>
+                    <webpos_setproduct_observers>
+                        <class>webpos/observer</class>
+                        <method>quoteItemSetProduct</method>
+                    </webpos_setproduct_observers>
+                </observers>
+            </sales_quote_item_set_product>
+            <sales_order_payment_place_start>
+                <observers>
+                    <webpos_observers>
+                        <class>webpos/observer</class>
+                        <method>orderPaymentPlaceStart</method>
+                    </webpos_observers>
+                </observers>
+            </sales_order_payment_place_start>
+            <sales_order_save_after>
+                <observers>
+                    <webpos_saveorder_observers>
+                        <class>webpos/observer</class>
+                        <method>salesOrderSaveAfter</method>
+                    </webpos_saveorder_observers>
+                </observers>
+            </sales_order_save_after>
+            <catalog_product_save_after>
+                <observers>
+                    <magestore_webpos_observer>
+                        <class>webpos/observer</class>
+                        <method>catalogProductSaveAfter</method>
+                    </magestore_webpos_observer>
+                </observers>
+            </catalog_product_save_after>
+            <adminhtml_customer_save_after>
+                <observers>
+                    <magestore_webpos_observer>
+                        <class>webpos/observer</class>
+                        <method>customerSaveAfter</method>
+                    </magestore_webpos_observer>
+                </observers>
+            </adminhtml_customer_save_after>
+        </events>
+        <!--        <sales>
+            <quote>
+                <totals>
+                    <webpos_catalog>
+                        <class>webpos/total_quote_catalog</class>
+                        <after>subtotal</after>
+                        <before>rewardpoints</before>
+                    </webpos_catalog>
+                </totals>
+            </quote>
+        </sales>-->
+        <!--Adam 07/08/2015: Add a product type named custom sale for webpos-->
+        <catalog>
+            <product>
+                <type>
+                    <customsale translate="label" module="webpos">
+                        <label>Custom Sale</label>
+                        <model>webpos/product_type</model>
+                        <price_model>webpos/product_price</price_model>
+                        <composite>0</composite>
+                        <index_priority>100</index_priority>
+                    </customsale>
+                </type>
+            </product>
+        </catalog>
+    </global>
+    <default>
+        <webpos>
+            <!--rewardpoints>
+                                <enable_rewardpoints>1</enable_rewardpoints>
+            </rewardpoints-->
+            <general>
+                <active>1</active>
+                <show_product_outofstock>0</show_product_outofstock>			
+                <webpos_color>FFA500</webpos_color>			
+                <switch_languages>0</switch_languages>			
+                <switch_stores>1</switch_stores>			
+                <auto_create_invoice>1</auto_create_invoice>			
+                <auto_create_shipment>0</auto_create_shipment>			
+                <enable_tills>1</enable_tills>			
+            </general>
+            <offline>
+                <enable>0</enable>
+                <network_check_interval>20</network_check_interval>
+                <check_stock_interval>60</check_stock_interval>
+                <product_per_request>200</product_per_request>
+                <customer_per_request>200</customer_per_request>
+            </offline>
+            <payment>
+                <allowspecific_payment>0</allowspecific_payment>
+            </payment>
+            <product>
+                <bundle>webpos/product_bundle</bundle>
+                <giftvoucher>webpos/product_giftvoucher</giftvoucher>
+                <grouped>webpos/product_grouped</grouped>
+                <configurable>webpos/product_configurable</configurable>
+                <minicart>0</minicart>
+            </product>
+                        
+            <!--Changed By Adam: 07/07/2015-->
+            <product_search>
+                <product_attribute>name,sku</product_attribute>
+                <search_offline>0</search_offline>
+            </product_search>
+            <guest_checkout>
+                <first_name>Guest</first_name>
+                <last_name>POS</last_name>
+                <street>Street</street>
+                <country_id>US</country_id>
+                <region_id>12</region_id>
+                <city>Guest City</city>
+                <zip>90034</zip>
+                <telephone>12345678</telephone>
+                <email>guest@example.com</email>
+            </guest_checkout>
+            <email_configuration>
+                <auto_email_orders>0</auto_email_orders>
+                <auto_email_invoice>1</auto_email_invoice>
+                <auto_email_shipment>0</auto_email_shipment>
+                <auto_email_creditmemo>1</auto_email_creditmemo>
+            </email_configuration>
+            <receipt>
+                <auto_print>0</auto_print>
+                <font_type>monospace</font_type>
+                <date_format>M d Y</date_format>
+                <header_text></header_text>
+                <footer_text> Thank you for shopping at our store.We hope you enjoy your purchase and look forward to serving you again. </footer_text>
+                <show_receipt_logo>1</show_receipt_logo>
+                <show_store_information>1</show_store_information>
+                <show_cashier_name>1</show_cashier_name>
+                <show_shipping_method>1</show_shipping_method>
+                <show_payment_method>1</show_payment_method>
+                <show_comment>1</show_comment>
+                <show_barcode>1</show_barcode>
+            </receipt>
+            <report>
+                <denomination>$1 note: 1, $5 note : 5,$10 note : 10,$50 note : 50,$100 note : 100</denomination>
+                <default_transfer_money>0</default_transfer_money>
+            </report>
+        </webpos>
+        <!-- Set default payment method settings -->
+        <payment>
+            <cashforpos>
+                <active>1</active>
+                <model>webpos/payment_method_cash</model>
+
+                <title>Web POS - Cash In</title>
+            </cashforpos>
+            <ccforpos>
+                <active>1</active>
+                <model>webpos/payment_method_creditcard</model>
+                <title>Web POS - Credit Card</title>
+            </ccforpos>            
+            <cp1forpos>
+                <active>1</active>
+                <model>webpos/payment_method_custompayment1</model>
+                <title>Web POS - Custom payment 1</title>
+            </cp1forpos>            
+            <cp2forpos>
+                <active>1</active>
+                <model>webpos/payment_method_custompayment2</model>
+                <title>Web POS - Custom payment 2</title>
+            </cp2forpos>
+        </payment>
+        <!-- end -->
+        <carriers>
+            <webpos_shipping>
+                <active>1</active>
+                <model>webpos/shipping_carrier_webposshipping</model>
+                <carrier_title>Webpos Shipping</carrier_title>
+                <method_title>Webpos Pickup</method_title>
+                <price>0</price>
+                <sort_order>10</sort_order>
+            </webpos_shipping>
+        </carriers>
+    </default>
+</config>

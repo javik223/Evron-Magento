@@ -1,0 +1,199 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Magento
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Academic Free License (AFL 3.0)
+ * that is bundled with this package in the file LICENSE_AFL.txt.
+ * It is also available through the world-wide-web at this URL:
+ * http://opensource.org/licenses/afl-3.0.php
+ * If you did not receive a copy of the license and are unable to
+ * obtain it through the world-wide-web, please send an email
+ * to license@magento.com so we can send you a copy immediately.
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade Magento to newer
+ * versions in the future. If you wish to customize Magento for your
+ * needs please refer to http://www.magento.com for more information.
+ *
+ * @category    design
+ * @package    	evron
+ * @copyright   Copyright (c) 2006-2015 Witts & Stratts Ltd. (http://www.witts-stratts.com)
+ * @license     http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
+ */
+-->
+<layout version="0.1.0">
+	<!--
+	Default layout, loads most of the pages
+	-->
+
+	<default translate="label" module="page">
+		<label>All Pages</label>
+		<block type="page/html" name="root" output="toHtml" template="page/empty.phtml">
+			<block type="page/html_head" name="head" as="head">
+				<block type="core/text" name="animateCss">
+					<action method="setText"><text><![CDATA[<link href="//cdnjs.cloudflare.com/ajax/libs/animate.css/3.0.0/animate.min.css" rel="stylesheet" type="text/css">]]></text></action>
+				</block>
+
+				 <action method="addItem"><type>skin_css</type><name>css/app.css</name></action>
+
+			    <block type="core/text" name="owlcarousel" as="owlcarousel">
+			    	<action method="setText"><text><![CDATA[<link href="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.0.0-beta.3/assets/owl.carousel.min.css" rel="stylesheet" type="text/css">]]></text></action>
+			    </block>
+
+			    <block type="core/text" name="owlcarousel-theme" as="owlcarousel-theme">
+			    	<action method="setText"><text><![CDATA[<link href="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.0.0-beta.3/assets/owl.theme.default.min.css" rel="stylesheet" type="text/css">]]></text></action>
+			    </block>
+
+				<action method="addJs"><script>prototype/prototype.js</script></action>
+				<action method="addJs"><script>lib/jquery/jquery-1.10.2.min.js</script></action>
+				<action method="addJs"><script>lib/jquery/noconflict.js</script></action>
+				<action method="addJs"><script>lib/ccard.js</script></action>
+				<action method="addJs"><script>prototype/validation.js</script></action>
+				<action method="addJs"><script>scriptaculous/builder.js</script></action>
+				<action method="addJs"><script>scriptaculous/effects.js</script></action>
+				<action method="addJs"><script>scriptaculous/dragdrop.js</script></action>
+				<action method="addJs"><script>scriptaculous/controls.js</script></action>
+				<action method="addJs"><script>scriptaculous/slider.js</script></action>
+				<action method="addJs"><script>varien/js.js</script></action>
+				<action method="addJs"><script>varien/form.js</script></action>
+				<action method="addJs"><script>mage/translate.js</script></action>
+				<action method="addJs"><script>mage/cookies.js</script></action>
+
+				<block type="page/js_cookie" name="js_cookies" template="page/js/cookie.phtml"/>
+
+			    <!-- Remove items which the RWD package is not dependent upon -->
+			    <action method="removeItem"><type>skin_js</type><name>js/ie6.js</name></action> -->
+
+			    <!-- Add vendor dependencies -->
+                <!-- <action method="addItem"><type>skin_js</type><name>js/lib/modernizr.custom.min.js</name></action>
+                <action method="addItem"><type>skin_js</type><name>js/lib/selectivizr.js</name></action>
+                <action method="addItem"><type>skin_js</type><name>js/lib/matchMedia.js</name></action>
+                <action method="addItem"><type>skin_js</type><name>js/lib/matchMedia.addListener.js</name></action>
+                <action method="addItem"><type>skin_js</type><name>js/lib/enquire.js</name></action>
+                <action method="addItem"><type>skin_js</type><name>js/app.js</name></action>
+                <action method="addItem"><type>skin_js</type><name>js/lib/jquery.cycle2.min.js</name></action>
+                <action method="addItem"><type>skin_js</type><name>js/lib/jquery.cycle2.swipe.min.js</name></action>
+                <action method="addItem"><type>skin_js</type><name>js/slideshow.js</name></action>
+                <action method="addItem"><type>skin_js</type><name>js/lib/imagesloaded.js</name></action>
+                <action method="addLinkRel"><rel>stylesheet</rel><href>//fonts.googleapis.com/css?family=Raleway:300,400,500,700,600</href></action>-->
+               <!--  <action method="addItem"><type>skin_js</type><name>js/minicart.js</name></action> -->
+
+			    <action method="addItem"><type>skin_js</type><name>js/minicart.js</name></action>
+
+			    <!-- Add stylesheets with no media queries for use in IE 8 and below -->
+			    <!-- <action method="addItem"><type>skin_css</type><name>css/styles-ie8.css</name><params/><if><![CDATA[ (lte IE 8) & (!IEMobile)]]></if></action> -->
+			    <!-- <action method="addItem"><type>skin_css</type><name>css/madisonisland-ie8.css</name><params/><if><![CDATA[ (lte IE 8) & (!IEMobile)]]></if></action> -->
+
+
+			    <!-- Sets viewport meta tag using text block -->
+			    <block type="core/text" name="head.viewport">
+			        <action method="setText"><text><![CDATA[<meta name="viewport" content="initial-scale=1.0, maximum-scale=1, width=device-width" />]]>&#10;</text></action>
+			    </block>
+			</block>
+
+			<block type="core/text_list" name="after_body_start" as="after_body_start" translate="label">
+			    <label>Page Top</label>
+			</block>
+
+			<!-- Global Notices -->
+			<block type="page/html_notices" name="global_notices" as="global_notices" template="page/html/notices.phtml" />
+
+			<block type="page/html_header" name="header" as="header">
+				<block type="checkout/cart_minicart" name="topcart" template="checkout/cart/minicart.phtml" as="topcart">
+				    <block type="checkout/cart_sidebar" name="minicart_content" template="checkout/cart/minicart/items.phtml">
+				        <action method="addItemRender"><type>default</type><block>checkout/cart_item_renderer</block><template>checkout/cart/minicart/default.phtml</template></action>
+				        <action method="addItemRender"><type>simple</type><block>checkout/cart_item_renderer</block><template>checkout/cart/minicart/default.phtml</template></action>
+				        <action method="addItemRender"><type>grouped</type><block>checkout/cart_item_renderer_grouped</block><template>checkout/cart/minicart/default.phtml</template></action>
+				        <action method="addItemRender"><type>configurable</type><block>checkout/cart_item_renderer_configurable</block><template>checkout/cart/minicart/default.phtml</template></action>
+
+				        <block type="core/text_list" name="cart_sidebar.cart_promotion" as="cart_promotion" translate="label" module="checkout">
+				            <label>Mini-cart promotion block</label>
+				        </block>
+				        <block type="core/text_list" name="cart_sidebar.extra_actions" as="extra_actions" translate="label" module="checkout">
+				            <label>Shopping Cart Sidebar Extra Actions</label>
+				        </block>
+				    </block>
+				</block>
+
+			    <block type="core/text_list" name="top.bar" as="topBar" translate="label">
+			        <label>Top Navigation Bar</label>
+
+			        <block type="core/template" name="top.navigation.bar" as="topNavigationBar" template="page/html/top-navigation-bar.phtml"></block>	
+			    </block>
+			</block>
+
+			<!-- Menu and other left items -->
+			<block type="core/text_list" name="left" as="left" translate="label">
+				<label>Left Column</label>
+			</block>
+
+			<!-- Messages -->
+
+			<block type="core/messages" name="global_messages" as="global_messages"/>
+			<block type="core/messages" name="messages" as="messages"/>
+
+			<!-- Content Area -->
+			<block type="core/text_list" name="content" as="content" translate="label">
+			    <label>Main Content Area</label>
+			</block>
+
+			<block type="page/html_wrapper" name="footer.before" as="footer_before" translate="label">
+			    <label>Page Footer</label>
+			    <action method="setElementClass"><value>footer-before-container</value></action>
+			</block>
+
+			<!-- Footer -->
+			<block type="page/html_footer" name="footer" as="footer" template="page/html/footer.phtml">
+				<label>Footer</label>
+				<block type="core/text_list" name="footerMain" as="footerMain" output="toHtml">
+					<block type="core/template" name="deliveryPromsies" as="deliveryPromsies" template="page/html/delivery-promises.phtml"></block>
+
+					<block type="core/template" name="paymentAndEndorsements" as="paymentAndEndorsements" template="page/html/payment-and-endorsements.phtml"></block>
+
+
+					<block type="core/template" name="footerNewsletterForm" as="footerNewsletterForm" template="page/html/footer-newsletter-form.phtml">
+					</block>
+
+					<block type="core/template" name="footerLinks" as="footerLinks" template="page/html/footer-links.phtml"></block>
+				</block>
+
+				<block type="core/text" name="wurfl">
+					<action method="setText"><text><![CDATA[<script type="text/javascript" src="//wurfl.io/wurfl.js"></script>]]></text></action>
+				</block>
+			</block>
+
+			<block type="core/template" output="toHtml" name="after.footer" as="afterFooter" template="page/html/after-footer.phtml"></block>
+
+            <block type="core/text_list" name="before_body_end" as="before_body_end" translate="label">
+                <label>Page Bottom</label>
+                <block type="page/html_cookieNotice" name="global_cookie_notice" as ="global_cookie_notice" template="page/html/cookienotice.phtml" before="-" />
+            </block>
+		</block>
+
+		<block type="core/profiler" output="toHtml" name="core_profiler"/>
+	</default>
+
+	<page_two_columns_left translate="label">
+	    <label>All Two-Column Layout Pages (Left Column)</label>
+	    <reference name="root">
+	        <action method="setTemplate"><template>page/2columns-left.phtml</template></action>
+	        <!-- Mark root page block that template is applied -->
+	        <action method="setIsHandle"><applied>1</applied></action>
+	        <action method="setLayoutCode"><name>two_columns_left</name></action>
+	    </reference>
+	</page_two_columns_left>
+
+	<page_one_column translate="label">
+	    <label>All One-Column Layout Pages</label>
+	    <reference name="root">
+	        <action method="setTemplate"><template>page/1column.phtml</template></action>
+	        <!-- Mark root page block that template is applied -->
+	        <!-- <action method="setIsHandle"><applied>1</applied></action>
+	        <action method="setLayoutCode"><name>one_column</name></action> -->
+	    </reference>
+	</page_one_column>
+</layout>

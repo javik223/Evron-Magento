@@ -1,0 +1,85 @@
+
+<?php $barcode = Mage::getModel('inventorybarcode/barcode')->load($barcodeId); ?>
+<?php $product = Mage::getModel('catalog/product')->load($barcode->getProductEntityId()); ?>
+<div id="imageOutput" style="font-family: Arial, Helvetica, sans-serif; font-size:12px; margin:0; padding:0;float: left;text-align: left; width:  100%" >
+
+    <?php for ($i = 0; $i < $qty; $i++): ?>
+
+        <?php if ($barcodeTemplate == 1): ?>
+
+            <img style="margin:5px 0" width="<?php echo $imageWidth ?>" name="barcode_images" src="<?php echo Mage::getBaseUrl(Mage_Core_Model_Store::URL_TYPE_MEDIA) . 'inventorybarcode/images/barcode/barcode.png' ?>" />
+
+        <?php endif; ?>
+        <?php if ($barcodeTemplate == 2): ?>
+            <div style="width: <?php echo $imageWidth+10?>px; magin:2px; float:left">
+                <span style="display:block;  font-size: <?php echo $fontSize ?>px; text-align: left; float:left"><?php echo $barcode->getProductName() ?></span>
+                 <!--add by Kai 24/11/2015 -->
+                </br>
+                <span style="display:block;  font-size: <?php echo $fontSize ?>px; text-align: left; float:left"><?php echo $barcode->getProductSku() ?></span>
+                <!-- end add by Kai -->
+                <img style="float:left" name="barcode_images" src="<?php echo Mage::getBaseUrl(Mage_Core_Model_Store::URL_TYPE_MEDIA) . 'inventorybarcode/images/barcode/barcode.png' ?>" />
+            </div>
+        <?php endif; ?>
+        <?php if ($barcodeTemplate == 3): ?>
+            <div style="width: <?php echo $imageWidth+10?>px; magin:2px; float: left; text-align: left;">
+                <img name="barcode_images" src="<?php echo Mage::getBaseUrl(Mage_Core_Model_Store::URL_TYPE_MEDIA) . 'inventorybarcode/images/barcode/barcode.png' ?>" />
+                <ul style="font-size: <?php echo $fontSize ?>px; list-style: outside none none; margin: 0; font-size: 12px; padding:0">
+                    <li><?php echo $product->getName() ?></li>
+                    <!-- add by Kai-->
+                    <li><?php echo $product->getSku() ?></li>
+                    <!-- end add by kai-->
+                    <li><?php echo $this->__('Size: ') ?><?php if ($product->getResource()->getAttribute('shirt_size')->getFrontend()->getValue($product) && $product->getResource()->getAttribute('shirt_size')->getFrontend()->getValue($product) != 'No') {
+            echo $product->getResource()->getAttribute('shirt_size')->getFrontend()->getValue($product);
+        } ?><?php if ($product->getResource()->getAttribute('shoe_size')->getFrontend()->getValue($product) && $product->getResource()->getAttribute('shoe_size')->getFrontend()->getValue($product) != 'No') {
+            echo $product->getResource()->getAttribute('shoe_size')->getFrontend()->getValue($product);
+        } ?><?php if ($product->getResource()->getAttribute('ram_size')->getFrontend()->getValue($product) && $product->getResource()->getAttribute('ram_size')->getFrontend()->getValue($product) != 'No') {
+            echo $product->getResource()->getAttribute('ram_size')->getFrontend()->getValue($product);
+        } ?></li>
+                    <li><?php echo $this->__('Color: ') ?><?php echo $product->getResource()->getAttribute('color')->getFrontend()->getValue($product) ?><span style="margin-left:10px; font-size:<?php echo $fontSize ?>px;"><?php echo Mage::helper('core')->currency($product->getPrice()) ?></span></div></li>
+                </ul>
+            </div>
+        <?php endif; ?>
+     
+    <?php if ($barcodeTemplate == 4): ?>
+            <div style="width: <?php echo $imageWidth+10?>px; magin:2px; text-align: center; display:block; overflow: hidden;vertical-align: middle; float:left; padding:5px">
+                <!-- edit by Kai-->
+                <span style="float: left; font-size: 8px; text-align: left; width: 70%;"><?php echo $product->getName() ?></span></br>
+                <span style="float: left; font-size: 8px; text-align: left; width: 70%;"><?php echo $product->getSku() ?></span>
+                <!-- end edit by Kai-->
+                <span style="font-size: 12px; float: left; text-align: left;"><?php echo Mage::helper('core')->currency($product->getPrice()) ?></span>
+            <img name="barcode_images" src="<?php echo Mage::getBaseUrl(Mage_Core_Model_Store::URL_TYPE_MEDIA) . 'inventorybarcode/images/barcode/barcode.png' ?>" />
+            </div>
+    <?php endif; ?>
+    
+  <!-- add by Kai -->
+    <?php if ($barcodeTemplate == 5): ?>
+             <table style="width:110mm; height:22mm;text-align: center;">
+                        <tr>
+                        <td style="width:35mm; height:22mm"><img width="110" name="barcode_images" src="<?php echo Mage::getBaseUrl(Mage_Core_Model_Store::URL_TYPE_MEDIA) . 'inventorybarcode/images/barcode/barcode.png' ?>" /></td>
+                        <td style="width:35mm; height:22mm"><img width="110" name="barcode_images" src="<?php echo Mage::getBaseUrl(Mage_Core_Model_Store::URL_TYPE_MEDIA) . 'inventorybarcode/images/barcode/barcode.png' ?>" /></td>
+                        <td style="width:35mm; height:22mm"><img width="110" name="barcode_images" src="<?php echo Mage::getBaseUrl(Mage_Core_Model_Store::URL_TYPE_MEDIA) . 'inventorybarcode/images/barcode/barcode.png' ?>" /></td>
+                        </tr>
+                        </table>
+    <?php endif; ?>
+
+    <?php if ($barcodeTemplate == 6): ?>
+            <div style="display: inline-block; float:left;">
+                        <table style=" width:80mm; height:14mm ; line-height:0.3" >
+                            <tr>
+                                <td style="width:20mm;">
+                                 <?php $product = Mage::getModel('catalog/product')->load($barcode->getProductEntityId());?>
+                                 <span style="  float: left; font-size: 6px; text-align: left; display: inline-block; margin-left: 1px;"><?php echo $product->getName()?></span></br>
+                                 <span style="  float: left; font-size: 6px; text-align: left; display: inline-block; margin-left: 1px;"><?php echo $product->getSku()?></span></br>
+                                 <span style="font-size:10px; float: left; text-align: left; margin-left: 1px; display: inline-block;"><?php echo Mage::helper('core')->currency($product->getPrice())?></span>
+                                </td>
+                                <td>                  
+                                    <img width="80" name="barcode_images" src="<?php echo Mage::getBaseUrl(Mage_Core_Model_Store::URL_TYPE_MEDIA) . 'inventorybarcode/images/barcode/barcode.png' ?>" />
+                                </td>    
+                            </tr>
+                        </table>
+            </div>
+    <?php endif; ?>
+ <!-- end add by Kai -->
+<?php endfor; ?>
+
+</div>

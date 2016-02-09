@@ -1,0 +1,40 @@
+<div class="entry-edit">
+    <div class="entry-edit-head">
+        <h4 class="icon-head head-edit-form fieldset-legend"><?php echo $this->__('Select supplier') ?></h4>
+    </div>
+    <div id="date_picker_form" class="fieldset ">
+        <div  class="input-box">
+            <?php $allSuppliers = Mage::getSingleton('inventorypurchasing/supplier')->getCollection() ?>
+            <?php if (count($allSuppliers)): ?>
+                <?php echo $this->__('Please select supplier to view report') ?><br />
+                <div>
+                    <label for="supplier">
+                        <strong><?php echo $this->__('Supplier') ?>:&nbsp;&nbsp;</strong>
+                    </label>
+                    <select name="select_supplier" id="select_supplier" onchange="return switchSupplier(this);">                            
+                        <option value=""><?php echo $this->__('All Suppliers') ?></option>
+                        <?php foreach ($allSuppliers as $supplier): ?>
+                            <?php $selected = '' ?>                                
+                            <?php if ($this->getRequest()->getParam('supplier_id') == $supplier->getId()): ?>
+                                <?php $selected = "selected=\"selected\"" ?>
+                            <?php endif ?>
+                            <option <?php echo $selected ?> value="<?php echo $supplier->getId() ?>">
+                                <?php echo $supplier->getSupplierName() ?>
+                            </option>
+                        <?php endforeach ?>
+                    </select>
+                </div>
+                <script type="text/javascript">
+                    function switchSupplier(obj) {
+                        var url = '<?php echo $this->getUrl('*/*/*') ?>';
+                        var supplierParam = obj.value ? 'supplier_id/' + obj.value + '/' : '';
+                        url += supplierParam;
+                        setLocation(url);
+                    }
+                </script>
+            <?php else: ?>
+                <?php echo $this->__('Supplier does not exist') ?>
+            <?php endif ?>
+        </div>
+    </div>
+</div>

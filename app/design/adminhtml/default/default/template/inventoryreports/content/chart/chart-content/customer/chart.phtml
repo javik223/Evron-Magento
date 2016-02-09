@@ -1,0 +1,159 @@
+<?php
+/**
+ * Magestore
+ * 
+ * NOTICE OF LICENSE
+ * 
+ * This source file is subject to the Magestore.com license that is
+ * available through the world-wide-web at this URL:
+ * http://www.magestore.com/license-agreement.html
+ * 
+ * DISCLAIMER
+ * 
+ * Do not edit or add to this file if you wish to upgrade this extension to newer
+ * version in the future.
+ * 
+ * @category    Magestore
+ * @package     Magestore_Inventorysupplyneeds
+ * @copyright   Copyright (c) 2012 Magestore (http://www.magestore.com/)
+ * @license     http://www.magestore.com/license-agreement.html
+ */
+/**
+ * Inventoryreports Helper
+ * 
+ * @category    Magestore
+ * @package     Magestore_Inventoryreports
+ * @author      Magestore Developer
+ */
+?>
+<?php
+$requestData = Mage::helper('adminhtml')->prepareFilterString($this->getRequest()->getParam('top_filter'));
+$reportcode = isset($requestData['report_radio_select']) ? $requestData['report_radio_select'] : null;
+$type_id = $this->getRequest()->getParam('type_id');
+$contentText = Mage::helper('inventoryreports')->getHeaderText();
+$dataCollection = Mage::helper('inventoryreports/customer')->getCustomerReportCollection($requestData);
+if (is_array($dataCollection)) {
+    $collection = $dataCollection['collection'];
+} else {
+    $collection = $dataCollection;
+}
+$pieData = $this->getChartPieData($collection, $requestData);
+$columnData = $this->getChartColumnData($collection, $requestData);
+$title = $this->getTitle();
+?>
+<div class="entry-edit" id="test">
+    <div class="entry-edit-head">
+        <h4 class="icon-head head-edit-form fieldset-legend"><?php echo $this->__('Chart Report') ?></h4>
+        <span style="float:right">
+            <span onclick="showChart(this, '1')" class="chart_on" id="chart_button_1"> <?php echo $this->__('Bar Chart') ?> </span> /  
+            <span onclick="showChart(this, '2')" class="chart_on" id="chart_button_2"> <?php echo $this->__('Pie Chart') ?> </span>
+        </span>
+    </div>
+    <!DOCTYPE HTML>
+    <div>
+
+        <?php if ($columnData['series']['inventory_customer']['data']): ?>
+            <div id="chart_1" style="width:99%;float:left">
+                <script type="text/javascript">
+                            $(function () {
+                            $_('#inventory_column').highcharts({
+                            title: {
+                            text: '<?php echo $contentText ?>'
+                            },
+                                    xAxis: {
+                                    categories: <?php echo $columnData['categories'] ?>
+                                    },
+                                    yAxis: {
+                                    min: 0,
+                                            title: {
+                                            text: '<?php echo $title ?>'
+                                            }
+                                    },
+                                    labels: {
+                                    items: [{
+                                    //html: '<?php echo $contentText ?>',
+                                    style: {
+                                    left: '20px',
+                                            top: '-30px',
+                                            color: (Highcharts.theme && Highcharts.theme.textColor) || 'black'
+                                    }
+                                    }]
+                                    },
+                                    series: [
+                                    {
+                                    type: 'column',
+                                            name: '<?php echo $this->__('Grand Total') ?>',
+                                            pointWidth: 70,
+                                            groupPadding: 0,
+    <?php $column = 0; ?>
+    <?php foreach ($columnData['series'] as $serie): ?>
+        <?php if (!$column == 0) echo ','; ?>
+        <?php $column++; ?>
+                                        data: <?php echo $serie['data']; ?>
+    <?php endforeach; ?>
+                                    }]
+                            });
+                            });</script>
+                <div id="inventory_column" style="min-width: 900px; height: 450px; margin: 0 auto"></div>
+            </div>
+        <?php endif; ?>
+        <!-- report  pie -->
+        <?php if ($pieData): ?>
+            <div id="chart_2" style="width: 99%; float: left;">
+                <?php
+                $seriesPie = $pieData['series'];
+                ?>
+                <script type="text/javascript">
+                            $(function () {
+                            $_('#inventory_pie').highcharts({
+                            chart: {
+                            type: 'pie'
+                            },
+                                    title: {
+                                    text: '<?php echo $contentText ?>'
+                                    },
+                                    plotOptions: {
+                                    pie: {
+                                    depth:30,
+                                            allowPointSelect: true,
+                                            cursor: 'pointer',
+                                            dataLabels: {
+                                            enabled: true,
+                                                    format: '<b>{point.name}</b>: {point.percentage:.1f} %',
+                                                    style: {
+                                                    color: (Highcharts.theme && Highcharts.theme.contrastTextColor) || 'black'
+                                                    }
+                                            }
+                                    }
+                                    },
+                                    tooltip: {
+                                    pointFormat: '<b>{point.percentage:.1f}%</b>'
+                                    },
+                                    series: [{
+                                    type: 'pie',
+                                            data: [
+    <?php echo $seriesPie ?>
+                                            ]
+                                    }]
+                            });
+                            });</script>
+                <div id="inventory_pie" style="min-width: 900px; max-height: 450px; margin: 0 auto"></div>
+            </div>
+        <?php endif; ?>
+    </div>                   
+</div>
+
+<script type="text/javascript" src="<?php echo $this->getJsUrl() ?>magestore/adminhtml/inventory/dashboard/lib/_JSSettings.js"></script>
+<script src="<?php echo $this->getJsUrl() ?>magestore/adminhtml/inventory/dashboard/lib/js_002"></script>
+<script src="<?php echo $this->getJsUrl() ?>magestore/adminhtml/inventory/dashboard/lib/dashboards"></script>
+
+<script type="text/javascript">
+                            var saveViewPositions = '<?php echo $this->getUrl('adminhtml/ind_dashboard/saveviewposition') ?>';
+                            var saveTabPositions = '<?php echo $this->getUrl('adminhtml/ind_dashboard/savetabposition') ?>';
+                            var form_key_dashboard = '<?php echo $this->getFormKey() ?>';</script>
+<script type="text/javascript">
+            var $sd = new InventoryDashboard.Views.Dashboards();
+            $sd.isShare = false;
+            $sd.backgroundColour = '#808080';
+            $sd.init();
+</script>

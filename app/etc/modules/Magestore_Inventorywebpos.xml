@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<config>
+    <modules>
+        <Magestore_Inventorywebpos>
+            <active>true</active>
+            <codePool>local</codePool>
+            <depends>
+            	<Magestore_Inventoryplus />
+            </depends>
+            <nonecheckkey>true</nonecheckkey>
+        </Magestore_Inventorywebpos>
+    </modules>
+</config> 

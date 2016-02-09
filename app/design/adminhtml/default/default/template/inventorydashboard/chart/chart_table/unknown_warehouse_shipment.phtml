@@ -1,0 +1,47 @@
+<?php $id = $this->getIdBox() ?>
+<?php $chart = Mage::getModel('inventorydashboard/items')->load($id) ?>
+<?php     
+    $resource = Mage::getSingleton('core/resource');        
+    $readConnection = $resource->getConnection('core_read');
+    $results = '';
+    $sql = 'SELECT `warehouse_id`,sum(`qty_shipped`) as `total_shipped` FROM '.$resource->getTableName('erp_inventory_warehouse_shipment').' group by `warehouse_id`';     
+    $results = $readConnection->query($sql);
+    $warehouseShipment = array();
+    if($results){
+        foreach($results as $result){            
+            $warehouseShipment[$result['warehouse_id']] = $result['total_shipped'];
+        }
+    }    
+?>
+                            
+<div id="<?php echo $id ?>" style="min-width: 310px; max-height: 400px; margin: 0 auto; overflow: auto;">
+    <div text-anchor="middle" class="highcharts-title" zIndex="4" style="color: #333333;font-size: 18px;fill: #333333;text-align: center;padding-bottom: 10px;" >
+        <tspan><?php echo $chart->getName() ?></tspan>
+    </div>
+    <table style="width: 100%;">
+        <thead class="thead-dashboard-table">
+            <tr>
+                <th style="text-align: center;"><?php echo $this->__('Warehouse') ?></th>                
+                <th style="text-align: center;"><?php echo $this->__('Total Qty') ?></th>
+            </tr>
+        </thead>
+        <tbody class="tbody-dashboard-table">            
+            <?php     
+                $warehouseCollection = Mage::getModel('inventoryplus/warehouse')->getCollection();    
+                $i = 0;        
+                foreach($warehouseCollection as $warehouse){
+                    $qtyShipped = 0;
+                    if(isset($warehouseShipment[$warehouse->getId()]))
+                        $qtyShipped = $warehouseShipment[$warehouse->getId()];                                                                
+                ?>
+                    <tr class="<?php if($i%2 != 0){ echo 'td-dashboard-table'; } ?>">
+                        <td><?php echo $warehouse->getWarehouseName() ?></td>                        
+                        <td><?php echo $qtyShipped ?></td>
+                    </tr>
+                <?php
+                    $i++;
+                }                
+            ?>
+        </tbody>
+    </table>
+</div>

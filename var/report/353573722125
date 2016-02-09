@@ -1,0 +1,9 @@
+a:5:{i:0;s:158:"Cannot send headers; headers already sent in /Users/javik/Documents/www/Evron Magento/app/code/local/Excellence/Ajax/controllers/IndexController.php, line 181";i:1;s:1201:"#0 /Users/javik/Documents/www/Evron Magento/lib/Zend/Controller/Response/Abstract.php(115): Zend_Controller_Response_Abstract->canSendHeaders(true)
+#1 /Users/javik/Documents/www/Evron Magento/app/code/local/Excellence/Ajax/controllers/IndexController.php(250): Zend_Controller_Response_Abstract->setHeader('Content-type', 'application/jso...')
+#2 /Users/javik/Documents/www/Evron Magento/app/code/core/Mage/Core/Controller/Varien/Action.php(418): Excellence_Ajax_IndexController->updateItemOptionsAction()
+#3 /Users/javik/Documents/www/Evron Magento/app/code/core/Mage/Core/Controller/Varien/Router/Standard.php(254): Mage_Core_Controller_Varien_Action->dispatch('updateItemOptio...')
+#4 /Users/javik/Documents/www/Evron Magento/app/code/core/Mage/Core/Controller/Varien/Front.php(172): Mage_Core_Controller_Varien_Router_Standard->match(Object(Mage_Core_Controller_Request_Http))
+#5 /Users/javik/Documents/www/Evron Magento/app/code/core/Mage/Core/Model/App.php(365): Mage_Core_Controller_Varien_Front->dispatch()
+#6 /Users/javik/Documents/www/Evron Magento/app/Mage.php(684): Mage_Core_Model_App->run(Array)
+#7 /Users/javik/Documents/www/Evron Magento/index.php(83): Mage::run('', 'store')
+#8 {main}";s:3:"url";s:38:"/ajax/index/updateItemOptions/id/1458/";s:11:"script_name";s:10:"/index.php";s:4:"skin";s:7:"default";}

@@ -1,0 +1,193 @@
+<?php
+$quote = Mage::getModel('checkout/cart')->getQuote();
+$quote_error_messages = array();
+$quote_error = $quote->getErrors();
+if (count($quote_error) > 0)
+    foreach ($quote_error as $error) {
+        $quote_error_messages[] = $error->getText();
+    }
+$hasError = false;
+$quote = Mage::getBlockSingleton('checkout/cart')->getQuote();
+$items = $quote->getAllVisibleItems();
+if (count($items) > 0){
+	foreach ($items as $item){
+		$errorInfo = $item->getErrorInfos();
+		if (count($errorInfo) > 0 && $item->getProduct()->getSku() != 'webpos-customsale') {
+			$hasError = true;
+		}
+	}	
+}
+if (count($quote_error_messages) > 0 && $hasError == true):
+    ?>
+    <div id='webpos_quote_message'>
+        <?php foreach ($quote_error_messages as $message): ?>
+            <div class='webpos_quote_message'><?php echo $this->__($message); ?></div>
+        <?php endforeach; ?>
+    </div>
+    <?php
+endif;
+/* Mr Jack get custom sale info */
+$customSaleInfo = Mage::helper('webpos')->createCustomSaleProduct();
+$showItemPriceInclTax = Mage::getStoreConfig('tax/cart_display/price');
+if (count($items) > 0)
+    foreach ($items as $item):
+        $errorMessages = $imgPath = '';
+        $errorInfo = $item->getErrorInfos();
+        $errorMessage = array();
+        if (count($errorInfo) > 0 && $item->getProduct()->getSku() != 'webpos-customsale') {
+            $errorInfo = array_unique($errorInfo);
+            foreach ($errorInfo as $error) {
+                $errorMessage[] = $error['message'];
+            }
+            $errorMessages = "<span style='color:red;'>" . implode(', ', $errorMessage) . "</span>";
+        }
+        $itemPrice = ($showItemPriceInclTax != 1) ? $item->getPriceInclTax() : $item->getPrice();
+        $baseCurrencyCode = Mage::app()->getStore()->getBaseCurrencyCode();
+        $currentCurrencyCode = Mage::app()->getStore()->getCurrentCurrencyCode();
+        $itemPrice = Mage::helper('directory')->currencyConvert($itemPrice, $baseCurrencyCode, $currentCurrencyCode);
+        $itemsRendererBlock = new Mage_Checkout_Block_Cart_Item_Renderer();
+        $itemsRendererBlock->setItem($item);
+        $imgPath = $itemsRendererBlock->getProductThumbnail()->resize(500,500);
+        $itemsBlock = new Magestore_Webpos_Block_Cart_Items();
+        $product = $item->getProduct();
+        $itemOptionsInCart = $itemsBlock->getOptionsInCart($item);
+        $customOptions = '';
+        if (isset($itemOptionsInCart['options'])) {
+            $custom = array();
+            foreach ($itemOptionsInCart['options'] as $optionData):
+                if (isset($optionData['value']))
+                    $custom[] = $optionData['value'];
+            endforeach;
+            $customOptions = implode(', ', $custom);
+        }
+        $productData = Mage::getModel('cataloginventory/stock_item')->loadByProduct($product);
+        $qtyinc = 1;
+        if ($productData->getQtyIncrements())
+            $qtyinc = $productData->getQtyIncrements();
+        /*
+          zend_debug::dump($itemsBlock->getOptionsInCart());
+         */
+        ?>
+        <?php if ($product->getId() == $customSaleInfo->getId()): ?>
+            <?php
+            $productOrgPrice = $item->getPrice();
+            if ($item->getProduct()->getSku() == 'webpos-customsale') {
+                $itemId = $item->getId();
+                $webposPrice = Mage::getSingleton('core/session')->getData('webpos_price');
+                $webposPriceArray = unserialize($webposPrice);
+
+                if (isset($webposPriceArray[$itemId])) {
+                    $productOrgPrice = $webposPriceArray[$itemId];
+                }
+            }
+            ?>
+            <div class="product" itemid='<?php echo $item->getId(); ?>' prdid='<?php echo $product->getId(); ?>' id='cart_prd_<?php echo $item->getId(); ?>' product_price='<?php echo $productOrgPrice; ?>' custom_price = '<?php echo $item->getCustomPrice() ?>'  >
+                <div onclick="showEditPopup('<?php echo $item->getId(); ?>', '<?php echo $imgPath; ?>', '<?php echo $productOrgPrice; ?>', '<?php echo $item->getId(); ?>')" class="img-product col-lg-1 col-md-1 col-sm-1 col-xs-1">
+                    <img src='<?php echo $imgPath; ?>'/>
+                    <span class="number <?php if ($item->getQty() < 2) echo 'hide'; ?>"><?php echo $item->getQty(); ?></span>
+                </div>
+                <div onclick="showEditPopup('<?php echo $item->getId(); ?>', '<?php echo $imgPath; ?>', '<?php echo $productOrgPrice; ?>', '<?php echo $item->getId(); ?>')" class="name-product col-lg-6 col-md-6 col-sm-6 col-xs-6">
+                    <div class='product_name <?php if (isset($itemOptionsInCart['attributes_info'])) echo ' hasoptions '; ?>'><?php echo $item->getName(); ?></div>
+                    <div class='product_options'>
+                        <?php
+                        if (isset($itemOptionsInCart['attributes_info'])):
+                            $optionsArr = array();
+                            foreach ($itemOptionsInCart['attributes_info'] as $info):
+                                if (isset($info['value']))
+                                    $optionsArr[] = $info['value'];
+                            endforeach;
+                            $optionsStr = implode(', ', $optionsArr);
+                            echo $optionsStr;
+                        endif;
+                        ?>
+                    </div>
+                </div>
+                <div onclick="showEditPopup('<?php echo $item->getId(); ?>', '<?php echo $imgPath; ?>', '<?php echo $productOrgPrice; ?>', '<?php echo $item->getId(); ?>')" class="price col-lg-4 col-md-4 col-sm-4 col-xs-4">
+                    <span class='webpos_item_subtotal row_total'><?php echo Mage::app()->getStore()->formatPrice($itemPrice * $item->getQty()); ?></span>
+
+                    <div class="webpos_item_original"  style="color: blue">
+                        <?php
+                        $customPrice = $item->getCustomPrice();
+                        $itemId = $item->getId();
+                        if ($item->getProduct()->getSku() == 'webpos-customsale') {
+                            $webposPrice = Mage::getSingleton('core/session')->getData('webpos_price');
+                            $webposPriceArray = unserialize($webposPrice);
+                            if (isset($webposPriceArray[$itemId])) {
+                                $originPrice = $webposPriceArray[$itemId];
+
+                                if ($customPrice !== null && ($customPrice != $originPrice))
+                                    echo "Reg: " . Mage::app()->getStore()->formatPrice($originPrice * $item->getQty());
+                            }
+                        }
+                        ?>
+
+                    </div>
+                </div>
+                <div class="delete col-lg-1 col-md-1 col-sm-1 col-xs-1" onclick="deleteItem('<?php echo $item->getId(); ?>')">
+                    <div class='webpos_item_subtotal'>X</div>
+                </div>
+                <div class='clear'></div>
+            </div>
+        <?php /* end custom sale */ else: ?>
+            <div qtyinc="<?php echo $qtyinc; ?>" class="product" selected_option="<?php if (isset($itemOptionsInCart['info_buyRequest']['super_attribute'])) echo implode('_', $itemOptionsInCart['info_buyRequest']['super_attribute']); ?>" simplesku="<?php echo (isset($itemOptionsInCart['simple_sku'])) ? $itemOptionsInCart['simple_sku'] : ''; ?>" prdid='<?php echo $product->getId(); ?>' itemid='<?php echo $item->getId(); ?>' id='cart_prd_<?php echo $item->getId(); ?>' product_price='<?php echo $product->getFinalPrice() ?>' custom_price='<?php echo $item->getCustomPrice(); ?>' >
+                <div onclick="showEditPopup('<?php echo $product->getId(); ?>', '<?php echo $imgPath; ?>', '<?php echo $product->getFinalPrice() ?>', '<?php echo $item->getId(); ?>')" class="img-product col-lg-1 col-md-1 col-sm-1 col-xs-1">
+                    <img src='<?php echo $imgPath; ?>'/>
+                    <span class="number <?php if ($item->getQty() < 2) echo 'hide'; ?>"><?php echo $item->getQty(); ?></span>
+                </div>
+                <div onclick="showEditPopup('<?php echo $product->getId(); ?>', '<?php echo $imgPath; ?>', '<?php echo $product->getFinalPrice() ?>', '<?php echo $item->getId(); ?>')" class="name-product col-lg-6 col-md-6 col-sm-6 col-xs-6">
+                    <div class='product_name <?php if (isset($itemOptionsInCart['attributes_info']) || $customOptions != '') echo ' hasoptions '; ?>'><?php echo $item->getName(); ?></div>
+                    <div class='product_options'>
+                        <?php
+                        if (isset($itemOptionsInCart['attributes_info'])):
+                            $optionsArr = array();
+                            foreach ($itemOptionsInCart['attributes_info'] as $info):
+                                if (isset($info['value']))
+                                    $optionsArr[] = $info['value'];
+                            endforeach;
+                            $optionsStr = implode(', ', $optionsArr);
+                            echo $optionsStr . ', ' . $customOptions;
+                        else:
+                            echo $customOptions;
+                        endif;
+
+                        if ($errorMessages != '')
+                            echo $errorMessages;
+                        ?>
+                    </div>
+                </div>
+                <div onclick="showEditPopup('<?php echo $product->getId(); ?>', '<?php echo $imgPath; ?>', '<?php echo $product->getFinalPrice() ?>', '<?php echo $item->getId(); ?>')" class="price col-lg-4 col-md-4 col-sm-4 col-xs-4">
+                    <span class='webpos_item_subtotal row_total'><?php echo Mage::app()->getStore()->formatPrice($itemPrice * $item->getQty()); ?></span>
+                    <div class="webpos_item_original"  style="color: blue">
+                        <?php
+                        $customPrice = $item->getCustomPrice();
+                        $productId = $item->getProduct()->getId();
+
+                        $productModel = Mage::getModel('catalog/product')->load($productId);
+
+                        if ($customPrice !== null && ($customPrice != $productModel->getFinalPrice())) {
+
+                            echo "Reg: " . Mage::app()->getStore()->formatPrice($item->getProduct()->getFinalPrice() * $item->getQty());
+                        }
+                        ?>
+
+                    </div>
+
+                </div>
+                <div class="delete col-lg-1 col-md-1 col-sm-1 col-xs-1" onclick="deleteProduct('<?php echo $item->getId(); ?>')">
+                    <div class='webpos_item_subtotal'>X</div>
+                </div>
+                <div class='clear'></div>
+            </div>
+        <?php
+        endif;
+    endforeach;
+?>
+<?php
+if (count($items) == 0) {
+    ?>
+    <script>
+        localDelete('customInfo'); //vietdq clear jstorage
+    </script>
+    <?php
+}
+?>

@@ -1,0 +1,257 @@
+<?php
+$series = array();
+$filterData = new Varien_Object();
+$requestData = Mage::helper('adminhtml')->prepareFilterString($this->getRequest()->getParam('top_filter'));
+if (empty($requestData)) {
+    $requestData = Mage::Helper('inventoryreports')->getDefaultOptionsSupplier();
+}
+if ($requestData['supplier_select'] > 0) {
+    $supplier_name = Mage::helper('inventoryreports')->getSupplierName($requestData['supplier_select']);
+} else {
+    $supplier_name = 'All Suppliers';
+}
+if (isset($requestData) && $requestData['supplier_select'] > 0) {
+    $is_supplier = 1;
+} else {
+    $is_supplier = 0;
+}
+$purchase_ids = array();
+$series = array();
+$purchase_ids = array();
+$requestData = Mage::helper('adminhtml')->prepareFilterString($this->getRequest()->getParam('top_filter'));
+$gettime = Mage::helper('inventoryreports')->getTimeSelected($requestData);
+$resource = Mage::getSingleton('core/resource');
+$readConnection = $resource->getConnection('core_read');
+$installer = Mage::getModel('core/resource');
+$purchase = 'SELECT distinct(`purchase_order_id`) from ' . $installer->getTableName("erp_inventory_purchase_order") . ' WHERE (purchase_on BETWEEN "' . $gettime['date_from'] . '" and "' . $gettime['date_to'] . '")';
+$purchase_results = $readConnection->fetchAll($purchase);
+foreach ($purchase_results as $purchase_result) {
+    $purchase_ids[] = $purchase_result['purchase_order_id'];
+}
+$ids = join(',', $purchase_ids);
+//            Zend_debug::dump($ids);
+if (isset($requestData['supplier_select']) && $supplierId = $requestData['supplier_select']) {
+    $productAttribute = $attributeModel = Mage::getModel('eav/entity_attribute')->loadByCode('catalog_product', 'name');
+    $resource = Mage::getSingleton('core/resource');
+    if ($ids) {
+        $sql = 'SELECT IFNULL(sum(b.qty),0) as total_inventory, pa.value as product_name
+                    FROM '.$installer->getTableName("erp_inventory_supplier_product sp").'
+                    LEFT JOIN '.$installer->getTableName("erp_inventory_barcode b").' 
+                    ON sp.product_id = b.product_entity_id AND b.supplier_supplier_id = ' . $supplierId . ' AND b.purchaseorder_purchase_order_id IN (' . $ids . ')
+                    LEFT JOIN '.$installer->getTableName("catalog_product_entity_" . $productAttribute->getData('backend_type')." pa").'
+                    ON sp.product_id = pa.entity_id AND pa.attribute_id = ' . $productAttribute->getData('attribute_id') . '
+                    WHERE sp.supplier_id = "' . $supplierId . '"
+                    GROUP BY sp.product_id
+                    ORDER BY sum(b.qty) DESC 
+                    ';
+    } else {
+        $sql = 'SELECT IFNULL(sum(b.qty),0) as total_inventory, pa.value as product_name
+                    FROM '.$installer->getTableName('erp_inventory_supplier_product sp').'
+                    LEFT JOIN '.$installer->getTableName('erp_inventory_barcode b').'
+                    ON sp.product_id = b.product_entity_id AND b.supplier_supplier_id = "' . $supplierId . '" AND b.purchaseorder_purchase_order_id IN (0)
+                    LEFT JOIN '.$installer->getTableName("catalog_product_entity_" . $productAttribute->getData('backend_type')." pa").'
+                    ON sp.product_id = pa.entity_id AND pa.attribute_id = ' . $productAttribute->getData('attribute_id') . '
+                    WHERE sp.supplier_id = "' . $supplierId . '"
+                    GROUP BY sp.product_id
+                    ORDER BY sum(b.qty) DESC 
+                    ';
+    }
+} else {
+    if (!empty($ids)) {
+        $sql = 'SELECT s.supplier_name, IFNULL(sum(b.qty),0) AS `total_inventory` 
+                FROM '.$installer->getTableName('erp_inventory_supplier').' AS `s`
+                LEFT JOIN '.$installer->getTableName('erp_inventory_barcode').' AS `b` 
+                ON s.supplier_id=b.supplier_supplier_id and b.purchaseorder_purchase_order_id IN (' . $ids . ') 
+                GROUP BY `s`.`supplier_id`
+                ORDER BY sum(b.qty) DESC 
+                '
+        ;
+    } else {
+        $sql = 'SELECT s.supplier_name, IFNULL(sum(b.qty),0) AS `total_inventory` 
+                FROM '.$installer->getTableName('erp_inventory_supplier').' AS `s`
+                LEFT JOIN '.$installer->getTableName('erp_inventory_barcode').' AS `b` 
+                ON s.supplier_id=b.supplier_supplier_id and b.purchaseorder_purchase_order_id IN (0) 
+                GROUP BY `s`.`supplier_id`
+                ORDER BY sum(b.qty) DESC 
+                '
+        ;
+    }
+}
+$results = $readConnection->fetchAll($sql);
+$checkResult = 0;
+$totalResult = count($results);
+foreach ($results as $result) {
+    if ($checkResult > 10) {
+        $limit = 10;
+        break;
+    }
+    if ($result['total_inventory'] == NULL || $result['total_inventory'] <= 0) {
+        $limit = $checkResult;
+        continue;
+    }
+    $checkResult++;
+}
+if (isset($limit)) {
+    $sql .= 'LIMIT ' . $limit . '';
+    $results = $readConnection->fetchAll($sql);
+}
+
+//                Zend_debug::dump($series);
+?>
+<?php if (count($results) > 0): ?>
+    <div class="entry-edit" id="test">
+        <div class="entry-edit-head">
+            <h4 class="icon-head head-edit-form fieldset-legend"><?php echo $this->__('Chart Report') ?></h4>
+        </div>
+        <!DOCTYPE HTML>
+        <div>
+
+
+            <!-- report by supplier pie -->
+            <div style="width: 99%; float: left;">
+                <?php
+                $series = '';
+                $j = 0;
+                foreach ($results as $result) {
+                    $totalInventories = 0;
+                    if ($result['total_inventory'])
+                        $totalInventories = $result['total_inventory'];
+                    if ($j != 0 && $j != $stt) {
+                        $series .= ',';
+                    }
+
+                    if ($is_supplier == '0') {
+                        $series .= '[\'' . $result['supplier_name'] . '(' . $totalInventories . ' items)\',' . $totalInventories . ']';
+                    }
+                    if ($is_supplier == '1') {
+                        $series .= '[\'' . $result['product_name'] . '(' . $totalInventories . ' items)\',' . $totalInventories . ']';
+                    }
+                    $j++;
+                }
+                ?>
+
+                <script type="text/javascript">
+                    $(function () {
+                    $_('#inventorybysupplier_pie').highcharts({
+                    chart: {
+                    type: 'pie',
+                            options3d: {
+                            enabled: true,
+                                    alpha: 50
+                            }
+                    },
+                            title: {
+                            text: '<?php echo $this->__('Total Qty Purchased by Supplier: "' . $supplier_name . '"') ?>'
+                            },
+                            plotOptions: {
+                            pie: {
+                                    depth: 30
+                            }
+                            },
+                            series: [{
+                                    data: [
+    <?php echo $series; ?>
+                                    ]
+                            }]
+                    });
+                    });</script>
+
+                <div id="inventorybysupplier_pie" style="min-width: 900px; max-height: 450px; margin: 0 auto"></div>
+            </div>
+
+
+            <?php
+            unset($series);
+            $categories = '[';
+            $series['inventory_supplier']['name'] = $this->__('Inventory By Supplier');
+            $series['inventory_supplier']['data'] = '[';
+            $i = 0;
+            foreach ($results as $result) {
+                if ($i != 0) {
+                    $categories .= ',';
+                    $series['inventory_supplier']['data'] .= ',';
+                }
+                if ($is_supplier == '0') {
+                    $categories .= '\'' . $result['supplier_name'] . '\'';
+                }
+                if ($is_supplier == '1') {
+                    $categories .= '\'' . $result['product_name'] . '\'';
+                }
+                $series['inventory_supplier']['data'] .= $result['total_inventory'];
+                $i++;
+            }
+            $categories .= ']';
+//                Zend_debug::dump($categories);
+            $series['inventory_supplier']['data'] .= ']';
+//        Zend_debug::dump($series);
+            ?>
+
+            <!-- Column Chart -->
+            <div style="width: 99%; float: left;">
+                <script type="text/javascript">
+                            $(function () {
+                            $_('#inventorybysupplier_column').highcharts({
+                            chart: {
+                            type: 'column',
+                                    margin: 70,
+                                    options3d: {
+                                    enabled: true,
+                                            alpha: 20,
+                                            beta: 1,
+                                            depth: 50
+                                    }
+                            },
+                                    title: {
+                                    text: '<?php echo $this->__('Total Qty Purchased by Supplier: "' . $supplier_name . '"') ?>'
+                                    },
+                                    legend: {
+                                    enabled:false,
+                                    },
+                                    plotOptions: {
+                                    column: {
+                                    depth: 30
+                                    }
+                                    },
+                                    xAxis: {
+                                    categories: <?php echo $categories ?>
+                                    },
+                                    yAxis: {
+                                    opposite: true
+                                    },
+                                    series: [
+    <?php $count = 0; ?>
+    <?php foreach ($series as $serie): ?>
+        <?php if (!$count == 0) echo ','; ?>
+        <?php $count++; ?>
+                                        {
+                                        name: '<?php echo $serie['name']; ?>',
+                                                data: <?php echo $serie['data']; ?>
+                                        }
+    <?php endforeach; ?>
+                                    ]
+                            }
+                            );
+                            });</script>
+                <div id="inventorybysupplier_column" style="min-width: 900px; height: 450px; margin: 0 auto"></div>
+            </div>
+            <!--End column-->
+        </div>          
+    </div>
+<?php endif; ?>
+
+
+
+<script type="text/javascript" src="<?php echo $this->getJsUrl() ?>magestore/adminhtml/inventory/dashboard/lib/_JSSettings.js"></script>
+<script src="<?php echo $this->getJsUrl() ?>magestore/adminhtml/inventory/dashboard/lib/js_002"></script>
+<script src="<?php echo $this->getJsUrl() ?>magestore/adminhtml/inventory/dashboard/lib/dashboards"></script>
+
+<script type="text/javascript">
+                        var saveViewPositions = '<?php echo $this->getUrl('adminhtml/ind_dashboard/saveviewposition') ?>';
+                        var saveTabPositions = '<?php echo $this->getUrl('adminhtml/ind_dashboard/savetabposition') ?>';
+                        var form_key_dashboard = '<?php echo $this->getFormKey() ?>';</script>
+<script type="text/javascript">
+            var $sd = new InventoryDashboard.Views.Dashboards();
+            $sd.isShare = false;
+            $sd.backgroundColour = '#808080';
+            $sd.init();
+</script>

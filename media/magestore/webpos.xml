@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<wpos>
+  <webpos_admin_adminlogout>http://www.evronfoodstore.dev/index.php/evronadmin/index/logout/key/2a2cef6db0c100e3bef05ce5a02bec1f/</webpos_admin_adminlogout>
+  <webpos_admin_adminlogin>http://www.evronfoodstore.dev/index.php/webposadmin/adminhtml_webpos/index/key/4ab95e458c315b39eaf9fa0634c9c62c/</webpos_admin_adminlogin>
+  <firstname>Evron</firstname>
+  <lastname>Foodstore</lastname>
+  <username>admin</username>
+  <webpos_admin_settingslink>http://www.evronfoodstore.dev/index.php/webposadmin/adminhtml_config/edit/section/webpos/frompos/1/key/c4aaa983f4b44999cef74d493b259aa8/</webpos_admin_settingslink>
+</wpos>

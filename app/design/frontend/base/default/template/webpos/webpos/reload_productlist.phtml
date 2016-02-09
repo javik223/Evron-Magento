@@ -1,0 +1,10 @@
+<?php
+$productlist = $this->getChildHtml('product_list');
+$numberProduct = Mage::getModel('core/session')->getData('numberProduct');
+//vietdq fix page pagination
+$curPage=Mage::getModel('core/session')->getData('pos_cpage');
+//end vietdq
+$strNumberProduct =  $this->__("Totals: ".$numberProduct.' products');
+$result = array('productlist' => $productlist,'strNumberProduct' => $strNumberProduct,'numberProduct'=>$numberProduct,'curPage'=>$curPage);
+echo Zend_Json::encode($result);
+?>

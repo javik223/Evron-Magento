@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<config>
+	<modules>
+		<Evron_CustomCatAttrb>
+			<version>0.0.1</version>
+		</Evron_CustomCatAttrb>
+	</modules>
+	<global>
+		<resources>
+			<EvronCatAttrb_setup>
+				<setup>
+					<module>Evron_CustomCatAttrb</module>
+					<class>Mage_Eav_Model_Entity_Setup</class>
+				</setup>
+				<connection>
+					<use>default_setup</use>
+				</connection>
+			</EvronCatAttrb_setup>
+		</resources>
+	</global>
+</config>

@@ -1,0 +1,46 @@
+<?php 
+$logoImg = Mage::helper('webpos')->getPOSLogo();
+$logoImgUrl = Mage::getBaseUrl(Mage_Core_Model_Store::URL_TYPE_MEDIA) . 'webpos/logo/' . $logoImg;
+    $wpSession = Mage::getSingleton('webpos/session');
+    $wpUser = $wpSession->getUser();
+    if($wpUser->getStatus() == 2){
+       $wpSession->setId(null);
+       $wpUser->setId(null);
+       $wpSession->setErrorMessage(Mage::helper('webpos')->__('Your account was disabled.'));
+    }
+    if(!$wpUser->getId()):
+?>
+<div id="login-webpos" class="modal">
+     <div class="modal-dialog">
+         <div class="modal-content">
+			 <img id='login_loader' class='hide' src='<?php echo $this->getSkinUrl('images/icon/ajax-loader2.gif'); ?>'/>
+             <div class="login-webpos">
+                 <form id="webpos_login" class="form-login" >
+                     <div class="logo form-group"><img class="img-responsive center-block" src='<?php echo $logoImg?$logoImgUrl:$this->getSkinUrl('images/icon/logo.png'); ?>' /></div>                     
+                     <div class="form-group">
+                         <input type="text" id='login_username' name="username" placeholder="Username" class="input-text required-entry form-control" />
+                         <input type="password" id='login_password' name="password" placeholder="Password" class="input-text required-entry validate-password form-control" />
+                     </div>
+                     <div class="form-group">
+                         <button type="button" class="btn btn-warning" title="Login" name="" onclick="loginWebpos()">Login</button>
+                     </div>
+                 </form>
+             </div>
+         </div>
+     </div>
+ </div>
+ <div class='fade-login' id='login_overlay'></div>
+ <script type="text/javascript">
+      //< ![CDATA[
+         var loginForm = new VarienForm('webpos_login');
+     //]]>
+      //vietdq
+      Event.observe(document,'keypress',function(event){
+          if (event.keyCode==13) {
+              if (!$D('#login-webpos').hasClass('hide')) loginWebpos();
+          }
+      });
+     //end
+ </script>
+
+ <?php endif; ?>

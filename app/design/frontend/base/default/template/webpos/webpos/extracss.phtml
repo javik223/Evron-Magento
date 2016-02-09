@@ -1,0 +1,144 @@
+<style type='text/css'>
+    .product_list .product .product_options{
+        max-height: 72vh;
+        overflow: hidden;
+    }
+    .product_list .product .product_options .col-value ul{
+        overflow: auto;
+        max-height: 57vh;
+    }
+    #popup-customer ul{
+        overflow-x: hidden !important;
+        overflow-y: auto !important;
+    }
+    .footer #cancel-sale-btn button:hover,
+    .discount-webpos .discount-type button.btn2, 
+    .discount-webpos .choose-discount .btn2, 
+    .custom_price_tab .discount-type .btn2,
+    .discount-webpos .top-title,
+    #edit_cart_item_popup .product_tab .common .choose,
+    .custom_price_tab .custom-price button,
+    #bt_remove_tax,
+    #count_cash_area button,
+    #current_balance_line,
+    .webpos_popup_area .top_content .popup_title,
+    #holded_orders_section .content .item .bt_reload_order,
+    #holded_orders_section .content .item .bt_delete_holded_order,
+    #bt_hold_order,
+    #reports_area button,
+    #cashdrawer_area button,
+    #reports_area .top-content .title-page,
+    #cashdrawer_area .top-content .title-page,
+    #holded_orders_detail .top-content .title-page,
+    #holded_orders_section .top-content .title-page,
+    #pending_orders_popup .panel-heading,
+    #order-success button.new-order,
+    #orders_area #orderlist-search-form,
+    #create-customer .modal-content .top-create, #shipping-address .modal-content .top-create,
+    #popup-customer button,
+    .product_list .product .product_options ul .product-name h2,
+    .btn-warning,
+    #order_info .checkout_buttons_area button.btn-warning,
+    #shipping_area #edit_shipping_address,
+    #settings_area .top-content,
+    #orders_area .order-detail .send-email .top-form, #orders_area .order-detail .refund .top-form,
+    #orders_area .form-search,
+    #orders_area .order-detail .top-order .head-view-order,
+    .top_bar.left,
+    #pos_container #main_container .col_right .top_bar,
+    #bt_checkout
+    {
+        <?php
+        $storeId = Mage::app()->getStore()->getId();
+        $webpos_color = str_replace('#', '', Mage::getStoreConfig('webpos/general/webpos_color', $storeId));
+        if (isset($webpos_color) && $webpos_color != '') {
+            echo "background:#" . $webpos_color . " !important;";
+            echo "border-color:#" . $webpos_color . " !important;";
+        }
+        ?> 
+    }
+    #selectcategory{
+        border: 2px solid rgba(0, 0, 0, 0.1) !important;
+    }
+    #current_balance_line .balance_wrapper .current_balance_fake{
+        <?php
+        $storeId = Mage::app()->getStore()->getId();
+        $webpos_color = str_replace('#', '', Mage::getStoreConfig('webpos/general/webpos_color', $storeId));
+        if (isset($webpos_color) && $webpos_color != '') {
+            echo "color:#" . $webpos_color . " !important;";
+        }
+        ?> 
+    }
+    .zopim,
+    .mobile_menu,
+    .snap-drawers,
+    #after-loading-success-message,
+    #dp_swf_engine,
+    #after-loading-success-message,
+    #loading-mask
+    {
+        display: none !important;
+    }
+
+    #total_wp strong{
+        line-height: 50px;
+        padding-left: 15px;
+    }
+
+    #total_wp #grand_total_wp_show_hide strong {
+        line-height: initial;
+        padding-left: initial;
+    }
+
+</style>
+<style type='text/css' id='css_from_js'>
+
+</style>
+<script type='text/javascript'>
+    var check = false;
+//$D(document).ready(function(){
+    var styles = $$('link');
+    if (styles.length > 0) {
+        styles.each(function (el) {
+            var href = el.getAttribute('href');
+            if (href != '' && href != null) {
+                if (href.indexOf('webpos') < 0)
+                    el.remove();
+            }
+        })
+    }
+    var main_containers = $$('.wrapper .page .main-container .container');
+    if (main_containers.length > 0) {
+        main_containers.each(function (el) {
+            el.removeClassName('container');
+        });
+    }
+    var containers = $$('.wrapper .page .main-container');
+    if (containers.length > 0) {
+        containers.each(function (el) {
+            el.removeClassName('main-container');
+        });
+    }
+//});
+
+    function removeUnnecessary() {
+        var testimonials = $$('.testimonials');
+        if (testimonials.length > 0) {
+            check = false;
+            testimonials.each(function (el) {
+                el.remove();
+            });
+        } else {
+            check = true;
+        }
+        var zopim = $$('.zopim');
+        if (zopim.length > 0) {
+            check = false;
+            zopim.each(function (el) {
+                el.remove();
+            });
+        } else {
+            check = true;
+        }
+    }
+</script>

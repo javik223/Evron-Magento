@@ -1,0 +1,54 @@
+<?php
+/**
+ * Magestore
+ * 
+ * NOTICE OF LICENSE
+ * 
+ * This source file is subject to the Magestore.com license that is
+ * available through the world-wide-web at this URL:
+ * http://www.magestore.com/license-agreement.html
+ * 
+ * DISCLAIMER
+ * 
+ * Do not edit or add to this file if you wish to upgrade this extension to newer
+ * version in the future.
+ * 
+ * @category    Magestore
+ * @package     Magestore_Inventoryplus
+ * @copyright   Copyright (c) 2012 Magestore (http://www.magestore.com/)
+ * @license     http://www.magestore.com/license-agreement.html
+ */
+
+/**
+ * Supplier Adminhtml Block
+ * 
+ * @category    Magestore
+ * @package     Magestore_Inventoryplus
+ * @author      Magestore Developer
+ */
+?>
+<div class="grid np">
+  <div class="hor-scroll">
+    <table cellspacing="0" class="data order-tables">
+        <col />
+        <col width="1" />
+        <thead>
+            <tr class="headings">
+                <th><?php echo $this->helper('sales')->__('Product') ?></th>
+                <th><?php echo $this->helper('sales')->__('Image') ?></th>
+                <th class="a-center""><?php echo $this->helper('sales')->__('Qty Shipped') ?></th>
+                <th class="a-center last"><span class="nobr"><?php echo $this->helper('sales')->__('Warehouse shipment') ?></span></th>
+                <th class="a-center last"><span class="nobr"><?php echo $this->helper('sales')->__('Barcode') ?></span></th>
+            </tr>
+        </thead>
+        <?php $_items = $this->getShipment()->getAllItems() ?>
+        <?php $_i=0;foreach ($_items as $_item): if ($_item->getOrderItem()->getIsVirtual() || $_item->getOrderItem()->getParentItem()): continue; endif; $_i++ ?>
+            <tbody class="<?php echo $_i%2?'odd':'even' ?>">
+                <?php echo $this->getItemHtml($_item) ?>
+                <?php echo $this->getItemExtraInfoHtml($_item->getOrderItem()) ?>
+            </tbody>
+        <?php endforeach; ?>
+    </table>
+  </div>
+</div>
+<br />

@@ -1,0 +1,14 @@
+<?php
+/**
+ * @category    NanoWebGroup
+ * @package     NanoWebG_ElasticSearch
+ * @version     1.0.3
+ * @copyright   
+ *
+ * @var $this NanoWebG_ElasticSearch_Block_Catalogsearch_Suggest
+ */
+$suggest = $this->getRecommendation();
+?>
+<?php if (!empty($suggest)): ?>
+    <h2><em><?php echo $this->__('Did you mean %s?', '<b><a href="'. $this->getQuery($suggest) .'">'. $suggest .'</a></b>'); ?></em></h2>
+<?php endif; ?>

@@ -1,0 +1,94 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Magestore
+ * 
+ * NOTICE OF LICENSE
+ * 
+ * This source file is subject to the Magestore.com license that is
+ * available through the world-wide-web at this URL:
+ * http://www.magestore.com/license-agreement.html
+ * 
+ * DISCLAIMER
+ * 
+ * Do not edit or add to this file if you wish to upgrade this extension to newer
+ * version in the future.
+ * 
+ * @category    Magestore
+ * @package     Magestore_Inventorysupplyneeds
+ * @copyright   Copyright (c) 2012 Magestore (http://www.magestore.com/)
+ * @license     http://www.magestore.com/license-agreement.html
+ */
+-->
+<layout version="0.1.0">
+    <adminhtml_insu_inventorysupplyneeds_index>
+        <update handle="adminhtml_inventoryplus_layout" />
+        <reference name="head">
+            <action method="addJs">
+                <script>magestore/inventory/tinybox.js</script>
+            </action>
+        </reference>
+        <reference name="content">
+            <block type="inventorysupplyneeds/adminhtml_inventorysupplyneeds" name="inventory_supplyneeds" />
+            <block type="adminhtml/widget_grid_serializer" name="related_grid_serializer">
+                <action method="initSerializerBlock">
+                    <grid_block_name>adminhtml_inventorysupplyneeds.grid</grid_block_name>
+                    <data_callback>_getSelectedProducts</data_callback>
+                    <hidden_input_name>purchase_products</hidden_input_name>
+                    <reload_param_name>purchase_products</reload_param_name>
+                </action>
+                <action method="addColumnInputName">
+                    <input_name>purchase_more</input_name>
+                </action>
+            </block>
+        </reference>
+    </adminhtml_insu_inventorysupplyneeds_index>
+    <adminhtml_insu_inventorysupplyneeds_grid>
+        <block type="core/text_list" name="root" output="toHtml">
+            <block type="inventorysupplyneeds/adminhtml_inventorysupplyneeds_grid" name="adminhtml_inventorysupplyneeds.grid"/>
+        </block>
+    </adminhtml_insu_inventorysupplyneeds_grid>
+    <adminhtml_insu_inventorysupplyneeds_viewpo>
+        <update handle="adminhtml_inventoryplus_layout" />
+        <!--
+        <reference name="head">
+            <action method="addJs">
+                <script>magestore/inventorysupplyneeds/serializer.js</script>
+            </action>
+        </reference>   
+        -->     
+        <reference name="content">
+            <block type="inventorysupplyneeds/adminhtml_draftpo" name="adminhtml_draftpo" template="inventorysupplyneeds/suggest-form.phtml">
+                <block type="inventorysupplyneeds/adminhtml_draftpo_grid" name="adminhtml_draftpo_grid"/>
+                <block type="inventorysupplyneeds/adminhtml_draftpo_serializer" name="related_grid_serializer"/>
+            </block>
+        </reference>
+    </adminhtml_insu_inventorysupplyneeds_viewpo>
+    <adminhtml_insu_inventorysupplyneeds_viewpogrid>
+        <block type="core/text_list" name="root" output="toHtml">
+            <block type="inventorysupplyneeds/adminhtml_draftpo_grid" name="adminhtml_draftpo_grid"/>
+            <block type="inventorysupplyneeds/adminhtml_draftpo_serializer" name="related_grid_serializer">
+                <action method="setTemplate"><template>inventorysupplyneeds/grid/reload_serializer.phtml</template></action>
+            </block>
+        </block>
+    </adminhtml_insu_inventorysupplyneeds_viewpogrid>
+    <adminhtml_insu_inventorysupplyneeds_editsuggest>
+        <update handle="adminhtml_inventoryplus_layout" />
+        <reference name="content">
+            <block type="inventorysupplyneeds/adminhtml_inventorysupplyneeds_edit" name="adminhtml_inventorysupplyneeds.edit" template="inventorysupplyneeds/suggest-form.phtml">
+                <block type="inventorysupplyneeds/adminhtml_inventorysupplyneeds_edit_suggestdraft" name="adminhtml_inventorysupplyneeds.edit.suggestdraft"/>
+            </block>
+            <block type="adminhtml/widget_grid_serializer" name="related_grid_serializer">
+                <action method="initSerializerBlock">
+                    <grid_block_name>adminhtml.inventorysupplyneeds.edit.supplyneeds</grid_block_name>
+                    <data_callback>_getSelectedProducts</data_callback>
+                    <hidden_input_name>purchase_products</hidden_input_name>
+                    <reload_param_name>purchase_products</reload_param_name>
+                </action>
+                <action method="addColumnInputName">
+                    <input_name>supplyneeds</input_name>
+                </action>
+            </block>
+        </reference>
+    </adminhtml_insu_inventorysupplyneeds_editsuggest>
+</layout>

@@ -1,0 +1,82 @@
+<?php
+$requestData = Mage::helper('adminhtml')->prepareFilterString($this->getRequest()->getParam('top_filter'));
+$reportCode = $this->getReportCode();
+$id_box = $this->getIdBox();
+if (empty($requestData)) {
+    $requestData = array();
+    $requestData['report_radio_select'] = $reportCode;
+    $isFound = false;
+    $reportTypes = Mage::helper('inventorydashboard/constant')->getReportTypes();
+    foreach ($reportTypes as $type => $value) {
+        foreach ($value['report_code'] as $code => $value2) {
+            if (strcmp($code, $reportCode) == 0) {
+                $requestData['select_time'] = $value2['default_time_range'];
+                $isFound = true;
+                break;
+            }
+        }
+        if ($isFound == true) {
+            break;
+        }
+    }
+}
+$dataCollection = Mage::helper('inventoryreports/order')->getOrderReportCollection($requestData);
+if (is_array($dataCollection)) {
+    $collection = $dataCollection['collection'];
+} else {
+    $collection = $dataCollection;
+}
+?>
+<div class="chart-parent-div">
+    <?php
+    $columnData = Mage::helper('inventorydashboard')->getChartColumnData($collection, $requestData);
+    $categories = $columnData['categories'];
+    $series = $columnData['series'];
+    ?>
+    <script type="text/javascript">
+        $(function () {
+            $_('#<?php echo $id_box ?>').highcharts({
+            chart: {
+            type: 'column',
+                    margin: 70,
+                    options3d: {
+                    enabled: false,
+                            alpha: 20,
+                            beta: 1,
+                            depth: 50
+                    }
+            },
+                    title: {
+                    text: '<?php echo $this->__('Sales Report By Day') ?>'
+                    },
+                    legend: {
+                    enabled:false
+                    },
+                    plotOptions: {
+                    column: {
+                    depth: 30
+                    }
+                    },
+                    xAxis: {
+                    categories: <?php echo $categories ?>
+                    },
+                    yAxis: {
+                    opposite: true
+                    },
+                    series: [
+<?php $count = 0; ?>
+<?php foreach ($series as $serie): ?>
+    <?php if (!$count == 0) echo ','; ?>
+    <?php $count++; ?>
+                        {
+                            name: '<?php echo $serie['name']; ?>',
+                                    data: <?php echo $serie['data']; ?>
+                            }
+<?php endforeach; ?>
+                        ]
+            }
+            );
+        });
+    </script>
+    <div class="chart-child-div" id="<?php echo $id_box ?>" ></div>
+</div>

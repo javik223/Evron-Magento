@@ -1,0 +1,35 @@
+<?php //Zend_debug::dump($this->getRequest()->getParam('type'));echo $this->getRequest()->getParam('type');die;?>
+<?php echo $this->getChildHtml('time_select') ?>
+<?php // echo $this->getChildChildHtml('content_header','bestseller') ?>
+<?php
+$type = $this->getRequest()->getParam('type');
+if($type){
+    echo $this->getChildHtml('content');
+    switch ($type) {
+        case "order":
+            echo $this->getChildChildHtml('content','order_radio');
+            echo $this->getChildChildHtml('content','order_chart');
+            echo $this->getChildChildHtml('content','order_grid');
+            break;
+        case "warehouse":
+            echo $this->getChildChildHtml('content','warehouse_radio');
+            echo $this->getChildChildHtml('content','warehouse_chart');
+            echo $this->getChildChildHtml('content','warehouse_grid');
+            break;
+        case "product":
+            echo $this->getChildChildHtml('content','product_radio');
+            echo $this->getChildChildHtml('content','product_chart');
+            echo $this->getChildChildHtml('content','product_grid');
+            break;
+        case "supplier":       
+            echo $this->getChildHtml('supplier_library');
+            echo $this->getChildHtml('supplier_select');
+            echo $this->getChildHtml('supplier_chart');
+            echo $this->getChildHtml('supplier_grid');
+            
+            break;
+    }
+}
+//die;
+
+?> 

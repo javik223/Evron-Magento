@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+<?php echo $this->getChildHtml('head') ?>
+</head>
+<body>
+<!-- <div class="container">
+	<?php echo $this->getChildHtml('global_notices'); ?>
+</div> -->
+<?php echo $this->getChildHtml('header') ?>
+
+<!-- Main Content -->
+<div class="container">
+	<div class="row-main">
+		<div class="col m-3-12"><?php echo $this->getChildHtml('customer_account_navigation'); ?></div>
+		<div class="col m-8-12">
+			<?php echo $this->getChildHtml('content'); ?>
+		</div>
+	</div>
+</div>
+
+<!-- Footer -->
+<?php echo $this->getChildHtml('footer_before'); ?>
+<?php echo $this->getChildHtml('footer'); ?>
+<?php echo $this->getChildHtml('before_body_end'); ?>
+<?php echo $this->getAbsoluteFooter(); ?>
+</body>
+</html>

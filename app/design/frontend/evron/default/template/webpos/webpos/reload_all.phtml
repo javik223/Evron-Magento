@@ -1,0 +1,49 @@
+<?php
+$session = Mage::getSingleton('checkout/session');
+$shipping_method = $this->getChildHtml('webpos_shipping_method');
+$payment_method = $this->getChildHtml('webpos_payment_method');
+$pos_items = $this->getChildHtml('pos_items');
+$totals = $this->getChildHtml('totals');
+$result = array('shipping_method' => $shipping_method,'payment_method' => $payment_method,
+	'pos_items' => $pos_items,
+	'totals' => $totals,
+        'is_coupon' => Mage::getSingleton("checkout/cart")->getQuote()->getCouponCode(),
+        'is_custom_discount' => Mage::getSingleton("webpos/session")->getDiscountValue(),
+        'grand_total' => Mage::app()->getStore()->formatPrice(Mage::getSingleton("checkout/cart")->getQuote()->getGrandTotal()),
+        'type'  => Mage::getSingleton("webpos/session")->getType(),
+);
+$errorMessage = $session->getData('webpos_error');
+if(isset($errorMessage) && $errorMessage != ''){
+	$result['errorMessage'] = $errorMessage;
+	$session->setData('webpos_error',null);
+}
+
+$grandTotal = $session->getData('grandTotal');
+$downgrandtotal = $session->getData('downgrandtotal');
+$upgrandtotal = $session->getData('upgrandtotal');
+		
+if(isset($grandTotal) && $grandTotal != ''){
+	$result['grandTotal'] = $grandTotal;
+	$session->setData('grandTotal',null);
+}
+if(isset($downgrandtotal) && $downgrandtotal != ''){
+	$result['downgrandtotal'] = $downgrandtotal;
+	$session->setData('downgrandtotal',null);
+}
+if(isset($upgrandtotal) && $upgrandtotal != ''){
+	$result['upgrandtotal'] = $upgrandtotal;
+	$session->setData('upgrandtotal',null);
+}
+/**/
+$grandTotal = Mage::getSingleton("checkout/cart")->getQuote()->getGrandTotal();
+$downgrandtotal = Mage::helper('webpos')->round_down_cashin($grandTotal);
+$upgrandtotal = Mage::helper('webpos')->round_up_cashin($grandTotal);
+if(!isset($result['grandTotal']))
+    $result['grandTotal'] = Mage::app()->getStore()->formatPrice($grandTotal);
+if(!isset($result['downgrandtotal']))
+    $result['downgrandtotal'] = Mage::app()->getStore()->formatPrice($downgrandtotal);
+if(!isset($result['upgrandtotal']))
+    $result['upgrandtotal'] = Mage::app()->getStore()->formatPrice($upgrandtotal);
+/**/
+echo Zend_Json::encode($result);
+?>

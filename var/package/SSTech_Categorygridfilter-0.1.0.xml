@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<package>
+    <name>SSTech_Categorygridfilter</name>
+    <version>0.1.0</version>
+    <stability>stable</stability>
+    <license>Open Software License (OSL)</license>
+    <channel>community</channel>
+    <extends/>
+    <summary>Extension which allow to add category and Thumbnail image in Admin grid for filter and get easy access of data in grid only </summary>
+    <description>Extension which allow to add category and Thumbnail image in Admin grid for filter and get easy access of data in grid only </description>
+    <notes>version 0.1.0</notes>
+    <authors><author><name>SSTech</name><user>sandy</user><email>sandynareshg@gmail.com</email></author></authors>
+    <date>2014-04-24</date>
+    <time>11:23:53</time>
+    <contents><target name="mageetc"><dir name="modules"><file name="SSTech_Categorygridfilter.xml" hash="9d5e08f649b6d4b9b454bba0370a3a18"/></dir></target><target name="magecommunity"><dir name="SSTech"><dir name="Abandcart"><dir name="Block"><dir name="Debug"><file name="Report.php" hash="2d0c710c5916e9b26e93f4938e6a224f"/></dir></dir><dir name="Helper"><file name="Data.php" hash="df6cb74b034f899329038dfa3634461d"/></dir><dir name="Model"><file name="Cron.php" hash="707a9342421c58b082679c1ab8077655"/><file name="Report.php" hash="50a3a7468689fa097824cc84ba16149f"/></dir><dir name="controllers"><dir name="Adminhtml"><file name="DebugController.php" hash="303a78905d4797f9ead284f293123354"/></dir><file name="IndexController.php" hash="249beacfd38003f285cfaaea8790bf47"/></dir><dir name="etc"><file name="adminhtml.xml" hash="d9214c26d702453bd6299f63118a91b2"/><file name="config.xml" hash="d30d2e9b2d1b871d46839fb77166800f"/><file name="system.xml" hash="2d855587eb4d7dacb2e0a00356c9afdd"/></dir></dir><dir name="Categorygridfilter"><dir name="Block"><dir name="Adminhtml"><dir name="Catalog"><dir name="Product"><dir name="Grid"><dir name="Render"><file name="Category.php" hash="87f5bd693a4200da20fc788ee9eb0d76"/><file name="Thumbnail.php" hash="990fb66b1e98ed9cc35eb651174e8dcf"/></dir></dir><file name="Grid.php" hash="d413a16782d7180f086ac39e17b0e6e3"/></dir></dir></dir></dir><dir name="Helper"><file name="Data.php" hash="601d02e9118e91ace3e85c49ad45ea77"/></dir><dir name="Model"><dir name="System"><dir name="Config"><dir name="Source"><file name="Category.php" hash="df1b3a17f834a2b2812e095bb0877dee"/></dir></dir></dir></dir><dir name="etc"><file name="config.xml" hash="51e22002cae1078588c47b88fbf4fc41"/><file name="system.xml" hash="34d3e7e0bbdc3ad6791a9f7e6e81b729"/></dir></dir></dir></target></contents>
+    <compatible/>
+    <dependencies><required><php><min>5.1.0</min><max>6.0.0</max></php></required></dependencies>
+</package>

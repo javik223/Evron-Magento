@@ -1,0 +1,162 @@
+<?php
+/**
+ * Magestore
+ * 
+ * NOTICE OF LICENSE
+ * 
+ * This source file is subject to the Magestore.com license that is
+ * available through the world-wide-web at this URL:
+ * http://www.magestore.com/license-agreement.html
+ * 
+ * DISCLAIMER
+ * 
+ * Do not edit or add to this file if you wish to upgrade this extension to newer
+ * version in the future.
+ * 
+ * @category    Magestore
+ * @package     Magestore_Inventorysupplyneeds
+ * @copyright   Copyright (c) 2012 Magestore (http://www.magestore.com/)
+ * @license     http://www.magestore.com/license-agreement.html
+ */
+/**
+ * Inventoryreports Adminhtml Block
+ * 
+ * @category    Magestore
+ * @package     Magestore_Inventoryreports
+ * @author      Magestore Developer
+ */
+?>
+<?php $reports = $this->getReports(); ?>
+<div id="inventory_report_dashboard" class="inventory_report_dashboard">
+    <div class="content-header">
+        <table cellspacing="0">
+            <tbody><tr>
+                    <td style="width:50%;">
+                        <h3 class="icon-head head-adminhtml-report"><?php echo $this->__('Inventory Reports') ?></h3>
+                    </td>
+                </tr>
+            </tbody></table>
+    </div>    
+    <div class="dasboard_column">
+        <table class="report-table">
+            <?php $i = 0 ?>
+            <?php foreach ($reports as $type => $reportGroup): ?>
+                <?php if (++$i % 2 == 1): ?>
+                    <tr>
+                    <?php endif; ?>
+                    <td>
+                        <div class="report_box">
+                            <h2 class="mbl">
+                                <?php echo $reportGroup['title'] ?>
+                            </h2>
+                            <div class="report_list">
+                                <span class="report_image <?php echo $type ?>"> </span>
+                                <p class="report_type_description">
+                                    <?php echo $reportGroup['description'] ?>
+                                </p>
+                                <ul>
+                                    <li>
+                                        <?php foreach ($reportGroup['reports'] as $report): ?>
+                                            <a href="<?php echo $this->getReportUrl($type, $report) ?>">
+                                                <?php echo $this->__($report['title']) ?>
+                                            </a> &nbsp;
+                                        <?php endforeach; ?>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </td>
+                    <?php if ($i % 2 == 0): ?>
+                    </tr>
+                    <tr><td class="td-separate" colspan="3"></td></tr>
+                <?php else: ?>
+                    <td class="td-separate"></td>
+                <?php endif; ?>    
+            <?php endforeach; ?>
+        </table>
+    </div>
+</div>
+
+<style type="text/css">
+    #inventory_report_dashboard{
+        width: 95%;
+        float: left;
+        margin-left:5%;
+    }
+    #inventory_report_dashboard table.report-table {width:100%;}
+    #inventory_report_dashboard table.report-table td {
+        width:48%;
+        padding:10px 20px;
+        background-color: #fff;
+        background-image: linear-gradient(#fff, #f7f7f7);
+        box-shadow: 0 1px 1px rgba(0, 0, 0, 0.05);
+        border: 1px solid #ccc;
+        border-radius: 3px;
+    }
+
+    #inventory_report_dashboard table.report-table td.td-separate {width:4%;border:0;background:none;}
+
+    #inventory_report_dashboard .dasboard_column{
+        float: left;
+        background: #fff;
+    }
+    #inventory_report_dashboard .dasboard_column .report_box{
+        width: 80%;
+        float: left;
+    }
+    #inventory_report_dashboard .dasboard_column .report_box .mbl{
+        margin-bottom: 20px !important;
+        font-weight: 400;
+        color: #4B4D4F;
+        text-rendering: optimizelegibility;
+    }
+
+    #inventory_report_dashboard .dasboard_column .report_box .report_list .report_image {
+        text-align: center;
+        display: inline-block;
+        float:left;
+        width: 60px;
+        height: 60px;
+        margin-right:10px;
+        //padding: 5px;
+    }
+    #inventory_report_dashboard .dasboard_column .report_box .report_list .sales {
+        background: #fafafa url("<?php echo Mage::getBaseUrl('media') . 'inventoryreports/sales.png' ?>") no-repeat center center;
+        background-size: 50px 50px;
+    }
+    #inventory_report_dashboard .dasboard_column .report_box .report_list .stockonhand {
+        background: #fafafa url("<?php echo Mage::getBaseUrl('media') . 'inventoryreports/product.png' ?>") no-repeat center center;
+        background-size: 50px 50px;
+    }
+    #inventory_report_dashboard .dasboard_column .report_box .report_list .purchaseorder {
+        background: #fafafa url("<?php echo Mage::getBaseUrl('media') . 'inventoryreports/purchase-order.png' ?>") no-repeat center center;
+        background-size: 50px 50px;
+    }
+    #inventory_report_dashboard .dasboard_column .report_box .report_list .stockmovement {
+        background: #fafafa url("<?php echo Mage::getBaseUrl('media') . 'inventoryreports/movement.png' ?>") no-repeat center center;
+        background-size: 50px 50px;
+    }
+    #inventory_report_dashboard .dasboard_column .report_box .report_list .warehouse {
+        background: #fafafa url("<?php echo Mage::getBaseUrl('media') . 'inventoryreports/warehouse.png' ?>") no-repeat center center;
+        background-size: 50px 50px;
+    }
+    #inventory_report_dashboard .dasboard_column .report_box .report_list .customer {
+        background: #fafafa url("<?php echo Mage::getBaseUrl('media') . 'inventoryreports/customer.png' ?>") no-repeat center center;
+        background-size: 50px 50px;
+    }
+    #inventory_report_dashboard .dasboard_column .report_box .report_list .report_type_description{
+        margin-bottom: 5px !important;
+        font-size:13px;
+    }
+    #inventory_report_dashboard .dasboard_column .report_box .report_list ul{
+        list-style: none;
+        padding:10px;
+        margin-left:60px;
+    }
+    #inventory_report_dashboard .dasboard_column .report_box .report_list ul li a{
+        text-decoration: none;
+    }    
+    #inventory_report_dashboard .dasboard_column .report_box .report_list ul li a:hover{
+        text-decoration: underline;
+    }        
+</style>

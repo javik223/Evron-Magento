@@ -1,0 +1,72 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Magestore
+ * 
+ * NOTICE OF LICENSE
+ * 
+ * This source file is subject to the Magestore.com license that is
+ * available through the world-wide-web at this URL:
+ * http://www.magestore.com/license-agreement.html
+ * 
+ * DISCLAIMER
+ * 
+ * Do not edit or add to this file if you wish to upgrade this extension to newer
+ * version in the future.
+ * 
+ * @category    Magestore
+ * @package     Magestore_Inventoryphysicalstocktaking
+ * @copyright   Copyright (c) 2012 Magestore (http://www.magestore.com/)
+ * @license     http://www.magestore.com/license-agreement.html
+ */
+-->
+<layout version="0.1.0">
+     <!--Inventory Physical Stocktaking -->
+    <adminhtml_inph_physicalstocktaking_index>
+        <update handle="adminhtml_inventoryplus_layout" />
+        <reference name="content">
+            <block type="inventoryphysicalstocktaking/adminhtml_listphysicalstocktaking" name="inventory_listphysicalstocktaking" />
+        </reference>
+    </adminhtml_inph_physicalstocktaking_index>
+    <adminhtml_inph_physicalstocktaking_grid>
+        <block type="core/text_list" name="root">
+            <block type="inventoryphysicalstocktaking/adminhtml_physicalstocktaking_listphysicalstocktaking_grid" name="inventory_listphysicalstocktaking_grid" />
+        </block>
+    </adminhtml_inph_physicalstocktaking_grid>
+    <adminhtml_inph_physicalstocktaking_edit>
+        <update handle="adminhtml_inventoryplus_one_tab" />        
+    </adminhtml_inph_physicalstocktaking_edit>
+    <adminhtml_inph_physicalstocktaking_prepare>
+        <update handle="adminhtml_inventoryplus_one_tab" />        
+    </adminhtml_inph_physicalstocktaking_prepare>
+    <adminhtml_inph_physicalstocktaking_new>
+        <update handle="adminhtml_inventoryplus_layout" />
+        <reference name="content">
+            <block type="inventoryphysicalstocktaking/adminhtml_physicalstocktaking" name="adminhtml_physicalstocktaking" /> 
+        </reference>
+    </adminhtml_inph_physicalstocktaking_new>
+    <adminhtml_inph_physicalstocktaking_product>
+        <block type="core/text_list" name="root">
+            <block type="inventoryphysicalstocktaking/adminhtml_physicalstocktaking_warehouse" name="warehouse_informarion" template="inventoryphysicalstocktaking/physicalstocktaking/warehouse_information.phtml" />
+            <block type="inventoryphysicalstocktaking/adminhtml_physicalstocktaking_edit_tab_products" name="inventoryphysicalstocktaking.physicalstocktaking.edit.tab.products"/>
+            <block type="adminhtml/widget_grid_serializer" name="related_grid_serializer">
+                <action method="initSerializerBlock">
+                    <grid_block_name>inventoryphysicalstocktaking.physicalstocktaking.edit.tab.products</grid_block_name>
+                    <data_callback>getSelectedRelatedProducts</data_callback>
+                    <hidden_input_name>physicalstocktaking_products</hidden_input_name>
+                    <reload_param_name>physicalstocktaking_products</reload_param_name>
+                </action>
+                <action method="addColumnInputName">
+                    <input_name>adjust_qty</input_name>
+                    <input_name>position</input_name>
+                </action>
+            </block>
+        </block>
+    </adminhtml_inph_physicalstocktaking_product>
+    <adminhtml_inph_physicalstocktaking_productgrid>
+        <block type="core/text_list" name="root">
+            <block type="inventoryphysicalstocktaking/adminhtml_physicalstocktaking_edit_tab_products" name="inventoryphysicalstocktaking.physicalstocktaking.edit.tab.products"/>
+        </block>
+    </adminhtml_inph_physicalstocktaking_productgrid>
+    
+</layout>

@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Magestore
+ * 
+ * NOTICE OF LICENSE
+ * 
+ * This source file is subject to the Magestore.com license that is
+ * available through the world-wide-web at this URL:
+ * http://www.magestore.com/license-agreement.html
+ * 
+ * DISCLAIMER
+ * 
+ * Do not edit or add to this file if you wish to upgrade this extension to newer
+ * version in the future.
+ * 
+ * @category    Magestore
+ * @package     Magestore_Inventory
+ * @copyright   Copyright (c) 2012 Magestore (http://www.magestore.com/)
+ * @license     http://www.magestore.com/license-agreement.html
+ */
+-->
+<config>
+    <modules>
+        <Magestore_Inventoryplus>
+            <active>true</active>
+            <codePool>local</codePool>
+            <edition>pro</edition>
+            <public_version>1.7.0</public_version>
+            <public_date>2015-12-22</public_date>
+            <erp>
+                <alias_name>Inventory Management</alias_name>
+                <icon>inventoryplus</icon>
+                <default_page>adminhtml/inp_dashboard</default_page>
+            </erp>
+        </Magestore_Inventoryplus>
+    </modules>
+</config>

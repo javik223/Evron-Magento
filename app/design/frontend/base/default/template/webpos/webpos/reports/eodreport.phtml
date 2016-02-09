@@ -1,0 +1,50 @@
+<?php
+$collection = $this->getOrderCollectionCollection();
+?>
+<table id='end_of_day_table' class="table-bordered webpos_bordered_table">
+    <thead>
+        <tr>
+            <th><?php echo $this->__('Order#'); ?></th>
+            <th><?php echo $this->__('Cashier'); ?></th>
+            <th><?php echo $this->__('Store'); ?></th>
+			<th><?php echo $this->__('Cash Drawer'); ?></th>
+            <th><?php echo $this->__('Bill to Name'); ?></th>
+            <th><?php echo $this->__('Total'); ?></th>
+            <th><?php echo $this->__('Purchased On'); ?></th>
+            <th><?php echo $this->__('Status'); ?></th>
+        </tr>
+    </thead>
+    <tbody>
+        <?php
+        if (count($collection) > 0):
+            foreach ($collection as $posorder):
+                ?>
+                <tr>
+                    <td><?php echo $posorder->getData('order_id'); ?></td>
+                    <td><?php echo $posorder->getData('user_name'); ?></td>
+                    <td><?php echo $posorder->getData('name'); ?></td>
+					<td><?php echo $posorder->getTillNameFromOrder(); ?></td>
+                    <td><?php echo $posorder->getData('billing_name'); ?></td>
+                    <td><?php echo Mage::helper('core')->currency($posorder->getData('order_totals'), true, false); ?></td>
+                    <td><?php echo Mage::helper('core')->formatDate($posorder->getData('created_date'), Mage_Core_Model_Locale::FORMAT_TYPE_MEDIUM, true); ?></td>
+                    <td><?php echo $posorder->getData('status'); ?></td>
+                </tr>
+                <?php
+            endforeach;
+        endif;
+        ?>
+    </tbody>
+</table>
+<div class="bottom_control">
+    <button type="button" class="" data-toggle="collapse" data-target="#eod_export">
+        <?php echo $this->__('Export Data'); ?>
+    </button>
+    <div class='clear'></div>
+    <div id="eod_export" class="collapse out">
+        <a title="Excel" href="#" onclick="$D('#end_of_day_table').tableExport({type: 'excel', escape: 'false'});"><img src='<?php echo Mage::getBaseUrl(Mage_Core_Model_Store::URL_TYPE_SKIN) . "frontend/base/default/css/magestore/webpos/images/xls.png"; ?>' /></a>
+        <a title="PDF" href="#" onclick="$D('#end_of_day_table').tableExport({type: 'pdf', escape: 'false', pdfFontSize: '7'});"><img src='<?php echo Mage::getBaseUrl(Mage_Core_Model_Store::URL_TYPE_SKIN) . "frontend/base/default/css/magestore/webpos/images/pdf.png"; ?>' /></a>
+        <a title="CSV" href="#" onclick="$D('#end_of_day_table').tableExport({type: 'csv', escape: 'false'});"><img src='<?php echo Mage::getBaseUrl(Mage_Core_Model_Store::URL_TYPE_SKIN) . "frontend/base/default/css/magestore/webpos/images/csv.png"; ?>' /></a>
+        <a title="Doc" href="#" onclick="$D('#end_of_day_table').tableExport({type: 'doc', escape: 'false'});"><img src='<?php echo Mage::getBaseUrl(Mage_Core_Model_Store::URL_TYPE_SKIN) . "frontend/base/default/css/magestore/webpos/images/word.png"; ?>' /></a>
+        <!--a title="PNG" href="#" onclick="$D('#end_of_day_table').tableExport({type: 'png', escape: 'false'});"><img src='<?php echo Mage::getBaseUrl(Mage_Core_Model_Store::URL_TYPE_SKIN) . "frontend/base/default/css/magestore/webpos/images/png.png"; ?>' /></a-->
+    </div>
+</div>

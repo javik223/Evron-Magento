@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Magestore
+ * 
+ * NOTICE OF LICENSE
+ * 
+ * This source file is subject to the Magestore.com license that is
+ * available through the world-wide-web at this URL:
+ * http://www.magestore.com/license-agreement.html
+ * 
+ * DISCLAIMER
+ * 
+ * Do not edit or add to this file if you wish to upgrade this extension to newer
+ * version in the future.
+ * 
+ * @category    Magestore
+ * @package     Magestore_Inventorydashboard
+ * @copyright   Copyright (c) 2012 Magestore (http://www.magestore.com/)
+ * @license     http://www.magestore.com/license-agreement.html
+ */
+-->
+<layout version="0.1.0">
+    <adminhtml_ind_dashboard_index>
+        <update handle="adminhtml_inventoryplus_layout" />
+        <reference name="head">            
+            <action method="addCss">
+                <stylesheet>css/magestore/jquery-ui.css</stylesheet>
+            </action>
+        </reference>
+        <reference name="content">   
+            <block type="adminhtml/template" name="dashboard_inventory_js" template="inventorydashboard/js.phtml" />
+            <block type="inventorydashboard/adminhtml_inventorydashboard" name="dashboard_inventory" template="inventorydashboard/index.phtml"/>                            
+        </reference>
+    </adminhtml_ind_dashboard_index>
+</layout>

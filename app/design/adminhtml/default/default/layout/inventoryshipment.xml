@@ -1,0 +1,44 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Magestore
+ * 
+ * NOTICE OF LICENSE
+ * 
+ * This source file is subject to the Magestore.com license that is
+ * available through the world-wide-web at this URL:
+ * http://www.magestore.com/license-agreement.html
+ * 
+ * DISCLAIMER
+ * 
+ * Do not edit or add to this file if you wish to upgrade this extension to newer
+ * version in the future.
+ * 
+ * @category    Magestore
+ * @package     Magestore_Inventoryshipment
+ * @copyright   Copyright (c) 2012 Magestore (http://www.magestore.com/)
+ * @license     http://www.magestore.com/license-agreement.html
+ */
+-->
+<layout version="0.1.0">
+    <adminhtml_ins_inventoryshipment_index>
+        <update handle="adminhtml_inventoryplus_layout" />
+        <reference name="content">
+            <block type="inventoryshipment/adminhtml_inventoryshipment" name="inventoryshipment" />
+        </reference>
+    </adminhtml_ins_inventoryshipment_index>
+    <adminhtml_ins_sales_order_view>
+        <update handle="adminhtml_inventoryplus_layout" />
+        <reference name="sales_order_tabs">
+            <action method="removeTab"><name>order_invoices</name></action>
+            <action method="removeTab"><name>order_creditmemos</name></action>
+            <action method="removeTab"><name>order_history</name></action>
+            <action method="removeTab"><name>order_transactions</name></action>
+        </reference>
+    </adminhtml_ins_sales_order_view>
+    <adminhtml_sales_order_shipment_new>
+        <reference name="order_item_extra_info">
+            <block type="inventoryshipment/adminhtml_flag" />
+        </reference>
+    </adminhtml_sales_order_shipment_new>
+</layout>

@@ -1,0 +1,168 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Magestore
+ * 
+ * NOTICE OF LICENSE
+ * 
+ * This source file is subject to the Magestore.com license that is
+ * available through the world-wide-web at this URL:
+ * http://www.magestore.com/license-agreement.html
+ * 
+ * DISCLAIMER
+ * 
+ * Do not edit or add to this file if you wish to upgrade this extension to newer
+ * version in the future.
+ * 
+ * @category    Magestore
+ * @package     Magestore_Inventoryphysicalstocktaking
+ * @copyright   Copyright (c) 2012 Magestore (http://www.magestore.com/)
+ * @license     http://www.magestore.com/license-agreement.html
+ */
+-->
+<config>
+    <modules>
+        <Magestore_Inventoryphysicalstocktaking>
+            <version>0.1.0</version>
+        </Magestore_Inventoryphysicalstocktaking>
+    </modules>
+    <frontend>
+        <routers>
+            <inventoryphysicalstocktaking>
+                <use>standard</use>
+                <args>
+                    <module>Magestore_Inventoryphysicalstocktaking</module>
+                    <frontName>inventoryphysicalstocktaking</frontName>
+                </args>
+            </inventoryphysicalstocktaking>
+        </routers>
+        <layout>
+            <updates>
+                <inventoryphysicalstocktaking>
+                    <file>inventoryphysicalstocktaking.xml</file>
+                </inventoryphysicalstocktaking>
+            </updates>
+        </layout>
+        <translate>
+            <modules>
+                <Magestore_Inventoryphysicalstocktaking>
+                    <files>
+                        <default>Magestore_Inventoryphysicalstocktaking.csv</default>
+                    </files>
+                </Magestore_Inventoryphysicalstocktaking>
+            </modules>
+        </translate>
+    </frontend>
+    <admin>
+        <routers>
+            <adminhtml>
+                <args>
+                    <modules>
+                        <magestore_inventoryphysicalstocktaking after="Mage_Adminhtml">Magestore_Inventoryphysicalstocktaking_Adminhtml</magestore_inventoryphysicalstocktaking>
+                    </modules>
+                </args>
+            </adminhtml>
+        </routers>
+    </admin>
+    <adminhtml>
+        <layout>
+            <updates>
+                <inventoryphysicalstocktaking>
+                    <file>inventoryphysicalstocktaking.xml</file>
+                </inventoryphysicalstocktaking>
+            </updates>
+        </layout>
+        <translate>
+            <modules>
+                <Magestore_Inventoryphysicalstocktaking>
+                    <files>
+                        <default>Magestore_Inventoryphysicalstocktaking.csv</default>
+                    </files>
+                </Magestore_Inventoryphysicalstocktaking>
+            </modules>
+        </translate>
+        <events>
+            <inventory_adminhtml_add_column_permission_grid>
+                <observers>
+                    <inventoryphysicalstocktaking_observers>
+                        <class>inventoryphysicalstocktaking/observer</class>
+                        <method>addColumnPermission</method>
+                    </inventoryphysicalstocktaking_observers>
+                </observers>
+            </inventory_adminhtml_add_column_permission_grid>
+            <inventory_adminhtml_add_more_permission>
+                <observers>
+                    <inventoryphysicalstocktaking_observers>
+                        <class>inventoryphysicalstocktaking/observer</class>
+                        <method>addMorePermission</method>
+                    </inventoryphysicalstocktaking_observers>
+                </observers>
+            </inventory_adminhtml_add_more_permission>
+            <inventoryplus_inventory_stock_action_buttons>
+                <observers>
+                    <inventoryphysicalstocktaking_observers>
+                        <class>inventoryphysicalstocktaking/observer</class>
+                        <method>inventoryplus_inventory_stock_action_buttons</method>
+                    </inventoryphysicalstocktaking_observers>
+                </observers>
+            </inventoryplus_inventory_stock_action_buttons>   
+            <inventoryplus_warehouse_stock_action_buttons>
+                <observers>
+                    <inventoryphysicalstocktaking_observers>
+                        <class>inventoryphysicalstocktaking/observer</class>
+                        <method>inventoryplus_warehouse_stock_action_buttons</method>
+                    </inventoryphysicalstocktaking_observers>
+                </observers>
+            </inventoryplus_warehouse_stock_action_buttons>                      
+        </events>
+    </adminhtml>   
+    <global>
+        <models>
+            <inventoryphysicalstocktaking>
+                <class>Magestore_Inventoryphysicalstocktaking_Model</class>
+                <resourceModel>inventoryphysicalstocktaking_mysql4</resourceModel>
+            </inventoryphysicalstocktaking>
+            <inventoryphysicalstocktaking_mysql4>
+                <class>Magestore_Inventoryphysicalstocktaking_Model_Mysql4</class>
+                <entities>
+                    <physicalstocktaking>
+                        <table>erp_inventory_physicalstocktaking</table>
+                    </physicalstocktaking>
+                    <physicalstocktaking_product>
+                        <table>erp_inventory_physicalstocktaking_product</table>
+                    </physicalstocktaking_product>
+                </entities>
+            </inventoryphysicalstocktaking_mysql4>
+        </models>
+        <resources>
+            <inventoryphysicalstocktaking_setup>
+                <setup>
+                    <module>Magestore_Inventoryphysicalstocktaking</module>
+                </setup>
+                <connection>
+                    <use>core_setup</use>
+                </connection>
+            </inventoryphysicalstocktaking_setup>
+            <inventoryphysicalstocktaking_write>
+                <connection>
+                    <use>core_write</use>
+                </connection>
+            </inventoryphysicalstocktaking_write>
+            <inventoryphysicalstocktaking_read>
+                <connection>
+                    <use>core_read</use>
+                </connection>
+            </inventoryphysicalstocktaking_read>
+        </resources>
+        <blocks>
+            <inventoryphysicalstocktaking>
+                <class>Magestore_Inventoryphysicalstocktaking_Block</class>
+            </inventoryphysicalstocktaking>
+        </blocks>
+        <helpers>
+            <inventoryphysicalstocktaking>
+                <class>Magestore_Inventoryphysicalstocktaking_Helper</class>
+            </inventoryphysicalstocktaking>
+        </helpers>        
+    </global>
+</config>

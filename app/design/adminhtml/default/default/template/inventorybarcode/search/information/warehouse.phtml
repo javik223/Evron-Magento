@@ -1,0 +1,115 @@
+<?php if ($warehouse->getId()): ?>
+    <div class="entry-edit" >
+        <form id="filter_form" action="" method="get"><div></div>
+            <div class="entry-edit-head" style="margin-top: 5px; cursor: pointer;" id="warehouse_form_<?php echo $warehouse->getId()?>-head" onclick="Fieldset.toggleCollapse('warehouse_form_<?php echo $warehouse->getId()?>')">
+                <h4 class="icon-head head-edit-form fieldset-legend"><?php echo $this->__('Warehouse Information') ?> : <?php echo $warehouse->getWarehouseName()?></h4>
+                <div class="form-buttons"></div>
+            </div>
+            <div class="fieldset " id="warehouse_form_<?php echo $warehouse->getId()?>" style="display:none">
+                <div class="hor-scroll">
+                    <table cellspacing="0" class="form-list">
+                        <tbody>
+
+                            <tr>
+                                <td class="label"><label><?php echo $this->__('Warehouse Name') ?></label></td>
+                                <td class="value">
+                                    <?php echo $warehouse->getWarehouseName() ?>
+                                </td>
+                            </tr>
+                            
+                            <tr>
+                                <td class="label"><label><?php echo $this->__('Manager\'s Name') ?></label></td>
+                                <td class="value">
+                                    <?php echo $warehouse->getManagerName() ?>
+                                </td>
+                            </tr>
+                            
+                            <tr>
+                                <td class="label"><label><?php echo $this->__('Manager\'s Email') ?></label></td>
+                                <td class="value">
+                                    <?php echo $warehouse->getManagerEmail() ?>
+                                </td>
+                            </tr>
+                            
+                            <tr>
+                                <td class="label"><label><?php echo $this->__('Telephone') ?></label></td>
+                                <td class="value">
+                                    <?php echo $warehouse->getTelephone() ?>
+                                </td>
+                            </tr>
+                            
+                            <tr>
+                                <td class="label"><label><?php echo $this->__('Address') ?></label></td>
+                                <td class="value">
+                                    <?php echo $warehouse->getStreet() ?>
+                                </td>
+                            </tr>
+                            
+                            <tr>
+                                <td class="label"><label><?php echo $this->__('City') ?></label></td>
+                                <td class="value">
+                                    <?php echo $warehouse->getCity() ?>
+                                </td>
+                            </tr>
+                            
+                            <?php if($warehouse->getState() || $warehouse->getStateId()):?>
+                            <tr>
+                                <td class="label"><label><?php echo $this->__('State/Province') ?></label></td>
+                                <td class="value">
+                                    <?php if($warehouse->getState()):?>
+                                        <?php echo $warehouse->getState(); ?>
+                                    <?php else:?>
+                                        <?php
+                                            $region = Mage::getModel('directory/region')->load($warehouse->getStateId());
+                                            echo $region->getName();
+                                        ?>
+                                    <?php endif;?>
+                                </td>
+                            </tr>
+                            <?php endif;?>
+                            
+                            <tr>
+                                <td class="label"><label><?php echo $this->__('Zip/Postal Code') ?></label></td>
+                                <td class="value">
+                                    <?php echo $warehouse->getPostcode(); ?>
+                                </td>
+                            </tr> 
+                            
+                            <?php
+                            try{
+                            $countryModel = Mage::getModel('directory/country')->loadByCode($warehouse->getCountryId());
+
+                            $countryName = $countryModel->getName();
+                            }catch(Exception $e){
+                                $countryName = '';
+                            }
+                            ?>
+                            <tr>
+                                <td class="label"><label><?php echo $this->__('Country') ?></label></td>
+                                <td class="value">
+                                    <?php echo $countryName; ?>
+                                </td>
+                            </tr>
+                            
+                            <tr>
+                                <td class="label"><label><?php echo $this->__('Status') ?></label></td>
+                                <td class="value">
+                                     <?php echo ($warehouse->getStatus()==1)? $this->__('Enable'):$this->__('Disable'); ?>
+                                </td>
+                            </tr>
+                                                       
+                            
+                            <tr>
+                                <td class="label"></td>
+                                <td class="value">
+                                    <a style="text-decoration: none; cursor: pointer;" onclick="window.open('<?php echo Mage::helper("adminhtml")->getUrl("adminhtml/inp_warehouse/edit/", array("id" => $warehouse->getId())); ?>', '_blank', 'scrollbars=yes, resizable=yes, width=1000, height=600, top=50, left=300')"/><?php echo $this->__('More details') ?></a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </form>
+    </div>
+<?php endif; ?>
+

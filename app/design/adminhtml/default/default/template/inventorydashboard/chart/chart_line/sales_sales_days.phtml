@@ -1,0 +1,81 @@
+<?php
+$requestData = Mage::helper('adminhtml')->prepareFilterString($this->getRequest()->getParam('top_filter'));
+$reportCode = $this->getReportCode();
+$id_box = $this->getIdBox();
+if (empty($requestData)) {
+    $requestData = array();
+    $requestData['report_radio_select'] = $reportCode;
+    $isFound = false;
+    $reportTypes = Mage::helper('inventorydashboard/constant')->getReportTypes();
+    foreach ($reportTypes as $type => $value) {
+        foreach ($value['report_code'] as $code => $value2) {
+            if (strcmp($code, $reportCode) == 0) {
+                $requestData['select_time'] = $value2['default_time_range'];
+                $isFound = true;
+                break;
+            }
+        }
+        if ($isFound == true) {
+            break;
+        }
+    }
+}
+$dataCollection = Mage::helper('inventoryreports/order')->getOrderReportCollection($requestData);
+if (is_array($dataCollection)) {
+    $collection = $dataCollection['collection'];
+} else {
+    $collection = $dataCollection;
+}
+?>
+    <?php if (count($collection) > 0): ?>
+    <div class="chart-parent-div">
+        <?php
+        $columnData = Mage::helper('inventorydashboard')->getChartColumnData($collection, $requestData);
+        $categories = $columnData['categories'];
+        $series = $columnData['series'];
+        ?>
+        <script type="text/javascript">
+            $(function () {
+                $_('#<?php echo $id_box ?>').highcharts({
+                        title: {
+                        text: '<?php echo $this->__('Sales Report By Day') ?>'
+                        },
+                                xAxis: {
+                                type: 'datetime',
+                                        dateTimeLabelFormats: {month: '%e. %b',year: '%b'},
+                                        title: { text: 'Date'}
+                                },
+                        yAxis: {
+                            min: 0,
+                            title: {
+                                        text: '<?php echo $this->__('Grand Total (' . Mage::app()->getLocale()->currency(Mage::app()->getStore()->getCurrentCurrencyCode())->getSymbol() . ')') ?>'
+                                    }
+                        },
+                        labels: {
+                                items: [{
+                                    style: {
+                                    left: '20px',
+                                            top: '-30px',
+                                            color: (Highcharts.theme && Highcharts.theme.textColor) || 'black'
+                                    }
+                                }]
+                        },
+                        series: [
+                            {
+                                        type: 'spline',
+                                                name: '<?php echo $this->__('Grand Total') ?>',
+                                                data: <?php echo $series['inventory_order']['data']; ?>,
+                                                marker: {
+                                                lineWidth: 1,
+                                                        //lineColor: Highcharts.getOptions().colors[3],
+                                                        fillColor: Highcharts.getOptions().colors[3]
+                                                }
+                                        }
+                        ]
+                }
+                );
+            });
+        </script>
+        <div class="chart-child-div" id="<?php echo $id_box ?>" ></div>
+    </div>
+<?php endif; ?>

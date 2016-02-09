@@ -1,0 +1,156 @@
+<?php if ($supplier->getId()): ?>
+    <div class="entry-edit" >
+        <form id="filter_form" action="" method="get"><div></div>
+            <div class="entry-edit-head" style="margin-top: 5px; cursor: pointer;" id="supplier_search_form-head" onclick="Fieldset.toggleCollapse('supplier_search_form')">
+                <h4 class="icon-head head-edit-form fieldset-legend"><?php echo $this->__('Supplier Information') ?></h4>
+                <div class="form-buttons"></div>
+            </div>
+            <div class="fieldset " id="supplier_search_form" style="display:none">
+                <div class="hor-scroll">
+                    <table cellspacing="0" class="form-list">
+                        <tbody>
+
+                            <tr>
+                                <td class="label"><label><?php echo $this->__('Supplier Name') ?></label></td>
+                                <td class="value">
+                                    <?php echo $supplier->getSupplierName() ?>
+                                </td>
+                            </tr>
+                            
+                            <tr>
+                                <td class="label"><label><?php echo $this->__('Contact Name') ?></label></td>
+                                <td class="value">
+                                    <?php echo $supplier->getContactName() ?>
+                                </td>
+                            </tr>
+                            
+                            <tr>
+                                <td class="label"><label><?php echo $this->__('Email') ?></label></td>
+                                <td class="value">
+                                    <?php echo $supplier->getSupplierEmail() ?>
+                                </td>
+                            </tr>
+                            
+                            <tr>
+                                <td class="label"><label><?php echo $this->__('Telephone') ?></label></td>
+                                <td class="value">
+                                    <?php echo $supplier->getTelephone() ?>
+                                </td>
+                            </tr>
+                            
+                            <tr>
+                                <td class="label"><label><?php echo $this->__('Fax') ?></label></td>
+                                <td class="value">
+                                    <?php echo $supplier->getFax() ?>
+                                </td>
+                            </tr>
+                            
+                            <tr>
+                                <td class="label"><label><?php echo $this->__('Address') ?></label></td>
+                                <td class="value">
+                                    <?php echo $supplier->getStreet() ?>
+                                </td>
+                            </tr>
+                            
+                            <tr>
+                                <td class="label"><label><?php echo $this->__('City') ?></label></td>
+                                <td class="value">
+                                    <?php echo $supplier->getCity() ?>
+                                </td>
+                            </tr>
+                            
+                            <?php if($supplier->getState() || $supplier->getStateId()):?>
+                            <tr>
+                                <td class="label"><label><?php echo $this->__('State/Province') ?></label></td>
+                                <td class="value">
+                                    <?php if($supplier->getState()):?>
+                                        <?php echo $supplier->getState(); ?>
+                                    <?php else:?>
+                                        <?php
+                                            $region = Mage::getModel('directory/region')->load($supplier->getStateId());
+                                            echo $region->getName();
+                                        ?>
+                                    <?php endif;?>
+                                </td>
+                            </tr>
+                            <?php endif;?>
+                            
+                            <tr>
+                                <td class="label"><label><?php echo $this->__('Zip/Postal Code') ?></label></td>
+                                <td class="value">
+                                    <?php echo $supplier->getPostcode(); ?>
+                                </td>
+                            </tr> 
+                            
+                            <?php
+                            $countryModel = Mage::getModel('directory/country')->loadByCode($supplier->getCountryId());
+
+                            $countryName = $countryModel->getName();
+                            ?>
+                            <tr>
+                                <td class="label"><label><?php echo $this->__('Country') ?></label></td>
+                                <td class="value">
+                                    <?php echo $countryName; ?>
+                                </td>
+                            </tr>
+                            
+                            <tr>
+                                <td class="label"><label><?php echo $this->__('Website') ?></label></td>
+                                <td class="value">
+                                    <a href="<?php echo $supplier->getWebsite(); ?>"/><?php echo $supplier->getWebsite(); ?></a>
+                                </td>
+                            </tr>
+                            
+                            <tr>
+                                <td class="label"><label><?php echo $this->__('No. of Orders ') ?></label></td>
+                                <td class="value">
+                                    <?php echo $supplier->getTotalOrder(); ?>
+                                </td>
+                            </tr>
+                            <?php
+                                $currency = Mage::app()->getStore()->getBaseCurrencyCode();			
+                        
+                            ?>
+                            <tr>
+                                <td class="label"><label><?php echo $this->__('Purchase Order') ?></label></td>
+                                <td class="value">
+                                    <?php echo Mage::getModel('directory/currency')->load($currency)->formatTxt($supplier->getPurchaseOrder()); ?>
+                                </td>
+                            </tr>
+                            
+                            <tr>
+                                <td class="label"><label><?php echo $this->__('Return Order') ?></label></td>
+                                <td class="value">
+                                    <?php echo Mage::getModel('directory/currency')->load($currency)->formatTxt($supplier->getReturnOrder()); ?>
+                                </td>
+                            </tr>
+                            
+                            <tr>
+                                <td class="label"><label><?php echo $this->__('Last Purchase Order') ?></label></td>
+                                <td class="value">
+                                    <?php echo Mage::helper('core')->formatDate($supplier->getLastPurchaseOrder(), 'full', false); ?>
+                                </td>
+                            </tr>
+                            
+                            <tr>
+                                <td class="label"><label><?php echo $this->__('Status') ?></label></td>
+                                <td class="value">
+                                    <?php echo ($supplier->getSupplierStatus()==1)? $this->__('Enable'):$this->__('Disable'); ?>
+                                </td>
+                            </tr>
+                                                       
+                            
+                            <tr>
+                                <td class="label"></td>
+                                <td class="value">
+                                    <a style="text-decoration: none; cursor: pointer;" onclick="window.open('<?php echo Mage::helper("adminhtml")->getUrl("adminhtml/inpu_supplier/edit/", array("id" => $supplier->getId())); ?>', '_blank', 'scrollbars=yes, resizable=yes, width=1000, height=600, top=50, left=300')"/><?php echo $this->__('More details') ?></a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </form>
+    </div>
+<?php endif; ?>
+

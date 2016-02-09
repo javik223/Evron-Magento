@@ -1,0 +1,115 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Magestore
+ * 
+ * NOTICE OF LICENSE
+ * 
+ * This source file is subject to the Magestore.com license that is
+ * available through the world-wide-web at this URL:
+ * http://www.magestore.com/license-agreement.html
+ * 
+ * DISCLAIMER
+ * 
+ * Do not edit or add to this file if you wish to upgrade this extension to newer
+ * version in the future.
+ * 
+ * @category    Magestore
+ * @package     Magestore_Inventory
+ * @copyright   Copyright (c) 2012 Magestore (http://www.magestore.com/)
+ * @license     http://www.magestore.com/license-agreement.html
+ */
+-->
+<config>
+    <inventoryplus_menu>
+        <report module="inventoryreports" translate="title">  
+            <title>Reports</title>
+            <icon>fa-bar-chart-o</icon>
+            <sort_order>95</sort_order>                 
+            <children>
+                <all_report module="inventoryreports" translate="title">
+                    <title>Overview</title>
+                    <sort_order>0</sort_order>    
+                    <action>adminhtml/inr_report/dashboard</action>             
+                </all_report>                 
+                <sales_report module="inventoryreports" translate="title">
+                    <title>Sales</title>
+                    <sort_order>10</sort_order>    
+                    <action>adminhtml/inr_report/sales</action>             
+                </sales_report> 
+                <purchase_order module="inventoryreports" translate="title">
+                    <title>Purchases</title>
+                    <sort_order>20</sort_order>    
+                    <action>adminhtml/inr_report/purchaseorder</action>             
+                </purchase_order>                    
+                <stockonhand_report module="inventoryreports" translate="title">
+                    <title>Stock On-Hand</title>
+                    <sort_order>30</sort_order>    
+                    <action>adminhtml/inr_report/stockonhand</action>             
+                </stockonhand_report>   
+                <stockmovement_report module="inventoryreports" translate="title">
+                    <title>Stock Movements</title>
+                    <sort_order>40</sort_order>    
+                    <action>adminhtml/inr_report/stockmovement</action>             
+                </stockmovement_report> 
+                <customer_report module="inventoryreports" translate="title">
+                    <title>Customers</title>
+                    <sort_order>50</sort_order>    
+                    <action>adminhtml/inr_report/customer</action>             
+                </customer_report>                                                                                                                                     
+            </children>       
+        </report>     
+    </inventoryplus_menu>
+    <acl>
+        <resources>
+            <all>
+                <title>Allow Everything</title>
+            </all>
+            <admin>
+                <children>
+                    <inventoryplus>  
+                        <children>    
+                            <report module="inventoryreports" translate="title">  
+                                <title>Reports</title>
+                                <icon>fa-bar-chart-o</icon>
+                                <sort_order>95</sort_order>                 
+                                <children>
+                                    <all_report module="inventoryreports" translate="title">
+                                        <title>Overview</title>
+                                        <sort_order>0</sort_order>    
+                                        <action>adminhtml/inr_report/dashboard</action>             
+                                    </all_report>                 
+                                    <sales_report module="inventoryreports" translate="title">
+                                        <title>Sales</title>
+                                        <sort_order>10</sort_order>    
+                                        <action>adminhtml/inr_report/sales</action>             
+                                    </sales_report> 
+                                    <purchase_order module="inventoryreports" translate="title">
+                                        <title>Purchases</title>
+                                        <sort_order>20</sort_order>    
+                                        <action>adminhtml/inr_report/purchaseorder</action>             
+                                    </purchase_order>                    
+                                    <stockonhand_report module="inventoryreports" translate="title">
+                                        <title>Stock On-Hand</title>
+                                        <sort_order>30</sort_order>    
+                                        <action>adminhtml/inr_report/stockonhand</action>             
+                                    </stockonhand_report>   
+                                    <stockmovement_report module="inventoryreports" translate="title">
+                                        <title>Stock Movements</title>
+                                        <sort_order>40</sort_order>    
+                                        <action>adminhtml/inr_report/stockmovement</action>             
+                                    </stockmovement_report> 
+                                    <customer_report module="inventoryreports" translate="title">
+                                        <title>Customers</title>
+                                        <sort_order>50</sort_order>    
+                                        <action>adminhtml/inr_report/customer</action>             
+                                    </customer_report>                                                                                                                                     
+                                </children>       
+                            </report>                                                                        
+                        </children>                    
+                    </inventoryplus>
+                </children>
+            </admin>
+        </resources>
+    </acl>
+</config>

@@ -1,0 +1,14 @@
+<?php
+$session = Mage::getSingleton('checkout/session');
+$payment_method = $this->getChildHtml('webpos_payment_method');
+$totals = $this->getChildHtml('totals');
+$result = array('payment_method' => $payment_method,'totals' => $totals);
+
+$errorMessage = $session->getData('webpos_error');
+if(isset($errorMessage) && $errorMessage != ''){
+	$result['errorMessage'] = $errorMessage;
+	$session->setData('webpos_error',null);
+}
+
+echo Zend_Json::encode($result);
+?>

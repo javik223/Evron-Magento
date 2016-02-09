@@ -1,0 +1,67 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Magestore
+ * 
+ * NOTICE OF LICENSE
+ * 
+ * This source file is subject to the Magestore.com license that is
+ * available through the world-wide-web at this URL:
+ * http://www.magestore.com/license-agreement.html
+ * 
+ * DISCLAIMER
+ * 
+ * Do not edit or add to this file if you wish to upgrade this extension to newer
+ * version in the future.
+ * 
+ * @category    Magestore
+ * @package     Magestore_Inventorybarcode
+ * @copyright   Copyright (c) 2012 Magestore (http://www.magestore.com/)
+ * @license     http://www.magestore.com/license-agreement.html
+ */
+-->
+<config>    
+    <sections>
+        <inventoryplus translate="label" module="inventoryplus">            
+            <groups>
+                <barcode translate="label">
+                    <label>Barcode</label>
+                    <frontend_type>text</frontend_type>
+                    <sort_order>80</sort_order>
+                    <show_in_default>1</show_in_default>
+                    <show_in_website>1</show_in_website>
+                    <show_in_store>1</show_in_store>
+                    <fields>        
+                        <barcode_type translate="label comment">
+                            <label>Barcode Symbology</label>
+                            <frontend_type>select</frontend_type>
+                            <source_model>inventorybarcode/barcodetypes</source_model>
+                            <sort_order>1</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                        </barcode_type>
+                        <pattern translate="label comment">
+                            <label>Barcode pattern</label>
+                            <frontend_type>text</frontend_type>
+                            <sort_order>10</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                            <comment><![CDATA[Used to generate barcodes. For example:<br/><strong>[A.8] : 8 alpha characters<br/>[N.4] : 4 numeric characters<br/>[AN.6] : 6 alphanumeric characters<br/>BAR[A.4][AN.6] : BARADFA12NF0O</strong>]]></comment>
+                        </pattern>
+                        <createbarcode_afterdelivery translate="label">
+                                <label>Generate barcodes after creating deliveries of purchase orders</label>
+                                <frontend_type>select</frontend_type>
+                                <source_model>adminhtml/system_config_source_yesno</source_model>
+                                <sort_order>20</sort_order>
+                                <show_in_default>1</show_in_default>
+                                <show_in_website>1</show_in_website>
+                                <show_in_store>0</show_in_store>
+                        </createbarcode_afterdelivery>
+                    </fields>
+                </barcode>
+            </groups>
+        </inventoryplus>
+    </sections>
+</config>

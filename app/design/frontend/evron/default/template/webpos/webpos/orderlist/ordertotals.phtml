@@ -1,0 +1,102 @@
+<div class="total-zone">
+    <table>
+        <tbody>
+                <tr>
+                    <td><?php echo $this->helper('sales')->__('Subtotal') ?></td>
+                    <td align="right"><strong><?php echo $this->getSubtotal(); ?></strong></td>
+                </tr>
+                <tr>
+                    <td><?php echo $this->helper('sales')->__('Discount') ?></td>
+                    <td align="right"><strong><?php echo $this->getDiscountAmount(); ?></strong></td>
+                </tr>
+                <tr>
+                    <td><?php echo $this->helper('sales')->__('Taxes') ?></td>
+                    <td align="right"><strong><?php echo $this->getTaxesAmount(); ?></strong></td>
+                </tr>
+			<?php if($this->getShippingAmount() != false): ?>	
+            <tr>
+                <td><?php echo $this->helper('sales')->__('Shipping') ?></td>
+                <td align="right"><strong><?php echo $this->getShippingAmount(); ?></strong></td>
+            </tr>
+			<?php endif; ?>	
+			<?php if($this->getRefundedAmount() != false): ?>			
+			<tr>
+                <td><?php echo $this->helper('sales')->__('Refunded') ?></td>
+                <td align="right"><?php echo $this->getRefundedAmount(); ?></td>
+            </tr>
+			<?php endif; ?>			
+			<?php if($this->getTotalPaid() != false): ?>			
+			<tr>
+                <td><?php echo $this->helper('sales')->__('Paid') ?></td>
+                <td align="right"><?php echo $this->getTotalPaid(); ?></td>
+            </tr>
+			<?php endif; ?>			
+			<?php if($this->getBalance() != false): ?>			
+			<tr>
+                <td><?php echo $this->helper('sales')->__('Balance') ?></td>
+                <td align="right"><?php echo $this->getBalance(); ?></td>
+            </tr>
+			<?php endif; ?>
+            <?php if($this->getGiftcardDiscount() != false): ?>
+                <tr>
+                    <td><?php echo $this->helper('sales')->__('Gift Card') ?></td>
+                    <td align="right"><strong><?php echo $this->getGiftcardDiscount(); ?></strong></td>
+                </tr>
+            <?php endif; ?>
+            <?php if($this->getStoreCredit() != false): ?>
+                <tr>
+                    <td><?php echo $this->helper('sales')->__('Store Credit') ?></td>
+                    <td align="right"><strong><?php echo $this->getStoreCredit(); ?></strong></td>
+                </tr>
+            <?php endif; ?>
+            <tr>
+                <td style='padding-bottom:5px;'><?php echo $this->helper('sales')->__('Total') ?></td>
+                <td align="right"><strong><?php echo $this->getGrandTotal(); ?></strong></td>
+            </tr>
+<!--            <tr>
+                <td><?php echo $this->helper('sales')->__('Total Paid') ?></td>
+                <td align="right"><strong><?php // echo $this->getTotalPaidFromTransaction(); ?></strong></td>
+            </tr>-->
+            <?php if($this->getWebposCash() != false): ?>
+                <tr>
+                    <td style='border-top: dashed 1px #000;padding:2px 0px;'></td>
+                    <td style='border-top: dashed 1px #000;padding:2px 0px;'></td>
+                </tr>
+                <tr>
+                    <td><?php echo $this->helper('sales')->__('Amount Tendered') ?></td>
+                    <td align="right"><strong><?php echo $this->getWebposCash(); ?></strong></td>
+                </tr>
+            <?php endif; ?>
+            <?php if($this->getWebposChange() != false): ?>
+                <tr>
+                    <td><?php echo $this->helper('sales')->__('POS Change') ?></td>
+                    <td align="right"><strong><?php echo $this->getWebposChange(); ?></strong></td>
+                </tr>
+            <?php endif; ?>
+			<?php if($this->getWebposCc() != false): ?>
+                <tr>
+                    <td><?php echo $this->helper('webpos/payment')->getCcMethodTitle(); ?></td>
+                    <td align="right"><strong><?php echo $this->getWebposCc(); ?></strong></td>
+                </tr>
+            <?php endif; ?>
+			<?php if($this->getWebposCp1() != false): ?>
+                <tr>
+                    <td><?php echo $this->helper('webpos/payment')->getCp1MethodTitle(); ?></td>
+                    <td align="right"><strong><?php echo $this->getWebposCp1(); ?></strong></td>
+                </tr>
+            <?php endif; ?>
+			<?php if($this->getWebposCp2() != false): ?>
+                <tr>
+                    <td><?php echo $this->helper('webpos/payment')->getCp2MethodTitle(); ?></td>
+                    <td align="right"><strong><?php echo $this->getWebposCp2(); ?></strong></td>
+                </tr>
+            <?php endif; ?>
+			<?php if($this->getWebposPaypal() != false): ?>
+                <tr>
+                    <td><?php echo $this->helper('sales')->__('Paypal') ?></td>
+                    <td align="right"><strong><?php echo $this->getWebposPaypal(); ?></strong></td>
+                </tr>
+            <?php endif; ?>
+        </tbody>
+    </table>
+</div>

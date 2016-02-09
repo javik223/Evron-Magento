@@ -1,0 +1,137 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Magestore
+ * 
+ * NOTICE OF LICENSE
+ * 
+ * This source file is subject to the Magestore.com license that is
+ * available through the world-wide-web at this URL:
+ * http://www.magestore.com/license-agreement.html
+ * 
+ * DISCLAIMER
+ * 
+ * Do not edit or add to this file if you wish to upgrade this extension to newer
+ * version in the future.
+ * 
+ * @category    Magestore
+ * @package     Magestore_Inventorydropship
+ * @copyright   Copyright (c) 2012 Magestore (http://www.magestore.com/)
+ * @license     http://www.magestore.com/license-agreement.html
+ */
+-->
+<layout version="0.1.0">     
+    <inventorydropship_supplier_index>
+        <label>Supplier Login Form</label>        
+        <remove name="right"/>
+        <remove name="footer"/>
+        <remove name="before_body_end"/>              
+        <reference name="root">
+            <action method="setTemplate"><template>page/2columns-left.phtml</template></action>
+        </reference>
+        
+        <reference name="header">
+            <block type="page/header" name="header">
+                <action method="setTemplate"><template>inventorydropship/supplier/header.phtml</template></action>
+            </block>
+        </reference>
+        <reference name="left">
+            <block type="inventorydropship/inventorydropship" name="left_dropship" before="-" template="inventorydropship/supplier/left.phtml" />
+        </reference>
+        <reference name="content">
+            <block type="inventorydropship/inventorydropship" name="supplier_manager" template="inventorydropship/supplier/manager.phtml" />
+        </reference>
+    </inventorydropship_supplier_index>   
+     
+    <inventorydropship_supplier_login>
+        <label>Supplier Login Form</label>        
+        <remove name="right"/>
+        <remove name="left"/>
+        <remove name="footer"/>
+        <remove name="before_body_end"/>
+        
+        <reference name="root">
+            <action method="setTemplate"><template>page/1column.phtml</template></action>
+        </reference>
+        <reference name="header">
+            <block type="page/header" name="header">
+                <action method="setTemplate"><template>inventorydropship/supplier/header.phtml</template></action>
+            </block>
+        </reference>
+        <reference name="content">
+            <block type="inventorydropship/inventorydropship" name="supplier_form_login" template="inventorydropship/supplier/login.phtml" />
+        </reference>
+    </inventorydropship_supplier_login>    
+    
+    <inventorydropship_supplier_forgotpassword>
+        <label>Supplier Forgot Password</label>        
+        <remove name="right"/>
+        <remove name="left"/>
+        <remove name="footer"/>
+        <remove name="before_body_end"/>
+        
+        <reference name="root">
+            <action method="setTemplate"><template>page/1column.phtml</template></action>
+        </reference>
+        <reference name="header">
+            <block type="page/header" name="header">
+                <action method="setTemplate"><template>inventorydropship/supplier/header.phtml</template></action>
+            </block>
+        </reference>
+        <reference name="content">
+            <block type="inventorydropship/inventorydropship" name="supplier_forgot_password" template="inventorydropship/supplier/forgotpassword.phtml" />
+        </reference>
+    </inventorydropship_supplier_forgotpassword>    
+    
+    <inventorydropship_supplier_dropship>
+        <label>Supplier Login Form</label>        
+        <remove name="right"/>
+        <remove name="footer"/>
+        <remove name="before_body_end"/>              
+        <reference name="root">
+            <action method="setTemplate"><template>page/2columns-left.phtml</template></action>
+        </reference>
+        
+        <reference name="header">
+            <block type="page/header" name="header">
+                <action method="setTemplate"><template>inventorydropship/supplier/header.phtml</template></action>
+            </block>
+        </reference>
+        <reference name="left">
+            <block type="inventorydropship/inventorydropship" name="left_dropship" before="-" template="inventorydropship/supplier/left.phtml" />
+        </reference>
+        <reference name="content">
+            <block type="inventorydropship/inventorydropship" name="supplier_dropship" template="inventorydropship/supplier/dropship.phtml" />
+        </reference>
+    </inventorydropship_supplier_dropship>
+       
+    <inventorydropship_supplier_viewdropship>
+        <label>Supplier Login Form</label>        
+        <remove name="right"/>
+        <remove name="footer"/>
+        <remove name="before_body_end"/>              
+        <reference name="root">
+            <action method="setTemplate"><template>page/2columns-left.phtml</template></action>
+        </reference>
+        
+        <reference name="header">
+            <block type="page/header" name="header">
+                <action method="setTemplate"><template>inventorydropship/supplier/header.phtml</template></action>
+            </block>
+        </reference>
+        <reference name="left">
+            <block type="inventorydropship/inventorydropship" name="left_dropship" before="-" template="inventorydropship/supplier/left.phtml" />
+        </reference>
+        <reference name="content">
+            <block type="inventorydropship/inventorydropship" name="supplier_dropship" template="inventorydropship/supplier/viewdropship.phtml" />
+        </reference>
+    </inventorydropship_supplier_viewdropship>  
+    
+    <inventorydropship_email_cancel_items>
+        <block type="inventorydropship/inventorydropship" name="dropship_cancel_item" template="inventorydropship/supplier/email/cancel.phtml" />
+    </inventorydropship_email_cancel_items>   
+    
+    <inventorydropship_email_confirm_shipped_items>
+        <block type="inventorydropship/inventorydropship" name="dropship_confirm_shipped_item" template="inventorydropship/supplier/email/shipped.phtml" />
+    </inventorydropship_email_confirm_shipped_items>
+</layout>

@@ -1,0 +1,16 @@
+.inventoryplus .left-menu:before{
+    width: 0 !important;
+}
+
+.inventoryplus .left-menu {
+    width: 0 !important;
+}
+
+.inventoryplus .wrapper {
+    margin: 0 !important;
+}
+
+.inventoryplus #inventory-title {
+    display: none;
+}
+

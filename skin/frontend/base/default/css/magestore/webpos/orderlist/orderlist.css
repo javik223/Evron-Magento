@@ -1,0 +1,534 @@
+/**By Crystal**/
+.mainContainer #order-list{
+    border-right: 1px solid #BABABA;
+    padding: 0;
+    height: 100%;
+}
+#orders_area .row{
+    margin-right: 0;
+}
+#orders_area .form-search{
+    background-color: #FFA500;
+    padding: 6px 15px;
+    margin-left: 0;
+    position:relative;
+}
+#orders_area .form-search .product_search {
+    position:absolute;
+    right:5%;
+}
+#orders_area .form-search .top_bar_right{
+    text-align: center;
+    color: #fff;
+    font-weight: 600;
+    padding: 4px 0;
+}
+#orders_area #orderlist-search-form{
+    background-color: #FFA500;
+    padding: 9px 0 0px;
+    width: 100%; 
+    float: left;
+}
+#orders_area #orderlist-search-form #search-order{
+    margin: 0;
+    padding: 0 15px;
+    border-radius: 10px;
+}
+#orders_area #orderlist-search-form #search-order button{
+    padding: 4px 10px;
+    font-size: 12px;
+    margin-bottom: 7px;
+    outline: 0;
+    background: #FF9741;
+    border: 1px solid #F77000;
+    box-shadow: 0px 2px 1px rgba(97, 20, 3, 0.57);
+}
+#orders_area #orderlist-search-form #search-order button:hover{
+    opacity: 0.85;
+    filter: alpha(opacity=85);
+    /* Older than Firefox 0.9 */
+    -moz-opacity:0.85;
+    /* Safari 1.x (pre WebKit!) */
+    -khtml-opacity: 0.85;
+}
+#orders_area #orderlist-search-form .form-control{
+    height: 25px;
+    padding: 3px 12px; 
+    border-radius: 10px;
+}
+#orders_area #order_list_grid{
+    height: 93%;
+    overflow:auto; 
+    float: left;
+    width: 100%;
+    -webkit-overflow-scrolling: touch;
+}
+/* */
+#holded_orders_section #holded_orders_list_grid .form-row,
+#orders_area #order_list_grid .form-row{
+    float: left;
+    width: 100%;
+    border-bottom: 1px solid #ccc;
+}
+#holded_orders_section #holded_orders_list_grid .form-row .info ,
+#orders_area #order_list_grid .form-row .info {
+    cursor: pointer;
+}
+#holded_orders_section #holded_orders_list_grid .form-row .info.type1,
+#orders_area #order_list_grid .form-row .info.type1{
+    background: url('../../../../images/icon/icon-type1.png') no-repeat 15px center;
+    cursor: pointer;
+}
+#holded_orders_section #holded_orders_list_grid .form-row .info.type2,
+#orders_area #order_list_grid .form-row .info.type2{
+    background: url('../../../../images/icon/icon-type2.png') no-repeat 15px center; 
+}
+#holded_orders_section #holded_orders_list_grid .form-row .info.type3,
+#orders_area #order_list_grid .form-row .info.type3{
+    background: url('../../../../images/icon/icon-type3.png') no-repeat 15px center; 
+}
+#holded_orders_section #holded_orders_list_grid .form-row .info.type4,
+#orders_area #order_list_grid .form-row .info.type4{
+    background: url('../../../../images/icon/icon-type4.png') no-repeat 15px center; 
+}
+#holded_orders_section #holded_orders_list_grid .form-row .info.type5,
+#orders_area #order_list_grid .form-row .info.type5{
+    background: url('../../../../images/icon/icon-type5.png') no-repeat 15px center; 
+}
+#holded_orders_section #holded_orders_list_grid .form-row .info.tempactive,
+#holded_orders_section #holded_orders_list_grid .form-row .info.active,
+#holded_orders_section #holded_orders_list_grid .form-row .info:hover,
+#orders_area #order_list_grid .form-row .info.active,
+#orders_area #order_list_grid .form-row .info:hover{
+    box-shadow: 0px 1px 0px #FFF;
+    color: #fff;
+    background-color:#2883FC; 
+}
+#holded_orders_section #holded_orders_list_grid .date,
+#orders_area #order_list_grid .date{
+    padding: 3px 15px;
+    background-color: rgba(47, 60, 77, 0.34);
+    box-shadow: 0px -1px 0px rgba(0, 0, 0, 1);
+    color: #fff;
+    font-size: 15px;
+    font-weight: 600;
+}
+@media screen and (max-width: 992px){
+    #a-search{
+        padding: 0;
+    }
+    #settings_area .top-content .title-page{
+        max-width: 83%;
+    }
+}
+#holded_orders_section #holded_orders_list_grid ul,
+#orders_area #order_list_grid ul{
+    font-size: 13px;
+    padding: 0 30px;
+    line-height: 20px;
+}
+#holded_orders_section #holded_orders_list_grid ul li,
+#orders_area #order_list_grid ul li{
+    padding: 0
+}
+#holded_orders_section #holded_orders_list_grid ul.building-address li,
+#orders_area #order_list_grid ul.building-address li{
+    padding-bottom: 10px;
+}
+#orders_area #order_list_grid ul.line1{
+
+}
+#holded_orders_section #holded_orders_list_grid ul.line1 li,
+#orders_area #order_list_grid ul.line1 li{   
+    font-weight: bold;  
+    padding: 5px 0;
+    font-size: 15px;
+}
+
+/* */
+#orders_area .order-detail{
+    padding: 0;
+    position: relative;
+    height: 100%;
+}
+#holded_orders_detail .top-content,
+#orders_area .order-detail .top-order{
+    text-align: center;
+    font-size: 14px;
+    padding-bottom: 6px;
+}
+#orders_area .order-detail .top-order .head-view-order{
+    float: left;
+    width: 100%;
+    background: #FFA500;
+    position: relative;
+}
+#orders_area .order-detail .top-order .head-view-order img{
+    float: right;
+    margin-top: 5px;
+    cursor: pointer;
+}
+#orders_area .order-detail .top-order p{
+    font-size: 14px;
+    margin: 0;
+    line-height: 23px;
+}
+#holded_orders_detail .note-top p,
+#orders_area .order-detail .note-top p{
+    text-align: center;
+    padding: 5px 0;
+    border-bottom: 1px solid #ccc;
+    margin: 0;
+    font-size: 14px;
+}
+#orders_area .order-detail .top-order h1{
+    font-size: 16px;
+    color: #fff;
+    margin: 0;
+    padding: 10px 15px;
+    font-weight: 600;
+}
+#orders_area .order-detail .top-order h2.price-order{
+    font-size: 35px;
+    margin: 0;
+    color: #000DFF;
+}
+#orders_area .order-detail .top-order p span.total{
+    color: red;
+    font-weight: 600;
+}
+#orders_area .order-detail .top-order p .common{
+    font-weight: 600;
+}
+#orders_area .order-detail .top-order .top-info{
+    position: relative;
+    float: left;
+    width: 100%;
+    border-bottom: 1px solid #ccc;
+}
+#orders_area .order-detail .top-order .btn-invoice{
+    position: absolute;
+    bottom: 5px;
+    right: 15px;
+}
+#holded_orders_detail  .col,
+#orders_area .order-detail .col{
+    padding: 0
+}
+#holded_orders_detail .col .content,
+#orders_area .order-detail .col .content{
+    padding: 10px 15px;
+    font-size: 14px;
+    line-height: 24px;
+}
+#holded_orders_detail .col p.title,
+#orders_area .order-detail .col p.title{
+    background: #ccc;
+    margin: 0;
+    padding: 4px 15px;
+    font-size: 15px;
+    font-weight: 600;
+    border-right: 1px solid #BABABA;
+}
+#orders_area .order-detail .col strong{font-weight: normal}
+.product .grid tr.theadings{
+    font-size: 13px;
+    font-weight: 600;
+    background: #EFEFEF;
+    margin: 4px 0;
+}
+.product .grid tr.theadings th{
+    padding: 3px 7px;
+    font-size: 13px;
+    font-weight: 600;
+}
+.product .grid table{
+    border-collapse: separate;
+}
+.product .grid tbody td{
+    font-size: 13px;
+    border-top:none;
+    font-weight: 600;
+}
+
+.product .grid tbody td .product_options{
+    font-size: 0.8em;
+    color: #888;
+    margin-left: 20px;
+}
+
+.product .grid tbody td input[type="text"]{
+    height: 28px;
+    padding: 0;
+    text-align: center;
+    width: 45px;
+}
+#order_detail_area {
+    height: 70%;
+    overflow: auto;
+    float: left;
+    width: 100%;
+    -webkit-overflow-scrolling: touch;
+}
+#orders_area .order-detail .footer-order{
+    position: absolute;
+    width: 100%;
+    bottom: 20px;
+    background-color: #fff;
+}
+.footer-order button{
+    width: 100%;
+    margin-top: 15px;
+    height: 40px;
+    font-size: 16px;
+}
+#holded_orders_detail_content .entry-edit.order-total,
+#order_detail_area .entry-edit.order-total{
+    border-top: 1px solid #ccc;
+}
+#holded_orders_detail_content .order-totals table td,
+#order_detail_area .order-totals table td{
+    padding: 4px 0;
+    font-size: 15px;
+    text-align: right;
+}
+#holded_orders_detail_content .order-totals table td.label,
+#order_detail_area .order-totals table td.label{
+    padding-right: 20px;
+    text-align: right;
+}
+#holded_orders_detail_content .order-totals table td .price,
+#order_detail_area .order-totals table td .price{
+    font-weight: bold;
+    white-space: nowrap;
+}
+#holded_orders_detail_content .order-totals table td.label strong,
+#order_detail_area .order-totals table td.label strong{
+    font-weight: normal;
+}
+#holded_orders_detail_content .order-totals table td strong span.price,
+#order_detail_area .order-totals table td strong span.price{
+    color: #FFA500;
+}
+#holded_orders_detail_content .history ,
+#order_detail_area .history {
+    padding: 0;
+}
+#holded_orders_detail_content .history p.title,
+#order_detail_area .history p.title{
+    background: #ccc;
+    padding: 4px 15px;
+    font-size: 15px;
+    font-weight: 600;
+}
+#holded_orders_detail_content .history p span,
+#order_detail_area .history p span{
+    padding: 0 10px 0 15px;
+    font-size: 13px;
+}
+#holded_orders_detail_content .history p span.status,
+#order_detail_area .history p span.status{
+    border-left: 1px solid #ccc;
+    padding-left: 5px;
+
+}
+/*Popup send email*/
+#orders_area .order-detail .send-email,
+#orders_area .order-detail .refund{
+    position: fixed;
+    top: 10%;
+    left: 0;
+    right: 0;
+    width: 400px;
+    margin: 0 auto;
+    z-index: 10;
+}
+#orders_area .order-detail .refund{
+    width: 70%;
+}
+#orders_area .order-detail .refund .content-form{
+    float: left;
+    width: 100%;
+    padding-bottom: 10px;
+}
+#orders_area .order-detail .refund .content-form .product .grid{
+    padding: 0 15px;
+    margin-top: 20px;
+}
+#orders_area .order-detail .refund .content-form .product .grid .order-tables{
+    border-bottom: 1px solid #ccc;
+    margin-bottom: 10px;
+    padding-bottom: 5px;
+}
+#orders_area .order-detail .refund .content-form .adjustment{
+    padding: 0;
+    float: right;
+}
+#orders_area .order-detail .refund .credit-comment label{
+    font-size: 13px;
+    font-style: italic;
+    font-weight: normal;
+}
+#orders_area .order-detail .refund .credit-comment textarea{
+    min-height: 100px;
+}
+#orders_area .order-detail .refund .adjustment label{margin-top: 7px;}
+#orders_area .order-detail .refund .adjustment label,
+#orders_area .order-detail .refund .adjustment div{
+    padding: 0;
+    font-size: 13px;  
+    margin-top: 7px;
+    padding-right: 10px;
+    margin-bottom: 0;
+}
+#orders_area .order-detail .refund .adjustment .form-group{
+    float: left;
+    width: 100%;
+}
+#orders_area .order-detail .refund .adjustment label{
+    text-align: right;
+    padding-right: 20px;
+}
+#orders_area .order-detail .refund .adjustment input{
+    height: 30px;
+    padding: 4px 10px;
+    text-align: right;
+}
+#orders_area .order-detail .send-email .modal-content,
+#orders_area .order-detail .refund .modal-content{
+    float: left;
+    width: 100%;
+}
+#orders_area .order-detail .send-email .top-form,
+#orders_area .order-detail .refund .top-form{
+    background: #FFA500;
+    padding: 0;
+    border-top-left-radius: 5px;
+    border-top-right-radius: 5px;
+}
+#orders_area .order-detail .send-email h2,
+#orders_area .order-detail .refund h2{
+    font-size: 15px;
+    text-align: center;
+    margin: 0;
+    line-height: 33px;
+    color: #fff;
+    padding: 4px;
+}
+#orders_area .order-detail .send-email button,
+#orders_area .order-detail .refund button{
+    padding: 4px;
+    color: #fff;
+    margin-top: 7px;
+    font-size: 12px;
+}
+#orders_area .order-detail .send-email .btn-cancel button,
+#orders_area .order-detail .refund .btn-cancel button{    
+    background: #FF9741;
+    border: 1px solid #F77000;
+    outline: 0;
+    box-shadow: 0px 2px 1px rgba(97, 20, 3, 0.57);
+}
+#orders_area .order-detail .send-email .btn-send button,
+#orders_area .order-detail .refund .btn-refund button{
+    background: #DC0101;
+    border: 1px solid #D60909;
+    outline: 0;
+    box-shadow: 0px 2px 1px rgba(97, 20, 3, 0.57);
+    float: right;
+}
+#orders_area .order-detail .send-email .input-form{
+    padding: 15px 15px;
+}
+#orders_area .order-detail .send-email .input-form .validation-advice{
+    font-size: 12px;
+    color: red;
+    margin-top: 4px;
+}
+
+#pending_orders_popup{
+    position: absolute;
+    z-index: 55;
+    background-color: #fff;
+    width: 700px;
+    max-height: 500px;
+    min-height: 200px;
+    overflow: auto;
+    margin-left: -350px;
+    left: 50%;
+    top: 50px;
+    box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.5);
+    border-radius: 5px;
+    -webkit-overflow-scrolling: touch;
+}
+
+.dark_overlay{
+    z-index:50 !important;
+    background-color: #000 !important;
+    opacity: 0.5 !important; 
+}
+#pending_orders_popup .panel-heading{
+    background:#ffa500;
+    float: left;
+    width: 100%;
+    cursor: auto;
+}
+#pending_orders_popup .panel-heading h2{
+    font-size: 16px;
+    padding: 0;
+    color: rgb(255, 255, 255);
+    margin: 0px;
+}
+#pending_orders_popup .panel-heading button{
+    float: right;
+    padding: 3px 12px;
+    background: #DC0101 none repeat scroll 0% 0%;
+    border: 1px solid #D60909;
+    box-shadow: 0px 2px 1px rgba(97, 20, 3, 0.57);
+    outline: 0px none;
+    color: rgb(255, 255, 255);
+}
+#pending_orders_popup .panel-body{
+    float: left;width: 100%; font-size: 14px;
+}
+#pending_orders_popup thead{
+    background: #eaeaea;
+    font-size: 15px;
+}
+#pending_orders_popup .table > thead > tr > th,
+#pending_orders_popup .table > tbody > tr > th,
+#pending_orders_popup .table > tfoot > tr > th{
+    padding: 3px 5px;
+}
+
+#pending_orders_popup .table > thead > tr > td,
+#pending_orders_popup .table > tbody > tr > td{
+    padding: 8px 5px;
+}
+#pending_orders_popup .panel-body span.delete{
+    background: transparent url("../../../../images/icon/choose.png") no-repeat scroll 0px center;
+    text-indent: -10000px;
+    float: right;
+    width: 20px;
+}
+#pending_orders_content {
+    padding: 10px;
+    background: rgb(204, 204, 204) none repeat scroll 0% 0%;
+}
+
+#pending_orders_content .pending_row{
+    background-color: #fff;
+}
+#comment_order{
+    position: absolute;
+    right: 0;
+    top: 0px;
+}
+
+/**/
+#holded_orders_list_grid{
+    float: left;
+    overflow-y: auto;
+    height: 94vh;
+    width: 100%;
+}

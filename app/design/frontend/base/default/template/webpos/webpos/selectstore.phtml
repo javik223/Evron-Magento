@@ -1,0 +1,18 @@
+<div class="webpos_liststore">
+    <select name='webpos_liststore' onchange="webposChangeStore(this.value)">
+        <?php
+        $storeId = Mage::app()->getStore()->getId();
+        foreach ($this->getWebsiteCollection() as $_website):
+            foreach ($this->getGroupCollection($_website) as $_group):
+                foreach ($this->getStoreCollection($_group) as $_store):
+                    ?>
+                    <option <?php if ($storeId == $_store->getId()) echo "selected " . $storeId; ?> value="<?php echo Mage::getModel('core/store')->load($_store->getId())->getUrl('webpos/index/index', array('_secure' => true)); ?>">
+                        <?php echo $this->escapeHtml($_store->getName()) ?>
+                    </option>
+                    <?php
+                endforeach;
+            endforeach;
+        endforeach;
+        ?>
+    </select>
+</div>

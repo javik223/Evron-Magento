@@ -1,0 +1,73 @@
+<?php
+/**
+ * Magestore
+ * 
+ * NOTICE OF LICENSE
+ * 
+ * This source file is subject to the Magestore.com license that is
+ * available through the world-wide-web at this URL:
+ * http://www.magestore.com/license-agreement.html
+ * 
+ * DISCLAIMER
+ * 
+ * Do not edit or add to this file if you wish to upgrade this extension to newer
+ * version in the future.
+ * 
+ * @category    Magestore
+ * @package     Magestore_Inventorysupplyneeds
+ * @copyright   Copyright (c) 2012 Magestore (http://www.magestore.com/)
+ * @license     http://www.magestore.com/license-agreement.html
+ */
+
+/**
+ * Inventorysupplyneeds Adminhtml Controller
+ * 
+ * @category    Magestore
+ * @package     Magestore_Inventorywarehouse
+ * @author      Magestore Developer
+ */
+?>
+<div class="content-header">
+    <h3 class="icon-head head-adminhtml-adjuststock"><?php echo $this->__('Custom Stock Issuing') ?></h3>
+    <?php $warehouses = $this->getWarehouseByAdmin() ?>
+        <?php if(count($warehouses)): ?>
+        <p class="form-buttons">
+            <button style="" onclick="setLocation(window.location.href)" class="scalable " type="button" id="id_87ecfc78a1d41044599d433af1bbd811">
+                <span><?php echo $this->__('Reset'); ?></span>
+            </button>
+        </p>
+        <?php endif; ?>
+</div>
+<?php if(count($warehouses)): ?>
+        <div class="entry-edit">
+            <div id="adjuststock_form" class="fieldset ">
+                <input name="form_key" type="hidden" value="<?php echo $this->getFormKey() ?>" id="form_key"/>
+                <div>
+                    <label for="warehouse">
+                        <?php echo $this->__('Please select Warehouse to create custom stock issuing') ?>:&nbsp;&nbsp;
+                    </label>
+                    <select name="warehouse_id" id="warehouse_id_select">
+                        <?php foreach($warehouses as $warehouse): ?>
+                            <option value="<?php echo $warehouse->getId() ?>"><?php echo $warehouse->getName() ?></option>
+                        <?php endforeach; ?>                        
+                    </select>
+                </div><br />
+                <div>
+                    <button style="" type="button" class="scalable task" id="Upload" onclick="submitWarehouseStockIssuing()">
+                        <span><?php echo $this->__('Continue') ?></span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    <script type="text/javascript">
+        function submitWarehouseStockIssuing(){
+            var warehouse_id_select = $("warehouse_id_select").value;
+            var url = "<?php echo Mage::helper("adminhtml")->getUrl('adminhtml/stockissuing/new'); ?>";
+            url = url+'warehouse_id/'+warehouse_id_select;
+            var url = 
+            setLocation(url);
+        }
+    </script>
+<?php else: ?>
+    <?php echo $this->__('You have not permission to create custom stock issuing any warehouse!') ?>
+<?php endif; ?>

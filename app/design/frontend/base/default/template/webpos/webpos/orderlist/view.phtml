@@ -1,0 +1,189 @@
+
+<?php $_order = $this->getOrder(); ?>
+<input type="hidden" name="order_view_id" id="order_view_id" value="<?php echo $_order->getId(); ?>" />
+<div class="view-order">
+    <div id="order-messages">
+        <?php //echo $this->getChildHtml('order_messages') ?>
+
+    </div>
+    <?php //echo $this->getChildHtml('order_info') ?>
+    <?php
+    $orderAdminDate = $this->formatDate($_order->getCreatedAtDate(), 'medium', true);
+    $orderStoreDate = $this->formatDate($_order->getCreatedAtStoreDate(), 'medium', true);
+    ?>
+    <div class="note-top"><p><?php echo $this->__('Served by '); ?><?php echo ($_order->getWebposAdminName() != '') ? $_order->getWebposAdminName() : 'NO NAME'; ?></p></div>
+    <div class="sold-to col col-lg-6 col-md-6 col-ms-6 col-xs-6">
+        <p class="title"><?php echo $this->__('Billing Address:'); ?></p>
+        <div class="content"><?php echo $_order->getBillingAddress()->getFormated(true) ?></div>
+    </div>
+    <?php if (!$_order->getIsVirtual()): ?>
+        <div class="ship-to col col-lg-6 col-md-6 col-ms-6 col-xs-6">
+            <p class="title"><?php echo $this->__('Shipping Address:'); ?></p>
+            <div class="content"><?php echo $_order->getShippingAddress()->getFormated(true) ?></div>
+        </div>
+    <?php endif; ?>
+    <div class="payment-method col col-lg-6 col-md-6 col-ms-6 col-xs-6">
+        <p class="title"><?php echo $this->__('Payment Method'); ?></p>
+        <div class="content">
+            <?php
+            $block = $this->getLayout()->getBlock('order_payment');
+            // $block->setOrder(Mage::getModel('sales/order')->load($_order->getId()));
+            $block->setOrder($_order);
+            ?>
+            <?php echo $this->getChildHtml('order_payment') ?>
+            <div class="address"><?php echo Mage::helper('webpos')->__('Order was placed using %s', $_order->getOrderCurrencyCode()) ?></div>
+            <?php
+            $payment_method_code = $_order->getPayment()->getMethodInstance()->getCode();
+            $storeId = $_order->getStoreId();
+            $enableTill = Mage::getStoreConfig('webpos/general/enable_tills', $storeId);
+            if ($_order->getTillId() != null && $enableTill == true && $payment_method_code == 'cashforpos'):
+                $till = Mage::getModel('webpos/till')->load($_order->getTillId());
+                if ($till->getTillId()):
+                    $tillName = $till->getTillName();
+                    ?>
+                    <div class="address"><?php echo Mage::helper('webpos')->__('Till: %s', $tillName) ?></div>
+                <?php endif;
+            endif; ?>
+        </div>
+    </div>
+    <?php if (!$_order->getIsVirtual()): ?>
+        <div class="payment-method col col-lg-6 col-md-6 col-ms-6 col-xs-6">
+            <p class="title"><?php echo $this->__('Shipping Method'); ?></p>
+            <div class="address content">
+                <?php if ($_order->getShippingDescription()): ?>
+                    <?php echo $this->escapeHtml($_order->getShippingDescription()) ?>
+                <?php else: ?>
+                    <?php echo $this->helper('webpos')->__('No shipping information available'); ?>
+                <?php endif; ?>
+            </div>
+        </div>
+    <?php endif; ?>
+</div>
+<div class="product">
+    <!-- View Items-->
+    <div class="grid np col col-lg-12 col-md-12 col-ms-12 col-xs-12">
+        <div class="hor-scroll table-responsive">
+            <table cellspacing="0" class="table data order-tables">
+                <col />
+                <col width="1" />
+                <col width="1" />
+                <col width="1" />
+                <col width="1" />
+                <thead>
+                    <tr class="theadings">
+                        <th><?php echo $this->helper('webpos')->__('Product') ?></th>
+                        <th><?php echo $this->helper('webpos')->__('Price') ?></th>
+                        <th class="a-center"><?php echo $this->helper('webpos')->__('Qty') ?></th>
+                        <th class="last"><span class="nobr"><?php echo $this->helper('webpos')->__('Subtotal') ?></span></th>
+                    </tr>
+                </thead>
+                <?php $_items = $_order->getItemsCollection() ?>
+                <?php
+                $i = 0;
+                foreach ($_items as $_item):
+                    ?>
+                    <?php $baseSubTotal = Mage::app()->getStore()->formatPrice($_item->getData('qty_ordered') / 1 * $_item->getData('price') / 1); ?>
+                    <?php $original_price = Mage::app()->getStore()->formatPrice($_item->getData('original_price')); ?>
+                    <?php $price = Mage::helper('core')->currency($_item->getData('base_price'), true, false); ?>
+                    <?php $tax_amount = Mage::helper('core')->currency($_item->getData('base_tax_amount'), true, false); ?>
+                    <?php $discount_amount = Mage::helper('core')->currency($_item->getData('base_discount_amount'), true, false); ?>
+                    <?php $row_total = Mage::helper('core')->currency($_item->getData('base_row_total'), true, false); ?>
+                    <?php $tax_percent = $_item->getData('tax_percent') . '%' ?>
+                    <?php
+                    if ($_item->getParentItem())
+                        continue;
+                    else
+                        $i++;
+                    $options = $_item->getProductOptions();
+                    $optionsStr = '';
+                    if (isset($options['attributes_info'])):
+                        $optionsArr = array();
+                        foreach ($options['attributes_info'] as $info):
+                            if (isset($info['value']))
+                                $optionsArr[] = $info['value'];
+                        endforeach;
+                        $optionsStr = implode(', ', $optionsArr);
+                    endif;
+                    $bundleOptions = '';
+                    if (isset($options['bundle_options'])) {
+                        $bundles = array();
+                        foreach ($options['bundle_options'] as $optionData):
+                            if (isset($optionData['value']))
+                                foreach ($optionData['value'] as $value):
+                                    if (isset($value['title']))
+                                        $bundles[] = $value['title'];
+                                endforeach;
+                        endforeach;
+                        $bundleOptions = implode(', ', $bundles);
+                    }
+                    $customOptions = '';
+                    if (isset($options['options'])) {
+                        $custom = array();
+                        foreach ($options['options'] as $optionData):
+                            if (isset($optionData['value']))
+                                $custom[] = $optionData['value'];
+                        endforeach;
+                        $customOptions = implode(', ', $custom);
+                    }
+                    ?>
+                    <tbody class="<?php echo $i % 2 ? 'even' : 'odd' ?>">
+                        <tr class="<?php echo ($i % 2) ? 'fist even' : ' last odd' ?>">
+                            <td><?php echo $_item->getData('name') ?>
+                                <div class='product_options'>
+                                    <?php
+                                    echo $optionsStr . ' ' . $customOptions . ' ' . $bundleOptions;
+                                    ?>
+                                </div>
+                            </td>
+                            <td><?php echo $price ?></td>
+                            <td><?php echo ($_item->getData('qty_ordered') % 2 == 0) ? (int) $_item->getData('qty_ordered') : (float) $_item->getData('qty_ordered'); ?></td>
+                            <td><?php echo $row_total ?></td>
+                        </tr>
+                    </tbody>
+<?php endforeach; ?>
+            </table>
+        </div>
+    </div>
+</div>
+<div class="entry-edit order-total col-lg-12 col-md-12 col-ms-12 col-xs-12">
+    <div class="order-totals">
+        <?php
+        $block = $this->getLayout()->getBlock('order_totals');
+        // $block->setOrder(Mage::getModel('sales/order')->load($_order->getId()));
+        $block->setOrder($_order);
+        ?>
+<?php echo $this->getChildHtml('order_totals') ?>
+    </div>
+</div>
+<div class="history col-lg-12 col-md-12 col-ms-12 col-xs-12" id="order-comment-history">
+    <p class="title"><?php echo $this->__('Comment History'); ?></p>
+
+<?php if ($_order->getCustomerNote() != ''): ?>
+        <p>
+            <span class="date"><?php echo $this->__('Comment:') ?></span>
+            <span class="status"><?php echo $_order->getCustomerNote(); ?></span>
+        </p>
+        <?php
+    endif;
+    $_history = $_order->getAllStatusHistory();
+    $_buffer = array();
+    foreach ($_history as $_historyItem):
+//			$_buffer[$_historyItem->getData('created_at')] = $_historyItem->getData('status');
+        $_buffer[$_historyItem->getData('created_at')] = $_historyItem->getData('status');
+        if ($_historyItem->getData('comment'))
+            $_buffer[$_historyItem->getData('created_at')] .= " | " . $_historyItem->getData('comment');
+    endforeach;
+    if (count($_buffer) > 0):
+        foreach ($_buffer as $created_at => $order_status):
+            ?>	<p>
+                <span class="date"><?php echo $created_at; ?></span>
+                <span class="status"><?php echo $order_status; ?></span>
+            </p>
+            <?php
+        endforeach;
+    endif;
+    ?>
+
+</div>
+
+

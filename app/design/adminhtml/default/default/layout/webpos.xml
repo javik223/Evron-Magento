@@ -1,0 +1,190 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Magestore
+ * 
+ * NOTICE OF LICENSE
+ * 
+ * This source file is subject to the Magestore.com license that is
+ * available through the world-wide-web at this URL:
+ * http://www.magestore.com/license-agreement.html
+ * 
+ * DISCLAIMER
+ * 
+ * Do not edit or add to this file if you wish to upgrade this extension to newer
+ * version in the future.
+ * 
+ * @category    Magestore
+ * @package     Magestore_Webpos
+ * @copyright   Copyright (c) 2012 Magestore (http://www.magestore.com/)
+ * @license     http://www.magestore.com/license-agreement.html
+ */
+-->
+<layout version="0.1.0">
+    <default>
+        <reference name="head">
+            <action method="addJs"><script>magestore/webpos/jscolor/jscolor.js</script></action>
+        </reference>
+    </default>
+    <adminhtml_till_index>
+        <reference name="content">
+            <block type="webpos/adminhtml_till" name="till"/>
+        </reference>
+    </adminhtml_till_index>
+    <adminhtml_posuser_index>
+        <reference name="content">
+            <block type="webpos/adminhtml_user" name="user"/>
+        </reference>
+    </adminhtml_posuser_index>
+    <adminhtml_webpos_index>
+        <reference name="content">
+            <block type="webpos/adminhtml_select" template="webpos/selectstore.phtml" name="select"/>
+        </reference>
+    </adminhtml_webpos_index>
+
+    <adminhtml_userlocation_index>
+        <reference name="content">
+            <block type="webpos/adminhtml_userlocation" name="userlocation" />
+        </reference>
+    </adminhtml_userlocation_index>
+
+    <adminhtml_role_index>
+        <reference name="content">
+            <block type="webpos/adminhtml_role" name="role" />
+        </reference>
+    </adminhtml_role_index>
+
+    <!-- Order -->
+    <adminhtml_sales_order_view>
+        <reference name="order_totals">
+            <block type="webpos/sales_order_totals_giftwrap" name="webposgiftwrap" />
+            <block type="webpos/sales_order_totals_discount" name="webposdiscount" />
+        </reference>
+        <reference name="order_item_extra_info">
+            <block type="webpos/adminhtml_sales_order_view_tab_survey"
+                   as="webpos_order" />
+        </reference>
+    </adminhtml_sales_order_view>
+    <adminhtml_sales_order_invoice_new>
+        <reference name="invoice_totals">
+            <block type="webpos/sales_order_totals_giftwrap" name="webposgiftwrap" />
+            <block type="webpos/sales_order_totals_discount" name="webposdiscount" />
+        </reference>
+    </adminhtml_sales_order_invoice_new>
+    <adminhtml_sales_order_invoice_view>
+        <reference name="invoice_totals">
+            <block type="webpos/sales_order_totals_giftwrap" name="webposgiftwrap" />
+            <block type="webpos/sales_order_totals_discount" name="webposdiscount" />
+        </reference>
+    </adminhtml_sales_order_invoice_view>
+    <adminhtml_sales_order_creditmemo_new>
+        <reference name="creditmemo_totals">
+            <block type="webpos/sales_order_totals_giftwrap" name="webposgiftwrap" />
+            <block type="webpos/sales_order_totals_discount" name="webposdiscount" />
+        </reference>
+    </adminhtml_sales_order_creditmemo_new>
+    <adminhtml_sales_order_creditmemo_view>
+        <reference name="creditmemo_totals">
+            <block type="webpos/sales_order_totals_giftwrap" name="webposgiftwrap" />
+            <block type="webpos/sales_order_totals_discount" name="webposdiscount" />
+        </reference>
+    </adminhtml_sales_order_creditmemo_view>
+
+    <adminhtml_report_index>
+        <update handle="formkey"/>
+        <reference name="head">
+            <action method="addItem">
+                <type>js</type>
+                <name>magestore/webpos/report/canvasjs.min.js</name>
+            </action>
+            <action method="addItem">
+                <type>js</type>
+                <name>magestore/webpos/jquery-1.11.2.min.js</name>
+            </action>
+            <action method="addItem">
+                <type>js</type>
+                <name>magestore/webpos/report/report.js</name>
+            </action>
+            <action method="addItem">
+                <type>skin_css</type>
+                <name>css/magestore/webpos/report.css</name>
+            </action>
+        </reference>
+        <reference name="notifications">
+            <block type="adminhtml/template" template="webpos/report.phtml" name="report_grid_js" />
+        </reference>
+        <reference name="content">
+            <block type="webpos/adminhtml_report" name="reportGrid" />
+        </reference>
+    </adminhtml_report_index>
+    <adminhtml_report_grid>
+        <update handle="formkey"/>
+        <reference name="root">
+            <block type="webpos/adminhtml_report_grid" name="report_grid" output="toHtml" />
+        </reference>
+    </adminhtml_report_grid>
+
+    <adminhtml_userlocation_user>
+        <block type="core/text_list" name="root">
+            <block type="webpos/adminhtml_userlocation_edit_tab_user" name="userlocation.edit.tab.user"/>
+            <block type="adminhtml/widget_grid_serializer" name="related_grid_serializer">
+                <action method="initSerializerBlock">
+                    <grid_block_name>userlocation.edit.tab.user</grid_block_name>
+                    <data_callback>getSelectedUsers</data_callback>
+                    <hidden_input_name>userlocation_user</hidden_input_name>
+                    <reload_param_name>ouser</reload_param_name>
+                </action>
+            </block>
+        </block>
+    </adminhtml_userlocation_user>
+
+    <adminhtml_userlocation_usergrid>
+        <block type="core/text_list" name="root">
+            <block type="webpos/adminhtml_userlocation_edit_tab_user" name="userlocation.edit.tab.user"/>
+        </block>
+    </adminhtml_userlocation_usergrid>
+
+    <adminhtml_role_user>
+        <block type="core/text_list" name="root">
+            <block type="webpos/adminhtml_role_edit_tab_user" name="role.edit.tab.user"/>
+            <block type="adminhtml/widget_grid_serializer" name="related_grid_serializer">
+                <action method="initSerializerBlock">
+                    <grid_block_name>role.edit.tab.user</grid_block_name>
+                    <data_callback>getSelectedUsers</data_callback>
+                    <hidden_input_name>role_user</hidden_input_name>
+                    <reload_param_name>ouser</reload_param_name>
+                </action>
+            </block>
+        </block>
+    </adminhtml_role_user>
+
+    <adminhtml_role_usergrid>
+        <block type="core/text_list" name="root">
+            <block type="webpos/adminhtml_role_edit_tab_user" name="role.edit.tab.user"/>
+        </block>
+    </adminhtml_role_usergrid>
+    <adminhtml_sales_order_view>
+        <reference name="order_totals">
+            <block type="webpos/adminhtml_order_cash" name="webpos.cash" />
+            <block type="webpos/adminhtml_order_change" name="webpos.change" />
+        </reference>
+    </adminhtml_sales_order_view>
+    <adminhtml_sales_order_invoice_new>
+        <reference name="invoice_totals">
+            <block type="webpos/adminhtml_invoice_cash" name="webpos.cash" />
+            <block type="webpos/adminhtml_invoice_change" name="webpos.change" />
+        </reference>
+    </adminhtml_sales_order_invoice_new>
+    <adminhtml_sales_order_invoice_updateqty>
+        <reference name="invoice_totals">
+            <block type="webpos/adminhtml_invoice_cash" name="webpos.cash" />
+            <block type="webpos/adminhtml_invoice_change" name="webpos.change" />
+        </reference>
+    </adminhtml_sales_order_invoice_updateqty>
+    <adminhtml_sales_order_invoice_view>
+        <reference name="invoice_totals">
+            <block type="webpos/adminhtml_invoice_cash" name="webpos.cash" />
+            <block type="webpos/adminhtml_invoice_change" name="webpos.change" />
+        </reference>
+    </adminhtml_sales_order_invoice_view>
+</layout>

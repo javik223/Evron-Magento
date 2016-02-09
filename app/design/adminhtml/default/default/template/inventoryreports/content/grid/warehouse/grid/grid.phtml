@@ -1,0 +1,46 @@
+<div id="inventory_report_content_warehouse_grid" class="inventory_report_content_warehouse_grid">
+
+    <?php
+    $filterData = new Varien_Object();
+    $requestData = Mage::helper('adminhtml')->prepareFilterString($this->getRequest()->getParam('top_filter'));
+//        Zend_debug::dump($requestData);
+        if(empty($requestData)){    //Default Grid
+            if($this->getRequest()->getParam('type_id') == 'warehouse'){
+                echo $this->getChildHtml('report_warehouse_warehousegrid_totalqtyadjuststock');
+            }
+        }
+        if(!empty($requestData)){   //Selected Grid
+            if($this->getRequest()->getParam('type_id') == 'warehouse'){
+                switch ($requestData['report_radio_select']) {
+                    case 'total_qty_adjuststock':
+                        echo $this->getChildHtml('report_warehouse_warehousegrid_totalqtyadjuststock');
+                        break;
+                    case 'number_of_product_adjuststock':
+                        echo $this->getChildHtml('report_warehouse_warehousegrid_numberofproductadjuststock');
+                        break;
+                    case 'total_order_by_warehouse':
+                        echo $this->getChildHtml('report_warehouse_warehousegrid_totalorderbywarehouse');
+                        break;
+                    case 'sales_by_warehouse_revenue':
+                        echo $this->getChildHtml('report_warehouse_warehousegrid_salesbywarehouserevenue');
+                        break;
+                    case 'sales_by_warehouse_item_shipped':
+                        echo $this->getChildHtml('report_warehouse_warehousegrid_salesbywarehouseitemshipped');
+                        break;
+                    case 'total_stock_transfer_send_stock':
+                        echo $this->getChildHtml('report_warehouse_warehousegrid_totalstocktransfersendstock');
+                        break;
+                    case 'total_stock_transfer_request_stock':
+                        echo $this->getChildHtml('report_warehouse_warehousegrid_totalstocktransferrequeststock');
+                        break;
+                    case 'supply_needs_by_warehouse_products':
+                        echo $this->getChildHtml('report_warehouse_warehousegrid_supplyneedsbywarehouseproducts');
+                        break;
+                    case 'total_stock_different_when_physical_stocktaking_by_warehouse':
+                        echo $this->getChildHtml('report_warehouse_warehousegrid_totalstockdifferentwhenphysicalstocktakingbywarehouse');
+                        break;
+                }
+            }
+        }
+    ?>
+</div>

@@ -1,0 +1,544 @@
+<?php
+/**
+ * Magestore
+ * 
+ * NOTICE OF LICENSE
+ * 
+ * This source file is subject to the Magestore.com license that is
+ * available through the world-wide-web at this URL:
+ * http://www.magestore.com/license-agreement.html
+ * 
+ * DISCLAIMER
+ * 
+ * Do not edit or add to this file if you wish to upgrade this extension to newer
+ * version in the future.
+ * 
+ * @category    Magestore
+ * @package     Magestore_Inventorysupplyneeds
+ * @copyright   Copyright (c) 2012 Magestore (http://www.magestore.com/)
+ * @license     http://www.magestore.com/license-agreement.html
+ */
+
+/**
+ * Inventorysupplyneeds Adminhtml Controller
+ * 
+ * @category    Magestore
+ * @package     Magestore_Inventorysupplyneeds
+ * @author      Magestore Developer
+ */
+?>
+<?php
+$_helper = Mage::helper('inventorysupplyneeds');
+$dateto = $_helper->getForecastTo();
+$warehouseSelected = $_helper->getWarehouseSelected();
+$supplierSelected = $_helper->getsupplierSelected();
+$historySelected = $_helper->getHistorySelected();
+$baseon_date_from = $_helper->getHistoryFrom();
+$baseon_date_to = $_helper->getHistoryTo();
+$purchase_more_rate = $_helper->getRatePurchaseMore();
+?>
+<div class="content-header">
+    <table cellspacing="0">
+        <tr>
+            <td style="<?php echo $this->getHeaderWidth() ?>"><?php echo $this->getHeaderHtml() ?></td>
+            <td class="form-buttons"><?php echo $this->getButtonsHtml() ?></td>
+        </tr>
+    </table>
+</div>
+<div class="entry-edit">
+    <div class="entry-edit-head">
+        <h4 class="icon-head head-edit-form fieldset-legend"><?php echo $this->__('Select criteria to forecast supply needs') ?></h4>
+        <a style="display: none;" onclick="showReportCriteriaForm();
+                return false;" href="#" id="show_report_criteria"></a>
+        <a style="" onclick="hideReportCriteriaForm();
+                return false;" href="#" id="hide_report_criteria"></a>
+        <input type="hidden" id="is_show_report_criteria" name="is_show_report_criteria" value="1">
+    </div>
+    <div style="" id="report_criteria_content">
+        <div class="fieldset " id="date_picker_form">
+            <table class="form-list">
+                <tbody><tr>
+                        <td class="label">
+                            <label for="time">
+                                <strong><?php echo $this->__('Base On Sales'); ?>:&nbsp;&nbsp;</strong>
+                            </label>
+                        </td>
+                        <td class="value">
+                            <select onchange="return showCustomTime(this);" id="history_select" name="history_select">                            
+                                <option <?php if ($historySelected == '7_days') echo 'selected'; ?> value="7_days"><?php echo $this->__('Last 7 days') ?></option>
+                                <option <?php if ($historySelected == '30_days') echo 'selected'; ?> value="30_days"><?php echo $this->__('Last 30 days') ?></option>
+                                <option <?php if ($historySelected == '3_months') echo 'selected'; ?> value="3_months"><?php echo $this->__('Last 3 month') ?></option>
+                                <option <?php if ($historySelected == 'range') echo 'selected'; ?> value="range"><?php echo $this->__('Custom Range') ?></option>
+                            </select>
+                            <div style="display:none" id="otherOpt">
+                                <label>&nbsp; &nbsp;&nbsp; &nbsp;<strong><?php echo $this->__('From'); ?>:</strong> </label>
+                                &nbsp; &nbsp;
+                                <input type="text" value="<?php echo $baseon_date_from; ?>" class="input-text" style="width:100px" id="baseon_date_from" name="baseon_date_from">
+                                <img class="v-middle" src="<?php echo Mage::getBaseUrl(Mage_Core_Model_Store::URL_TYPE_SKIN) . 'adminhtml/default/default/images/grid-cal.gif'; ?>"  id="btn-date-picker-from" title="Select date">
+                                <label><strong>&nbsp; &nbsp;<?php echo $this->__('To'); ?>:</strong> </label>
+                                &nbsp; &nbsp;
+                                <input type="text" value="<?php echo $baseon_date_to; ?>" class="input-text" style="width:100px" id="baseon_date_to" name="baseon_date_to">
+                                <img class="v-middle" src="<?php echo Mage::getBaseUrl(Mage_Core_Model_Store::URL_TYPE_SKIN) . 'adminhtml/default/default/images/grid-cal.gif'; ?>"  id="btn-date-picker-to" title="Select date">
+                            </div>
+                        </td>
+                    </tr>
+                    <tr class="report_select_div">
+                        <td class="label">
+                            <label for="report_radio_select">
+                                <strong><?php echo $this->__('Forecast Supply Needs To'); ?>:&nbsp;&nbsp;</strong>
+                            </label>
+                        </td>
+                        <td class="value">
+                            <input name="forecast_date_to" id="forecast_date_to" type="text" onchange="checkForecastDateTo()" class="input-text" value="<?php echo $dateto; ?>">
+                            <img title="Date to" id="btn-date-to" src="<?php echo Mage::getBaseUrl(Mage_Core_Model_Store::URL_TYPE_SKIN) . 'adminhtml/default/default/images/grid-cal.gif'; ?>" class="v-middle">
+                        </td>
+                    </tr>
+                    <tr class="input-box"><!-- Filter by Warehouses -->
+                        <td class="label">
+                            <label style="font-size:13px"><strong><?php echo $this->__('Warehouses') ?></strong></label>
+                        </td>
+                        <td class="value">
+                            <select multiple name="warehouse_select[]" id="warehouse_select" >
+                                <?php
+                                $warehouses = Mage::helper('inventorypurchasing/purchaseorder')->getWarehouseOption();
+                                if ($warehouses)
+                                    foreach ($warehouses as $warehouse) {
+                                        ?>
+                                        <option <?php if (in_array($warehouse['value'], $warehouseSelected)) echo 'selected'; ?> value="<?php echo $warehouse['value'] ?>"><?php echo $warehouse['label']; ?></option>   
+                                    <?php } ?>
+
+                            </select>
+                            &nbsp; &nbsp;
+                        </td>
+                    </tr>
+                    <!-- Filter by suppliers-->
+                    <tr class="input-box">
+                        <td class="label">
+                            <label style="font-size:13px"><strong><?php echo $this->__('Suppliers') ?></strong></label>
+                        </td>
+                        <td class="value">
+                            <select multiple name="supplier_select[]" id="supplier_select" >
+                                <?php
+                                $model = Mage::getModel('inventorypurchasing/supplier');
+                                $collection = $model->getCollection();
+                                foreach ($collection as $supplier) {
+                                    ?>
+                                    <option <?php if (in_array($supplier->getId(), $supplierSelected)) echo 'selected'; ?> value="<?php echo $supplier->getId() ?>"><?php echo $supplier->getSupplierName(); ?></option>
+                                <?php } ?>
+                            </select>
+                            &nbsp; &nbsp;
+							<p id="note_supplier_filter" class="note"><span><?php echo $this->__('Filter only products provided by chosen supplier(s)');?></span></p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="label"></td>
+                        <td class="value">
+                            <button id="show_supplyneeds" onclick="redirectAddTopFilter(this);
+                                    return false;" ><?php echo $this->__('Show Supply Needs'); ?></button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<!-- Prepare Creating Purchase Order -->
+<?php if ($warehouses): ?>
+    <div class="entry-edit">
+        <div class="entry-edit-head">
+            <h4 class="icon-head head-edit-form fieldset-legend"><?php echo $this->__('Prepare to create Purchase Order') ?></h4>
+        </div>
+        <div id="report_criteria_content" class="fieldset ">
+            <table class="form-list">
+                <tbody>
+                    <tr>
+                        <td class="label">
+                            <label><strong><?php echo $this->__('Currency:') ?></strong><span class="required">*</span></label>
+                        </td>                                    
+                        <td class="value">                                    
+                            <select class="required-entry select" name="currency" id="currency">
+                                <?php foreach (Mage::app()->getLocale()->getOptionCurrencies() as $currency): ?>
+                                    <option value="<?php echo $currency['value'] ?>"><?php echo $currency['label'] ?></option>
+                                <?php endforeach ?>
+                            </select>     
+                            <script type="text/javascript">
+                                if ($('currency'))
+                                    $('currency').value = '<?php echo Mage::app()->getStore()->getBaseCurrencyCode() ?>';
+                            </script>
+                        </td>	
+                        <td rowspan="4" width="45%">
+                            <?php if($this->hasDraftPO()): ?>
+                            <div id="peding_purchaseorder_notice" style="padding:0 20px;">
+                                <ul class="messages">
+                                    <li id="purchase_order_notice" class="notice-msg">
+                                        <ul>
+                                            <li>
+                                                <span>
+                                                    <?php
+                                                    echo $this->__('Some draft purchase orders have been created since %s by %s.', $this->helper('core')->formatDate($this->getDraftPO()->getCreatedAt(), 'medium'), $this->getDraftPO()->getCreatedBy())
+                                                    ?><br/>
+                                                    <?php echo $this->__('You have to submit them for approval or remove them before creating more draft purchase orders from the supply need forecast.') ?><br/>
+                                                    <a href="<?php echo $this->getDraftPOUrl() ?>"><?php echo $this->__('Click here to process') ?></a>
+                                                </span>
+                                            </li>
+                                        </ul>
+                                    </li>
+                                </ul>
+                            </div>  
+                            <?php endif; ?>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="label">
+                            <label><strong><?php echo $this->__('Currency Exchange Rate:') ?></strong><span class="required">*</span></label>                    </td>
+                        <td class="value">
+                            <input type="text" class="required-entry input-text required-entry" value="" name="change_rate" id="change_rate">                        <div id="change_rate_comment" style="font-weight: bold;"></div>
+                            <script type="text/javascript">
+                                var base_currency = '<?php echo Mage::app()->getStore()->getBaseCurrencyCode() ?>';
+                                var select_currency = $('currency').value;
+                                var change_rate = $('change_rate').value;
+                                if (!change_rate) {
+                                    $('change_rate').value = 1;
+                                }
+                                var comment = '(1 ' + base_currency + ' = ' + $('change_rate').value + ' ' + select_currency + ')';
+                                $('change_rate_comment').innerHTML = comment;
+                            </script>
+                        </td> 
+                <script type="text/javascript">
+                    Event.observe('currency', 'change', function () {
+                        var base_currency = '<?php echo Mage::app()->getStore()->getBaseCurrencyCode() ?>';
+                        var select_currency = $('currency').value;
+                        var change_rate = $('change_rate').value;
+                        var comment = '(1 ' + base_currency + ' = ' + change_rate + ' ' + select_currency + ')';
+                        $('change_rate_comment').innerHTML = comment;
+                    });
+
+                    Event.observe('change_rate', 'change', function () {
+                        var base_currency = '<?php echo Mage::app()->getStore()->getBaseCurrencyCode() ?>';
+                        var select_currency = $('currency').value;
+                        var change_rate = $('change_rate').value;
+                        var comment = '(1 ' + base_currency + ' = ' + change_rate + ' ' + select_currency + ')';
+                        $('change_rate_comment').innerHTML = comment;
+                    });
+                </script>
+                </tr>
+                <tr>
+                    <td class="label">
+                        <label><strong><?php echo $this->__('Purchase Rate') ?> (%):</strong><span class="required">*</span></label>                    
+						</td>
+                    <td class="value">
+                        <input type="text" class="input-text" value="<?php echo $purchase_more_rate; ?>" id="purchase_more_rate" name="purchase_more_rate">
+					<p id="note_purchase_rate" class="note"><span><?php echo $this->__('Define how many percentage of Purchase Qty. suggested by supply needs is going to be converted to purchase orders.
+Default value is 100% but you can set a lower or higher value.');?></span></p>		
+                    </td>
+                </tr>
+                <tr>
+                    <td class="label">
+                        <input type="hidden" name="product_list" id="product_list" value="" />
+                        <input id="form_key" name="form_key" type="hidden" value="<?php echo Mage::getSingleton('core/session')->getFormKey(); ?>">
+                    </td>
+                    <td class="value">
+                        <button onclick=" <?php if ($this->hasDraftPO()) : ?>
+                            hightlightNotice();
+                        <?php else : ?>redirectNewPO();<?php endif; ?>
+                                    return false;" ><?php echo $this->__('Save as Draft Purchase Orders'); ?></button>
+                        <button id="fill_all" onclick="redirectAddTopFilter(this);
+                                return false;" ><?php echo $this->__('Update All Purchase Qtys'); ?></button>
+                        <button id="reset" onclick="redirectAddTopFilter(this);
+                                return false;"><?php echo $this->__('Reset'); ?></button>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+<?php endif ?>
+
+<div>
+    <?php
+    if (count($warehouseSelected) > 0 || count($supplierSelected) > 0) {
+        $this->getChild('grid')->sendHelperClass($_helper);
+        echo $this->getGridHtml();
+    }
+    ?>
+</div>
+
+<script type="text/javascript">
+    function redirectAddTopFilter(element) {
+        if (element.id == 'reset') {
+            window.location.href = '<?php echo $this->getUrl('adminhtml/insu_inventorysupplyneeds/index'); ?>';
+            return;
+        }
+        var filters = new Array();
+        filters[1] = $('history_select');
+        filters[2] = $('baseon_date_from');
+        filters[3] = $('baseon_date_to');
+        filters[4] = $('forecast_date_to');
+        filters[5] = $('warehouse_select');
+        filters[6] = $('supplier_select');
+        if (element.id == 'fill_all') {
+            filters[7] = $('purchase_more_rate');
+        }
+        filters[8] = $('baseon_date_from');
+        filters[9] = $('baseon_date_to');
+        var elements = [];
+        for (var i in filters) {
+            if (filters[i].value && filters[i].value.length && !filters[i].disabled)
+                elements.push(filters[i]);
+        }
+        window.location.href = '<?php echo $this->getUrl('adminhtml/insu_inventorysupplyneeds/index'); ?>top_filter/' + encode_base64(Form.serializeElements(elements)) + '/';
+        return;
+    }
+    function redirectNewPO() {
+        var purchase_products = document.getElementsByName("purchase_products")[0].value;
+        if (!purchase_products) {
+            alert('<?php echo $this->__("Please select product(s) to create purchase order!"); ?>');
+            return;
+        }
+        var top_filter = '<?php echo $this->getRequest()->getParam("top_filter"); ?>';
+        var currency = $('currency').value;
+        var change_rate = $('change_rate').value;
+        var poUrl = '';
+        if (!top_filter) {
+            poUrl = '<?php echo $this->getUrl('adminhtml/insu_inventorysupplyneeds/createpo'); ?>currency/' + currency + '/change_rate/' + change_rate;
+        } else {
+            poUrl = '<?php echo $this->getUrl('adminhtml/insu_inventorysupplyneeds/createpo'); ?>top_filter/' + top_filter + '/currency/' + currency + '/change_rate/' + change_rate;
+        }
+        var formKey = '<?php echo Mage::getSingleton('core/session')->getFormKey(); ?>';
+        var params = {'purchase_products': purchase_products, 'form_key': formKey};
+        postSupplyNeedForm(poUrl, params);
+    }
+    
+    function checkForecastDateTo() {
+        var now = new Date();
+        var picked = $('forecast_date_to').value;
+        var data = picked.split("-");
+        var newdate = data[2] + "-" + data[1] + '-' + data[0];
+        var pick = new Date(newdate);
+        if (pick.getFullYear() < now.getFullYear())
+        {
+            alert('<?php echo $this->__('Wrong date picked') ?>');
+            $('forecast_date_to').value = '';
+        }
+        if (pick.getFullYear() == now.getFullYear())
+        {
+            if (pick.getMonth() < now.getMonth())
+            {
+                alert('<?php echo $this->__('Wrong date picked') ?>');
+                $('forecast_date_to').value = '';
+            }
+        }
+        if (pick.getMonth() == now.getMonth())
+        {
+            if (pick.getDate() < now.getDate() - 1)
+            {
+                alert('<?php echo $this->__('Wrong date picked') ?>');
+                $('forecast_date_to').value = '';
+            }
+        }
+    }
+    function checkDateFrom() {
+        var now = new Date();
+        var picked = $('date_from').value;
+        var data = picked.split("-");
+        var newdate = data[2] + "-" + data[1] + '-' + data[0];
+        var pick = new Date(newdate);
+        if (pick.getFullYear() < now.getFullYear())
+        {
+            alert('Wrong date picked');
+            $('date_from').value = '';
+        }
+        if (pick.getFullYear() == now.getFullYear())
+        {
+            if (pick.getMonth() < now.getMonth())
+            {
+                alert('<?php echo $this->__('Invalid selected time. Please choose a current or future date.') ?>');
+                $('date_from').value = '';
+            }
+        }
+        if (pick.getMonth() == now.getMonth())
+        {
+            if (pick.getDate() < now.getDate() - 1)
+            {
+                alert('<?php echo $this->__('Wrong date picked') ?>');
+                $('date_from').value = '';
+            }
+        }
+    }
+
+    function checkDateTo() {
+        var now = new Date();
+        var picked = $('date_to').value;
+        var data = picked.split("-");
+        var newdate = data[2] + "-" + data[1] + '-' + data[0];
+        var pick = new Date(newdate);
+        if (pick.getFullYear() < now.getFullYear())
+        {
+            alert('<?php echo $this->__('Wrong date picked') ?>');
+            $('date_to').value = '';
+        }
+        if (pick.getFullYear() == now.getFullYear())
+        {
+            if (pick.getMonth() < now.getMonth())
+            {
+                alert('<?php echo $this->__('Wrong date picked') ?>');
+                $('date_to').value = '';
+            }
+        }
+        if (pick.getMonth() == now.getMonth())
+        {
+            if (pick.getDate() < now.getDate() - 1)
+            {
+                alert('<?php echo $this->__('Wrong date picked') ?>');
+                $('date_to').value = '';
+            }
+        }
+    }
+
+    function showReportCriteriaForm() {
+        $('report_criteria_content').show();
+        $('show_report_criteria').hide();
+        $('hide_report_criteria').show();
+        $('is_show_report_criteria').value = '1';
+    }
+
+    function hideReportCriteriaForm() {
+        $('report_criteria_content').hide();
+        $('show_report_criteria').show();
+        $('hide_report_criteria').hide();
+        $('is_show_report_criteria').value = '';
+    }
+    function showCustomTime(custom_option) {
+        if (custom_option.value == 'range') {
+            document.getElementById('otherOpt').style.display = "inline-block";
+        }
+        if (custom_option.value != 'range') {
+            document.getElementById('otherOpt').style.display = "none";
+        }
+    }
+    showCustomTime($('history_select'));
+
+    function hightlightNotice() {
+        var message = '<?php echo $this->__('Some draft purchase orders have been created since %s by %s. You have to submit them for approval or remove them before creating more draft purchase orders from the supply need forecast. Click OK to continue processing.', $this->helper('core')->formatDate($this->getDraftPO()->getCreatedAt(), 'medium'), $this->getDraftPO()->getCreatedBy()) ?>';
+        if (confirm(message)) {
+            location.href = '<?php echo $this->getDraftPOUrl() ?>';
+        }
+    }
+    
+    function postSupplyNeedForm(path, params, method) {
+        method = method || "post";
+        var form = document.createElement("form");
+        form.setAttribute("method", method);
+        form.setAttribute("action", path);
+
+        for(var key in params) {
+            if(params.hasOwnProperty(key)) {
+                var hiddenField = document.createElement("input");
+                hiddenField.setAttribute("type", "hidden");
+                hiddenField.setAttribute("name", key);
+                hiddenField.setAttribute("value", params[key]);
+                form.appendChild(hiddenField);
+             }
+        }
+        document.body.appendChild(form);
+        form.submit();
+    }    
+
+</script>
+<script type="text/javascript">
+    Calendar.setup({
+        inputField: 'forecast_date_to',
+        ifFormat: "%d-%m-%Y",
+        daFormat: "%d-%m-%Y",
+        button: 'btn-date-to',
+        align: 'Bl',
+        singleClick: true,
+        disableFunc: function (date) {
+            var now = new Date();
+            if (date.getFullYear() < now.getFullYear())
+            {
+                return true;
+            }
+            if (date.getFullYear() == now.getFullYear())
+            {
+                if (date.getMonth() < now.getMonth())
+                {
+                    return true;
+                }
+            }
+            if (date.getMonth() == now.getMonth())
+            {
+                if (date.getDate() < now.getDate() - 1)
+                {
+                    return true;
+                }
+            }
+        }
+    });
+
+    Calendar.setup({
+        inputField: 'baseon_date_from',
+        ifFormat: "%d-%m-%Y",
+        daFormat: "%d-%m-%Y",
+        button: 'btn-date-picker-from',
+        align: 'Bl',
+        singleClick: true,
+        disableFunc: function (date) {
+            var now = new Date();
+            if (date.getFullYear() > now.getFullYear())
+            {
+                return true;
+            }
+            if (date.getFullYear() == now.getFullYear())
+            {
+                if (date.getMonth() > now.getMonth())
+                {
+                    return true;
+                }
+            }
+            if (date.getMonth() == now.getMonth())
+            {
+                if (date.getDate() > now.getDate() - 1)
+                {
+                    return true;
+                }
+            }
+        }
+    });
+    Calendar.setup({
+        inputField: 'baseon_date_to',
+        ifFormat: "%d-%m-%Y",
+        daFormat: "%d-%m-%Y",
+        button: 'btn-date-picker-to',
+        align: 'Bl',
+        singleClick: true,
+        disableFunc: function (date) {
+            var now = new Date();
+            if (date.getFullYear() > now.getFullYear())
+            {
+                return true;
+            }
+            if (date.getFullYear() == now.getFullYear())
+            {
+                if (date.getMonth() > now.getMonth())
+                {
+                    return true;
+                }
+            }
+            if (date.getMonth() == now.getMonth())
+            {
+                if (date.getDate() > now.getDate())
+                {
+                    return true;
+                }
+            }
+            //if($('baseon_date_from').value!='' && $('baseon_date_from').value<date)
+        }
+    });
+</script>
+<style type="text/css">
+    table tr td select{
+        width:150px;
+        padding:2px;
+    }
+</style>

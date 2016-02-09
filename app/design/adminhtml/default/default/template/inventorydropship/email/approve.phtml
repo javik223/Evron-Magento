@@ -1,0 +1,124 @@
+<?php $dropship = $this->getDropship(); ?>
+<?php 
+    $dropshipProducts = Mage::getModel('inventorydropship/inventorydropship_product')
+                                ->getCollection()
+                                ->addFieldToFilter('dropship_id',$dropship->getId());
+?>
+<?php $orderId = $dropship->getOrderId() ?>
+<?php $_order = Mage::getModel('sales/order')->load($orderId) ?>
+
+<table cellspacing="0" cellpadding="0" border="0" width="650">
+    <thead>
+        <tr>
+            <th align="left" width="325" bgcolor="#EAEAEA" style="font-size:13px; padding:5px 9px 6px 9px; line-height:1em;"><?php echo $this->__('Customer Information:') ?></th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td valign="top" style="font-size:12px; padding:5px 9px 6px 9px; border-left:1px solid #EAEAEA; border-bottom:1px solid #EAEAEA; border-right:1px solid #EAEAEA;">
+                <?php echo Mage::helper('sales')->__('Customer Name: ') ?><?php echo $this->htmlEscape($_order->getCustomerName()) ?>
+                <br />
+                <?php echo Mage::helper('sales')->__('Email: ') ?><a href="mailto:<?php echo $_order->getCustomerEmail() ?>"><strong><?php echo $_order->getCustomerEmail() ?></strong></a>
+            </td>
+        </tr>
+    </tbody>
+</table>
+
+<br />
+<div class="clear"></div>
+
+<table cellspacing="0" cellpadding="0" border="0" width="650">
+    <thead>
+        <tr>
+            <th align="left" width="325" bgcolor="#EAEAEA" style="font-size:13px; padding:5px 9px 6px 9px; line-height:1em;"><?php echo $this->__('Billing Information:') ?></th>
+            <th width="10"></th>
+            <th align="left" width="325" bgcolor="#EAEAEA" style="font-size:13px; padding:5px 9px 6px 9px; line-height:1em;"><?php echo $this->__('Shipping Information:') ?></th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td valign="top" style="font-size:12px; padding:7px 9px 9px 9px; border-left:1px solid #EAEAEA; border-bottom:1px solid #EAEAEA; border-right:1px solid #EAEAEA;">
+                <?php echo $_order->getBillingAddress()->getFormated(true) ?>
+            </td>
+            <td>&nbsp;</td>
+            <td valign="top" style="font-size:12px; padding:7px 9px 9px 9px; border-left:1px solid #EAEAEA; border-bottom:1px solid #EAEAEA; border-right:1px solid #EAEAEA;">
+                <?php echo $_order->getShippingAddress()->getFormated(true) ?>
+            </td>
+        </tr>
+    </tbody>
+</table>
+
+<br />
+<br />
+<div class="clear"></div>
+
+
+<?php if($dropshipProducts): ?>
+    <table cellspacing="0" cellpadding="0" border="0" width="650" style="border:1px solid #EAEAEA;">
+        <thead>
+            <tr>
+                <th align="left" bgcolor="#EAEAEA" style="font-size:13px; padding:3px 9px"><?php echo $this->__('Product') ?></th>
+                <th align="left" bgcolor="#EAEAEA" style="font-size:13px; padding:3px 9px"><?php echo $this->__('SKU') ?></th>
+                <th align="center" bgcolor="#EAEAEA" style="font-size:13px; padding:3px 9px"><?php echo $this->__('Qty Need To Ship') ?></th>                                           
+            </tr>
+        </thead>
+
+        <?php $i=0; foreach ($dropshipProducts as $dropshipProduct): ?>            
+            <tbody<?php echo $i%2 ? ' bgcolor="#F6F6F6"' : '' ?>>
+                <tr>
+                    <td align="left" valign="top" style="font-size:11px; padding:3px 9px; border-bottom:1px dotted #CCCCCC;">
+                        <strong style="font-size:11px;"><?php echo $this->htmlEscape($dropshipProduct->getProductName()) ?></strong>                        
+                        
+                        <div style="margin-left:20px">
+                            <?php $orderItem = Mage::getModel('sales/order_item')->load($dropshipProduct->getItemId()) ?>     
+                            <?php 
+                                $result = array();
+                                if ($options = $orderItem->getProductOptions()) {
+                                    if (isset($options['options'])) {
+                                        $result = array_merge($result, $options['options']);
+                                    }
+                                    if (isset($options['additional_options'])) {
+                                        $result = array_merge($result, $options['additional_options']);
+                                    }
+                                    if (isset($options['attributes_info'])) {
+                                        $result = array_merge($result, $options['attributes_info']);
+                                    }
+                                }
+                                $_options = $result;
+                            ?>
+                            <?php if(($_options) && ($orderItem->getProductType() != 'bundle')): ?>                                        
+                                <dl class="item-options">
+                                    <?php $defaultBlock = Mage::getBlockSingleton('adminhtml/sales_items_renderer_default') ?>
+                                    <?php foreach ($_options as $_option) : ?>                                                      
+                                        <?php $_formatedOptionValue = $defaultBlock->getFormatedOptionValue($_option) ?>                                                                                                 
+                                        <dt><strong><em><?php echo $_option['label'] ?></em></strong></dt>
+                                        <dd style="margin:0; padding:0 0 0 9px;"><?php echo $_option['value'] ?></dd>                                                  
+                                    <?php endforeach; ?>
+                                </dl>                                                
+                            <?php endif ?>
+                            <?php if($orderItem->getProductType()=='bundle'): ?>
+                                <?php $_prevOptionId = '' ?>
+                                <?php $childrens = Mage::getModel('sales/order_item')->getCollection()->addFieldToFilter('parent_item_id',$orderItem->getId()); ?>
+                                <?php $bundle = Mage::getBlockSingleton('bundle/adminhtml_sales_order_view_items_renderer'); ?>
+                                <?php foreach($childrens as $children): ?>
+                                    <br />
+                                    <?php $attributes = $bundle->getSelectionAttributes($children) ?>
+                                    <?php if ($_prevOptionId != $attributes['option_id']): ?>                                    
+                                        <dt><strong><em><?php echo $attributes['option_label'] ?></em></strong></dt>                                                                                        
+                                        <dd style="margin:0; padding:0 0 0 9px;"><?php echo $bundle->getValueHtml($children)?></dd>
+                                    <?php endif; ?>
+                                <?php endforeach ?>
+                            <?php endif ?>
+                            <?php if($orderItem->getProductType()=='configurable'): ?>
+                            <?php endif ?>
+                        </div>
+                        
+                    </td>
+                    <td align="left" valign="top" style="font-size:11px; padding:3px 9px; border-bottom:1px dotted #CCCCCC;"><?php echo $this->htmlEscape($dropshipProduct->getProductSku($_item)) ?></td>
+                    <td align="center" valign="top" style="font-size:11px; padding:3px 9px; border-bottom:1px dotted #CCCCCC;"><?php echo $dropshipProduct->getQtyApprove()*1 ?></td>                                        
+                </tr>
+            </tbody>
+            <?php $i++; ?>
+        <?php endforeach; ?>
+    </table>    
+<?php endif; ?>

@@ -1,0 +1,196 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Magestore
+ * 
+ * NOTICE OF LICENSE
+ * 
+ * This source file is subject to the Magestore.com license that is
+ * available through the world-wide-web at this URL:
+ * http://www.magestore.com/license-agreement.html
+ * 
+ * DISCLAIMER
+ * 
+ * Do not edit or add to this file if you wish to upgrade this extension to newer
+ * version in the future.
+ * 
+ * @category    Magestore
+ * @package     Magestore_Inventorywarehouse
+ * @copyright   Copyright (c) 2012 Magestore (http://www.magestore.com/)
+ * @license     http://www.magestore.com/license-agreement.html
+ */
+-->
+<layout version="0.1.0">
+    <adminhtml_inw_inventorywarehouse_index>
+        <reference name="content">
+            <block type="inventorywarehouse/adminhtml_inventorywarehouse" name="inventorywarehouse" />
+        </reference>
+    </adminhtml_inw_inventorywarehouse_index>
+    
+    <!-- warehouse dashboard -->
+    <adminhtml_inw_warehouse_dashboard>
+        <block type="core/text_list" name="root">
+            <block type="inventorywarehouse/adminhtml_warehouse_edit_tab_dashboard" name="warehouse.edit.tab.dashboard"/>
+        </block>
+    </adminhtml_inw_warehouse_dashboard>    
+    <!-- end of warehouse dashboard -->
+    
+    <adminhtml_inw_sendstock_index>
+        <update handle="adminhtml_inventoryplus_layout" />
+        <reference name="content">
+            <block type="inventorywarehouse/adminhtml_sendstock" name="tip" template="inventorywarehouse/sendstock/tip.phtml" />
+            <block type="inventorywarehouse/adminhtml_sendstock" name="inventorywarehouse_sendstock" />
+        </reference>
+    </adminhtml_inw_sendstock_index>
+    
+    <adminhtml_inw_sendstock_new>
+        <update handle="adminhtml_inventoryplus_one_tab" />
+    </adminhtml_inw_sendstock_new>
+    
+    <adminhtml_inw_sendstock_edit>
+        <update handle="adminhtml_inventoryplus_one_tab" />
+    </adminhtml_inw_sendstock_edit>
+    
+    <adminhtml_inw_sendstock_products>
+        <block type="core/text_list" name="root">
+            <block type="inventorywarehouse/adminhtml_sendstock" name="csv_form" template="inventorywarehouse/sendstock/importproduct.phtml" />
+            <block type="inventorywarehouse/adminhtml_sendstock_edit_tab_products" name="sendstock.edit.tab.products"/>
+            <block type="adminhtml/widget_grid_serializer" name="related_grid_serializer">
+                <action method="initSerializerBlock">
+                    <grid_block_name>sendstock.edit.tab.products</grid_block_name>
+                    <data_callback>getSelectedProducts</data_callback>
+                    <hidden_input_name>sendstock_products</hidden_input_name>
+                    <reload_param_name>oproducts</reload_param_name>
+                </action>
+                <action method="addColumnInputName">
+                    <input_name>qty</input_name>   
+                </action>
+            </block>
+        </block>
+    </adminhtml_inw_sendstock_products>
+    <adminhtml_inw_sendstock_productsgrid>
+        <block type="core/text_list" name="root">
+            <block type="inventorywarehouse/adminhtml_sendstock_edit_tab_products" name="sendstock.edit.tab.products"/>
+        </block>
+    </adminhtml_inw_sendstock_productsgrid>
+    <adminhtml_inw_sendstock_grid>
+        <block type="core/text_list" name="root" output="toHtml">
+            <block type="inventorywarehouse/adminhtml_sendstock_grid" name="inventory_sendstock" />
+        </block>
+    </adminhtml_inw_sendstock_grid>
+    
+    <!-- Request Stock -->
+    <adminhtml_inw_requeststock_index>
+        <update handle="adminhtml_inventoryplus_layout" />
+        <block name="content">
+            <block type="inventorywarehouse/adminhtml_requeststock" name="tip" template="inventorywarehouse/requeststock/tip.phtml" />
+            <block type="inventorywarehouse/adminhtml_requeststock" name="inventorywarehouse_requeststock"/>
+        </block>
+    </adminhtml_inw_requeststock_index>
+    <adminhtml_inw_requeststock_grid>
+        <block type="core/text_list" name="root" output="toHtml">
+            <block type="inventorywarehouse/adminhtml_requeststock_grid" name="inventory_requeststock_grid" />
+        </block>
+    </adminhtml_inw_requeststock_grid>
+    <adminhtml_inw_requeststock_new>
+        <update handle="adminhtml_inventoryplus_one_tab" />
+        <reference name="head">
+            <action method="addJs">
+                <script>magestore/inventory/tinybox.js</script>
+            </action>
+        </reference>
+    </adminhtml_inw_requeststock_new>
+    
+    <adminhtml_inw_requeststock_products>
+        <block type="core/text_list" name="root">
+            <block type="inventorywarehouse/adminhtml_requeststock" name="csv_form" template="inventorywarehouse/requeststock/importproduct.phtml" />
+            <block type="inventorywarehouse/adminhtml_requeststock_edit_tab_products" name="requeststock.edit.tab.products"/>
+            <block type="adminhtml/widget_grid_serializer" name="related_grid_serializer">
+                <action method="initSerializerBlock">
+                    <grid_block_name>requeststock.edit.tab.products</grid_block_name>
+                    <data_callback>getSelectedProducts</data_callback>
+                    <hidden_input_name>requeststock_products</hidden_input_name>
+                    <reload_param_name>requeststock_products</reload_param_name>
+                </action>
+                <action method="addColumnInputName">
+                    <input_name>qty_request</input_name>
+                </action>
+            </block>
+        </block>
+    </adminhtml_inw_requeststock_products>
+    <adminhtml_inw_requeststock_productsgrid>
+        <block type="core/text_list" name="root">
+            <block type="inventorywarehouse/adminhtml_requeststock_edit_tab_products" name="requeststock.edit.tab.products"/>
+        </block>
+    </adminhtml_inw_requeststock_productsgrid>
+    <adminhtml_inw_requeststock_edit>
+        <update handle="adminhtml_inventoryplus_one_tab" />
+    </adminhtml_inw_requeststock_edit>
+
+    <adminhtml_sales_order_creditmemo_updateqty>
+        <reference name="order_items">
+            <action method="setTemplate">
+                <template>inventorywarehouse/creditmemo/sales/order/creditmemo/create/items.phtml</template>
+            </action>
+            <action method="addItemRender">
+                <type>default</type>
+                <block>adminhtml/sales_items_renderer_default</block>
+                <template>inventorywarehouse/creditmemo/sales/order/creditmemo/create/items/renderer/default.phtml</template>
+            </action>
+            <action method="addItemRender">
+                <type>bundle</type>
+                <block>bundle/adminhtml_sales_order_items_renderer</block>
+                <template>inventorywarehouse/bundle/sales/creditmemo/create/items/renderer.phtml</template>
+            </action>
+        </reference>
+    </adminhtml_sales_order_creditmemo_updateqty>
+    
+    <!-- transaction -->
+    <adminhtml_inw_warehouse_transaction>
+        <block type="core/text_list" name="root">
+            <block type="inventorywarehouse/adminhtml_warehouse_edit_tab_transaction" name="warehouse.edit.tab.transaction"/>
+        </block>
+    </adminhtml_inw_warehouse_transaction>
+    <adminhtml_inw_warehouse_transactiongrid>
+        <block type="core/text_list" name="root">
+            <block type="inventorywarehouse/adminhtml_warehouse_edit_tab_transaction" name="warehouse.edit.tab.transaction"/>
+        </block>
+    </adminhtml_inw_warehouse_transactiongrid>
+    <adminhtml_inw_warehouse_viewtransaction>
+        <update handle="adminhtml_inventoryplus_layout" />
+        <reference name="head">
+            <action method="addJs">
+                <script>magestore/inventory/tinybox.js</script>
+            </action>
+        </reference>
+    </adminhtml_inw_warehouse_viewtransaction>
+    <adminhtml_inw_warehouse_transactionproductview>
+        <block type="core/text_list" name="root">
+            <block type="inventorywarehouse/adminhtml_warehouse_transaction_view_edit_tab_products" name="transaction.edit.tab.products"/>
+        </block>
+    </adminhtml_inw_warehouse_transactionproductview>
+
+    <!-- sales rate -->
+    <adminhtml_inw_salesrate_index>
+        <update handle="adminhtml_inventoryplus_layout" />
+        <reference name="head">
+            <action method="addJs">
+                <script>magestore/inventory/tinybox.js</script>
+            </action>
+        </reference>
+        <reference name="content">
+            <block type="inventorywarehouse/adminhtml_salesrate" name="inventorywarehouse_salesrate" />
+        </reference>
+    </adminhtml_inw_salesrate_index>
+    <adminhtml_inw_salesrate_grid>
+        <block type="core/text_list" name="root" output="toHtml">
+            <block type="inventorywarehouse/adminhtml_salesrate_grid" name="inventorywarehouse.adminhtml.salesrate.grid"/>
+        </block>
+    </adminhtml_inw_salesrate_grid>
+
+    <adminhtml_inw_warehouse_store>
+        <block type="core/text_list" name="root">
+            <block type="inventorywarehouse/adminhtml_warehouse_edit_tab_store" name="adminhtml.warehouse.edit.tab.store"/>
+        </block>
+    </adminhtml_inw_warehouse_store>
+</layout>

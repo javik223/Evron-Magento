@@ -1,0 +1,102 @@
+<?php 
+    $filterData = new Varien_Object();
+    $requestData = Mage::helper('adminhtml')->prepareFilterString($this->getRequest()->getParam('top_filter'));
+    foreach ($requestData as $key => $value)
+        if (!empty($value))
+            $filterData->setData($key, $value);
+?>
+
+<div class="entry-edit">
+    <div id="date_picker_form" class="fieldset ">
+        <div  class="input-box">
+            <?php $allWarehouses = Mage::getSingleton('inventoryplus/warehouse')->getCollection() ?>
+            <?php if (count($allWarehouses)): ?>                
+                <div>
+                    <label for="warehouse">
+                        <strong><?php echo $this->__('Show Report For: ') ?>&nbsp;&nbsp;</strong>
+                    </label>
+                    <select name="select_warehouse" id="select_warehouse" onchange="return switchWarehouse(this);">                            
+                        <option value=""><?php echo $this->__('All Warehouses') ?></option>
+                        <?php foreach ($allWarehouses as $warehouse): ?>
+                            <?php $selected = '' ?>                                
+                            <?php if ($this->getRequest()->getParam('warehouse_id') == $warehouse->getId()): ?>
+                                <?php $selected = "selected=\"selected\"" ?>
+                            <?php endif ?>
+                            <option <?php echo $selected ?> value="<?php echo $warehouse->getId() ?>">
+                                <?php echo $warehouse->getWarehouseName() ?>
+                            </option>
+                        <?php endforeach ?>
+                    </select>
+                </div>
+                <script type="text/javascript">
+                    function switchWarehouse(obj) {
+                        var url = '<?php echo $this->getUrl('*/*/*',array('top_filter'=>$this->getRequest()->getParam('top_filter',null))) ?>';
+                        var warehouseParam = obj.value ? 'warehouse_id/' + obj.value + '/' : '';
+                        url += warehouseParam;
+                        setLocation(url);
+                    }
+                </script>
+            <?php else: ?>
+                <?php echo $this->__('Warehouse does not exist') ?>
+            <?php endif ?>
+        </div>
+    </div>
+    <?php if (count($allWarehouses)): ?>  
+        <div id="date_picker_form" class="fieldset ">
+            <div  class="input-box">
+                <label><?php echo $this->__('From:'); ?> </label>
+                &nbsp; &nbsp;
+                <input name="date_from" id="date_from" type="text" size="20" value="<?php echo $filterData->getDateFrom(); ?>" />
+                <img title="Select date" id="btn-date-picker-from" src="<?php echo Mage::getBaseUrl(Mage_Core_Model_Store::URL_TYPE_SKIN) . 'adminhtml/default/default/images/grid-cal.gif'; ?>" class="v-middle" />
+                <label><?php echo $this->__('To:'); ?> </label>
+                &nbsp; &nbsp;
+                <input name="date_to" id="date_to" type="text" size="20" value="<?php echo $filterData->getDateTo(); ?>" />
+                <img title="Select date" id="btn-date-picker-to" src="<?php echo Mage::getBaseUrl(Mage_Core_Model_Store::URL_TYPE_SKIN) . 'adminhtml/default/default/images/grid-cal.gif'; ?>" class="v-middle" />                          
+                <button onclick="filterFormSubmit();return false;" ><?php echo $this->__('Show Report'); ?></button>
+            </div>
+        </div>
+    <?php endif ?>
+</div>
+
+<script type="text/javascript">
+    //<![CDATA[
+    Calendar.setup({
+        inputField : 'date_from',
+        ifFormat : "%Y-%m-%d",
+        daFormat : "%Y-%m-%d",
+        button : 'btn-date-picker-from',
+        align : 'Bl',
+        singleClick : true
+    });
+    Calendar.setup({
+        inputField : 'date_to',
+        ifFormat : "%Y-%m-%d",
+        daFormat : "%Y-%m-%d",
+        button : 'btn-date-picker-to',
+        align : 'Bl',
+        singleClick : true
+    });
+    
+    function filterFormSubmit()
+    {
+        if(!$('date_from') || !$('date_from').value || $('date_from').value == ''  || $('date_from').value == null){
+            alert('<?php echo $this->__('Please fill Date From!'); ?>');
+            return false;
+        }else if(!$('date_to') || !$('date_to').value || $('date_to').value == ''  || $('date_to').value == null){
+            alert('<?php echo $this->__('Please fill Date To!'); ?>');
+            return false;
+        }
+        
+        var filters = new Array();
+        filters[0] = $('date_from');
+        filters[1] = $('date_to');
+        var elements = [];
+        for(var i in filters){
+            if(filters[i].value && filters[i].value.length && !filters[i].disabled) elements.push(filters[i]);
+        }
+        window.location.href = '<?php echo $url = $this->getUrl('adminhtml/inr_product/bestsellers', array('warehouse_id' => $this->getRequest()->getParam('warehouse_id'),'key' => $this->getRequest()->getParam('key'))); ?>top_filter/'+encode_base64(Form.serializeElements(elements))+'/';        
+        return;
+    }    
+    
+    //]]>
+</script>

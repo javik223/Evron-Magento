@@ -1,0 +1,85 @@
+<?php
+/**
+ * Magento
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Academic Free License (AFL 3.0)
+ * that is bundled with this package in the file LICENSE_AFL.txt.
+ * It is also available through the world-wide-web at this URL:
+ * http://opensource.org/licenses/afl-3.0.php
+ * If you did not receive a copy of the license and are unable to
+ * obtain it through the world-wide-web, please send an email
+ * to license@magentocommerce.com so we can send you a copy immediately.
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade Magento to newer
+ * versions in the future. If you wish to customize Magento for your
+ * needs please refer to http://www.magentocommerce.com for more information.
+ *
+ * @category   design
+ * @package    base_default
+ * @created    11th Dec, 2014 2:08pm
+ * @author     Clarion magento team<magento@clariontechnologies.co.in>
+ * @purpose    Manage one step shipping method html  
+ * @copyright  Copyright (c) 2014 Magento Inc. (http://www.magentocommerce.com)
+ * @license    http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
+ */
+?>
+<?php if ($this->getQuote()->isVirtual()) : return; endif; ?>
+<div id="shipping-method" class="onestepcheckout_block">
+    <div class="op_block_title" id="shipping"><?php echo $this->__('2. Shipping Method') ?></div>
+    <div id="checkout-shipping-method-load">
+        <?php echo $this->getChildHtml('available') ?>
+    </div>
+    <script type="text/javascript">
+    //<![CDATA[
+        var shippingMethod = new ShippingMethod('shipping-method');
+    //]]>
+    </script>
+    <div id="onestep-checkout-shipping-method-additional-load">
+        <?php echo $this->getChildHtml('additional') ?>
+    </div>
+</div>   
+<?php 
+	   $giftwrap_conditions =(Mage::getStoreConfig('onestepcheckout/giftwrap/enabled'));
+	   $giftwrap_admin_price=(Mage::getStoreConfig('onestepcheckout/giftwrap/giftwrapoutput'));
+	   $giftwrap_desc=(Mage::getStoreConfig('onestepcheckout/giftwrap/giftwrapdescription'));
+?>
+<?php if ($giftwrap_conditions == 1) : ?>
+
+<?php
+
+$_SESSION['giftwrap_conditions_enabled']=$giftwrap_conditions;
+$_SESSION['price_gift_warp']=$giftwrap_admin_price;
+$_SESSION['desc_gift_warp']=$giftwrap_desc;
+ ?>  
+	<div class="gift_wraps">
+		<div class="giftwrap-header">  
+       		<h4><?php echo "Gift Wrapper";?></h4>
+       			<p>       
+                   	 <input type="checkbox" id="giftwrap-signup" name="giftwrap" title="<?php echo "giftwrap"; ?>" onchange="chck()" value="Yes"/>
+               		 <label for="giftwrap-signup">
+                    		<?php  echo $this->__('Gift Wrap : ');	echo $this->helper('checkout')->formatPrice($giftwrap_admin_price);	?>
+                      </label>
+   				</p>  
+ 		</div>
+        <div> <?php echo $giftwrap_desc; ?></div>
+      </div>
+<?php endif; ?>
+
+<script type="text/javascript">
+function chck() 
+	{
+		if(document.getElementById('giftwrap-signup').checked) 
+		{   			
+			checkout.update({'review': 1})
+		}
+		else
+		{
+			checkout.update({'review': 1})
+		}
+
+	}
+</script>

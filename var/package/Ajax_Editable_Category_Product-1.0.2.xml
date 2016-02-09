@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<package>
+    <name>Ajax_Editable_Category_Product</name>
+    <version>1.0.2</version>
+    <stability>stable</stability>
+    <license uri="http://opensource.org/licenses/osl-3.0.php">Open Software License (OSL)</license>
+    <channel>community</channel>
+    <extends/>
+    <summary>Ajax Editable Category Product allows you to quick update products from category section.</summary>
+    <description>Ajax Editable Category Product can increase your website's performance by allowing to admin to quick update category product from category section. This extension extends native Magento functionality with an ability to show other product attributes to edit. This extension prooves useful for website which has lot of products and site is being slow while updating products and moving from category section to product section. It is very flexible and easy to use to update category products. You can try for magento ver1.5 lower also.</description>
+    <notes>Ajax Editable Category Product allows you to quick update products from category section. This extension prooves useful for website which has lot of products and site is being slow while updating products and moving from category section to product section. You can try for magento ver1.5 lower also.</notes>
+    <authors><author><name>Anupam Tiwari</name><user>MAG002574387</user><email>vishwasnature30@gmail.com</email></author></authors>
+    <date>2014-12-09</date>
+    <time>09:47:00</time>
+    <contents><target name="magecommunity"><dir name="Vishwasnature"><dir name="Editableproduct"><dir name="Block"><dir name="Adminhtml"><dir name="Catalog"><dir name="Category"><dir name="Renderer"><file name="Name.php" hash="35d9d7feaf476e75002905fc613e6485"/><file name="Price.php" hash="9772575ee64f35e7a09e86fdcfd00863"/><file name="Qty.php" hash="5799a411021d92eac622d991ebee2df8"/><file name="Sku.php" hash="05247571b02383c1afb05eea47ae0d60"/><file name="Sprice.php" hash="c2203934845de8107703130ba02f244d"/><file name="Status.php" hash="f1b3452c1629131b491a4cb1e1c3a98e"/></dir><dir name="Tab"><file name="Editableproduct.php" hash="0741fee51de5ccae8cff5aa37f0323a6"/></dir><file name="Tabs.php" hash="bca104882da796aea2af1f5e639584e2"/></dir></dir></dir></dir><dir name="controllers"><dir name="Adminhtml"><dir name="Catalog"><file name="CategoryController.php" hash="b791ba8e45097bb9ac6c17a2271f5b24"/></dir></dir></dir><dir name="etc"><file name="config.xml" hash="9ee1d29dbb46a9c11dd303be4ff4f72c"/></dir></dir></dir></target><target name="magedesign"><dir name="adminhtml"><dir name="default"><dir name="default"><dir name="layout"><file name="editableproduct.xml" hash="a2c7eddb958fe0b87ee9f08fb0103832"/></dir></dir></dir></dir></target><target name="mageetc"><dir name="modules"><file name="Vishwasnature_Editableproduct.xml" hash="53aaaa14d0793209762fd1bbd11e1b8b"/></dir></target><target name="mage"><dir name="js"><dir name="editableproduct"><file name="jquery1.8.3.min.js" hash="3576a6e73c9dccdbbc4a2cf8ff544ad7"/><file name="jqueryNoConflict.js" hash="207348d71dee37cf2619322064fc9715"/></dir></dir></target><target name="mageskin"><dir name="adminhtml"><dir name="default"><dir name="default"><dir name="editableproduct"><file name="editableproduct.css" hash="00c2304103d7537603f91f4e569dd06b"/><dir name="images"><file name="cancel_icon.gif" hash="70a23b78353f0a7b9b118a937fcb7ea9"/><file name="success.gif" hash="465a056a3ba3d94367f51c3c0b751391"/></dir></dir></dir></dir></dir></target></contents>
+    <compatible/>
+    <dependencies><required><php><min>5.2.0</min><max>6.0.0</max></php></required></dependencies>
+</package>

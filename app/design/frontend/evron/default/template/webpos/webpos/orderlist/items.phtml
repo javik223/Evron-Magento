@@ -1,0 +1,43 @@
+<div class="items-view" style="<?php echo $this->getHtmlSeparatorStyle(); ?>">
+    <table>
+        <thead>
+            <tr>
+                <th class="item-name" data-metadata="item-name" align="left"><?php echo Mage::helper('webpos')->__('ITEM'); ?></th>
+                <th data-metadata="qty"><?php echo Mage::helper('webpos')->__('Qty'); ?></th>
+                <th class="price-container" data-metadata="price"><?php echo Mage::helper('webpos')->__('PRICE'); ?></th>
+                <th class="tax" data-metadata="tax-amount"><?php echo Mage::helper('webpos')->__('TAX'); ?></th>
+                <th class="row-total" data-metadata="row-total" align="right"><?php echo Mage::helper('webpos')->__('SUBTOTAL'); ?></th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php foreach ($this->getItems() as $_item): ?>
+                <?php if ($_item->getData('parent_item_id') == null): ?>
+                    <tr>
+                        <td class="item-name" data-metadata="item-name" align="left">
+                            <?php echo $_item->getName(); ?>
+                            <span class="sku"><?php echo $_item->getSku(); ?></span>
+                        </td>
+                        <td data-metadata="qty"><?php echo floatval($_item->getQtyOrdered()); ?></td>
+                        <td class="price-container" data-metadata="price">
+                            <?php if ($this->helper('tax')->displaySalesBothPrices() || $this->helper('tax')->displaySalesPriceExclTax()): ?>
+                                <?php echo $this->getOrder()->formatPrice($_item->getData('price')); ?>
+                            <?php endif; ?>
+                            <?php if ($this->helper('tax')->displaySalesBothPrices() || $this->helper('tax')->displaySalesPriceInclTax()): ?>
+                                <?php echo $this->getOrder()->formatPrice($_item->getData('price_incl_tax')); ?>
+                            <?php endif; ?>
+                        </td>
+                        <td class="tax" data-metadata="tax-amount"><?php echo $this->getOrder()->formatPrice($_item->getData('tax_amount')); ?></td>
+                        <td class="row-total" data-metadata="row-total" align="right">
+                            <?php if ($this->helper('tax')->displaySalesBothPrices() || $this->helper('tax')->displaySalesPriceExclTax()): ?>
+                                <?php echo $this->getOrder()->formatPrice($_item->getData('row_total')); ?>
+                            <?php endif; ?>
+                            <?php if ($this->helper('tax')->displaySalesBothPrices() || $this->helper('tax')->displaySalesPriceInclTax()): ?>
+                                <?php echo $this->getOrder()->formatPrice($_item->getData('row_total_incl_tax')); ?>
+                            <?php endif; ?>
+                        </td>
+                    </tr>
+                <?php endif; ?>
+            <?php endforeach; ?>
+        </tbody>
+    </table>
+</div>

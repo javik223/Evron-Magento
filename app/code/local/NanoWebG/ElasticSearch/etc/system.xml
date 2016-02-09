@@ -1,0 +1,342 @@
+<?xml version="1.0"?>
+<config>
+    <sections>
+        <catalog>
+            <groups>
+                <search>
+                    <fields>
+                        <engine translate="label comment">
+                            <label>Search Engine</label>
+                            <frontend_type>select</frontend_type>
+                            <backend_model>nanowebg_elasticsearch/adminhtml_system_config_engine</backend_model>
+                            <source_model>nanowebg_elasticsearch/adminhtml_system_config_engine_options</source_model>
+                            <sort_order>500</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>0</show_in_website>
+                            <show_in_store>0</show_in_store>
+                        </engine>
+                  </fields>
+                </search>
+            </groups>
+        </catalog>
+    </sections>
+    <tabs>
+        <nanowebg_extensions translate="label" module="nanowebg_elasticsearch">
+            <label>NanoWeb Group</label>
+            <sort_order>252</sort_order>
+        </nanowebg_extensions>
+    </tabs>  
+    <sections>
+        <elasticsearch translate="label" module="nanowebg_elasticsearch">
+            <label>Elastic Search</label>
+            <tab>nanowebg_extensions</tab>
+            <frontend_type>text</frontend_type>
+            <sort_order>120</sort_order>
+            <show_in_default>1</show_in_default>
+            <show_in_website>1</show_in_website>
+            <show_in_store>1</show_in_store>
+            <groups> 
+                <settings translate="label" module="nanowebg_elasticsearch">
+                    <label>Settings</label>
+                    <frontend_type>text</frontend_type>
+                    <sort_order>10</sort_order>
+                    <show_in_default>1</show_in_default>
+                    <show_in_website>1</show_in_website>
+                    <show_in_store>1</show_in_store>
+                    <fields> 
+                          
+                        <account>
+                            <frontend_model>nanowebg_elasticsearch/adminhtml_system_config_fieldset_account</frontend_model>
+                            <sort_order>20</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                        </account>
+                   
+                        <elasticsearch_servers translate="label comment" module="nanowebg_elasticsearch">
+                            <label>Server Connection String</label>
+                            <frontend_type>text</frontend_type>
+                            <comment>Enter url connection string to servers where indexed content repository is located.
+                                To open Qbox cloud-based repository account, go to www.qbox.io/magento</comment>
+                            <tooltip><![CDATA[https:// protocol is scheduled to be supported in the upcoming release.]]></tooltip>
+                            <sort_order>550</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                            <validate>required-entry</validate>
+                         </elasticsearch_servers>
+
+                         <elasticsearch_username translate="label comment" module="nanowebg_elasticsearch">
+                            <label>User Name</label>
+                            <frontend_type>text</frontend_type>
+                            <comment>If authentication required, enter repository user name.</comment>
+                            <sort_order>551</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                           
+                         </elasticsearch_username>
+
+                         <elasticsearch_password translate="label comment" module="nanowebg_elasticsearch">
+                            <label>Password</label>
+                            <frontend_type>password</frontend_type>
+                            <comment>If authentication required, enter repository password.</comment>
+                            <sort_order>552</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                         </elasticsearch_password>
+
+                         <elasticsearch_index translate="label comment" module="nanowebg_elasticsearch">
+                            <label>Repository Index Name</label>
+                            <frontend_type>text</frontend_type>
+                            <comment>Enter repository index name without any starting and trailing spaces or slashes.</comment>
+                            <tooltip><![CDATA[If you having several indexes stored in the repository, please make sure each index name is unique to prevent overwriting an existing index.]]></tooltip>
+                            <sort_order>560</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                            <validate>required-entry validate-code</validate>
+                        </elasticsearch_index>
+                        
+                        <elasticsearch_stores translate="label comment" module="nanowebg_elasticsearch">
+                            <label>Stores to Index</label>
+                            <frontend_type>multiselect</frontend_type>
+                            <source_model>nanowebg_elasticsearch/adminhtml_system_config_stores_options</source_model>
+                            <comment>At least one store must be selected.</comment>
+                            <tooltip><![CDATA[Only select stores that are configured to run store frontend.]]></tooltip>
+                            <sort_order>565</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>0</show_in_website>
+                            <show_in_store>0</show_in_store>
+                            <validate>required-entry</validate>
+                        </elasticsearch_stores>
+
+                         <elasticsearch_demote_without_image translate="label comment" module="nanowebg_elasticsearch">
+                            <label>Demote Products without Images</label>
+                            <frontend_type>select</frontend_type>
+                            <source_model>adminhtml/system_config_source_yesno</source_model>
+                            <comment>If set to yes, will move products without images to the bottom of search results.</comment>
+                            <sort_order>566</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                         </elasticsearch_demote_without_image>
+                         
+                          <elasticsearch_demote_category_terms translate="label comment" module="nanowebg_elasticsearch">
+                            <label>Demote Products within Category Names Containing These Terms</label>
+                            <frontend_type>textarea</frontend_type>
+                            <comment>Products in categories with the category name containing these terms would be demoted in search results (separate each term by semicolon. Example: accessories; parts;)</comment>
+                            <tooltip><![CDATA[This feature helps improve relevance of returned search results by demoting items that are less relevant, such as accessories, parts, etc. Products within demoted categories will only be demoted in the search results when the search query string does not contain the demoting terms, specified in this field. For example, if search string is "phone", items in a category named "Phone Accessories" would be demoted. However, if the search string contains "phone" and "accessories" terms, the demotion of these items is switched off.]]></tooltip>
+                            <sort_order>567</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                           
+                        </elasticsearch_demote_category_terms>
+
+                         <elasticsearch_enable_suggest translate="label comment" module="nanowebg_elasticsearch">
+                            <label>Enable Suggested Search String</label>
+                            <frontend_type>select</frontend_type>
+                            <source_model>adminhtml/system_config_source_yesno</source_model>
+                            <comment>If set to yes, a more common (suggested) search terms will be displayed, if available.</comment>
+                            <sort_order>570</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                         </elasticsearch_enable_suggest>
+                        
+                    </fields>
+                </settings>
+                <advanced translate="label" module="nanowebg_elasticsearch">
+                    <label>Advanced</label>
+                    <frontend_type>text</frontend_type>
+                    <sort_order>20</sort_order>
+                    <show_in_default>1</show_in_default>
+                    <show_in_website>1</show_in_website>
+                    <show_in_store>1</show_in_store>
+                    <fields>
+                        <!--
+                        <elasticsearch_enable_debug_mode translate="label comment" module="nanowebg_elasticsearch">
+                            <label>Enable Debug Mode</label>
+                            <frontend_type>select</frontend_type>
+                            <source_model>adminhtml/system_config_source_yesno</source_model>
+                            <comment>If set yo yes, errors will be logged in the elasticsearch_debug.log.</comment>
+                            <sort_order>530</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                        </elasticsearch_enable_debug_mode>
+                        -->
+                        <elasticsearch_timeout translate="label comment" module="nanowebg_elasticsearch">
+                            <label>Search Request Timeout (sec)</label>
+                            <comment>Number of seconds after a timeout occurs for every request.</comment>
+                            <frontend_type>text</frontend_type>
+                            <sort_order>580</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>0</show_in_website>
+                            <show_in_store>0</show_in_store>
+                            <validate>required-entry validate-greater-than-zero validate-number</validate>
+                        </elasticsearch_timeout>
+
+                        <elasticsearch_phptimeout translate="label comment" module="nanowebg_elasticsearch">
+                            <label>Magento PHP Script Timeout Limit (min)</label>
+                            <comment>Magento PHP server script execution timeout (numeric in minutes) for Elastic Search indexing. For high number of products (10,000+) on 'reindexAll' action increase value, as required.</comment>
+                             <tooltip><![CDATA[This setting increases the PHP timeout in the event the maximum is reached, resulting in "( ! ) Fatal error: Maximum execution time of _ seconds exceeded"... <br><b>(Only in effect for ElasticSearch reindexing)</b>.]]></tooltip>
+                            <frontend_type>text</frontend_type>
+                            <sort_order>585</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>0</show_in_website>
+                            <show_in_store>0</show_in_store>
+                            <validate>required-entry validate-greater-than-zero validate-number</validate>
+                        </elasticsearch_phptimeout>
+
+                        <elasticsearch_phpmemory translate="label comment" module="nanowebg_elasticsearch">
+                            <label>Magento PHP Script Memory Limit (MB)</label>
+                            <comment>Magento PHP script memory limit (numeric value in MBs) to set Magento server php memory limit for Elastic Search indexing. For high number of products (10,000+) on 'reindexAll' action increase, value as required.</comment>
+                             <tooltip><![CDATA[This setting increases the PHP memory limit in the event the maximum limit is reached, resulting in Fatal error when trying to allocate more memory"... <br><b>(Only in effect for ElasticSearch reindexing)</b>.]]></tooltip>
+                            <frontend_type>text</frontend_type>
+                            <sort_order>586</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>0</show_in_website>
+                            <show_in_store>0</show_in_store>
+                            <validate>required-entry validate-greater-than-zero validate-number</validate>
+                        </elasticsearch_phpmemory>
+
+                         <elasticsearch_number_of_shards translate="label comment" module="nanowebg_elasticsearch">
+                            <label>Number of Primary Shards</label>
+                            <frontend_type>text</frontend_type>
+                            <comment>More shards enhance the indexing performance enabling index distribution across multiple machines.</comment>
+                            <tooltip><![CDATA[<b>The number of primary shards is fixed at the moment an index is created</b>. Shards are fully fledged search engines that can be spread across multiple hardware nodes, increasing index scalability.<br>(Please refer to http://www.elasticsearch.org)]]></tooltip>
+                            <sort_order>600</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                            <validate>required-entry validate-greater-than-zero validate-digits</validate>
+                           
+                        </elasticsearch_number_of_shards>
+                        <elasticsearch_number_of_replicas translate="label comment" module="nanowebg_elasticsearch">
+                            <label>Number of Primary Shards Replicas</label>
+                            <frontend_type>text</frontend_type>
+                             <comment>More primary shards replicas enhance the searching performance enabling distribution of read requests across more resources.</comment>
+                            <tooltip><![CDATA[Replicas are primary shards copies. The number of replica shards can be changed dynamically on a live cluster, allowing us to scale up or down as demand requires.<br> Total Shards = Primary Shards + Primary Shards * Replicas<br><b>Change with Caution!</b> Write consistency must be considered in order to avoid timeout write action (Please refer to: http://www.elasticsearch.org/guide/reference/api/bulk.html and https://github.com/elasticsearch/elasticsearch/issues/444)<br>More info: http://www.elasticsearch.org]]></tooltip>
+                            <sort_order>610</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                            <validate>required-entry validate-digits</validate>
+                            
+                        </elasticsearch_number_of_replicas>
+                    
+                        <elasticsearch_query_operator translate="label comment" module="nanowebg_elasticsearch">
+                            <label>Search Query Operator</label>
+                            <comment>"AND" operator includes all terms in the query "this AND that". "OR" operator results in "this OR that" query. The default value is "AND".</comment>
+                            <frontend_type>select</frontend_type>
+                            <source_model>nanowebg_elasticsearch/adminhtml_system_config_query_operator</source_model>
+                            <sort_order>620</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                           
+                        </elasticsearch_query_operator>
+                                     
+                        <elasticsearch_facets_max_size translate="label comment" module="nanowebg_elasticsearch">
+                            <label>Max Size of Search Facets Requested </label>
+                            <frontend_type>text</frontend_type>
+                            <comment>Max number of facets (count aggregations) returned for each filter.</comment>
+                            <sort_order>630</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                            <validate>required-entry validate-greater-than-zero validate-digits</validate>
+                            
+                        </elasticsearch_facets_max_size>
+                        <elasticsearch_enable_icu_folding translate="label comment" module="nanowebg_elasticsearch">
+                            <label>Enable ICU Folding Token Filter</label>
+                            <frontend_type>select</frontend_type>
+                            <source_model>adminhtml/system_config_source_yesno</source_model>
+                            <comment>ICU plugin required (https://github.com/elasticsearch/elasticsearch-analysis-icu)</comment>
+                            <sort_order>650</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>0</show_in_website>
+                            <show_in_store>0</show_in_store>
+                            
+                        </elasticsearch_enable_icu_folding>
+
+                        <elasticsearch_category_boost translate="label comment" module="nanowebg_elasticsearch">
+                            <label>Category Boost</label>
+                            <frontend_type>text</frontend_type>
+                            <comment>0 - 2 (2 is maximum). This setting promotes products in the search results when search string terms match words in the product's category name. Default value: 1.1</comment>
+                            <sort_order>655</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                            <validate>required-entry validate-number validate-number-range number-range-0-2</validate>
+                        </elasticsearch_category_boost>
+
+                        <elasticsearch_enable_fuzzy_query translate="label comment" module="nanowebg_elasticsearch">
+                            <label>Enable Fuzzy Query</label>
+                            <frontend_type>select</frontend_type>
+                            <source_model>adminhtml/system_config_source_yesno</source_model>
+                            <comment>Enables approximative search: http://www.elasticsearch.org/guide/reference/query-dsl/flt-query.html</comment>
+                            <sort_order>660</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                           
+                        </elasticsearch_enable_fuzzy_query>
+                        <elasticsearch_fuzzy_min_similarity translate="label comment" module="nanowebg_elasticsearch">
+                            <label>Fuzzy Min Similarity</label>
+                            <frontend_type>text</frontend_type>
+                            <comment>0 to 1 (1 excluded). Lower value has higher impact on search performance. Default value in Elasticsearch: 0.5.</comment>
+                             <tooltip><![CDATA[To keep search to return more relevant results keep this value high.]]></tooltip>
+                            <sort_order>670</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                            <validate>required-entry validate-number validate-number-range number-range-0-1</validate>
+                           
+                        </elasticsearch_fuzzy_min_similarity>
+                        
+                        <elasticsearch_fuzzy_prefix_length translate="label comment" module="nanowebg_elasticsearch">
+                            <label>Fuzzy Prefix Length</label>
+                            <frontend_type>text</frontend_type>
+                            <comment>Length of required common prefix on variant terms. Default value in Elasticsearch: 0.</comment>
+                            <sort_order>680</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                            <validate>required-entry validate-digits</validate>
+                        
+                        </elasticsearch_fuzzy_prefix_length>
+                        <elasticsearch_fuzzy_max_query_terms translate="label comment" module="nanowebg_elasticsearch">
+                            <label>Fuzzy Max Expansions</label>
+                            <frontend_type>text</frontend_type>
+                            <comment>Higher value has higher impact on search performance. Default value in Elasticsearch: 25.</comment>
+                            <tooltip><![CDATA[To keep search to return more relevant results keep this value low.]]></tooltip>
+                            <sort_order>690</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                            <validate>required-entry validate-greater-than-zero validate-digits</validate>
+                          
+                        </elasticsearch_fuzzy_max_query_terms>
+                        <elasticsearch_fuzzy_query_boost translate="label comment" module="nanowebg_elasticsearch">
+                            <label>Fuzzy Query Boost</label>
+                            <frontend_type>text</frontend_type>
+                            <comment>Sets the boost value of the query. Default value in Elasticsearch: 1.</comment>
+                            <sort_order>700</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                            <validate>required-entry validate-greater-than-zero validate-number</validate>
+                          
+                        </elasticsearch_fuzzy_query_boost>
+                       
+                    </fields>
+                </advanced> 
+
+            </groups>
+        </elasticsearch>
+    </sections>
+</config>

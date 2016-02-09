@@ -1,0 +1,181 @@
+<?php
+$series = array();
+$requestData = Mage::helper('adminhtml')->prepareFilterString($this->getRequest()->getParam('top_filter'));
+$gettime = Mage::helper('inventoryreports')->getTimeSelected($requestData);
+$product_name = array();
+$final_sold = array();
+$resource = Mage::getSingleton('core/resource');
+$readConnection = $resource->getConnection('core_read');
+$installer = Mage::getModel('core/resource');
+
+//Zend_Debug::Dump($gettime);die();
+
+$sql = 'SELECT product_id, sku, name, price, sum(qty_ordered) as total_ordered, sum(qty_canceled) as total_canceled, sum(qty_refunded) as total_refunded, (sum(qty_ordered) - sum(qty_canceled) - sum(qty_refunded)) as final_sold
+    FROM ' . $installer->getTableName("sales_flat_order_item") . '
+    WHERE created_at BETWEEN "' . $gettime['date_from'] . '" AND "' . $gettime['date_to'] . '" AND product_type NOT IN ("configurable", "bundle", "grouped")
+    GROUP BY sku
+    ORDER BY final_sold DESC 
+    ';
+
+$results = $readConnection->fetchAll($sql);
+if (isset($sql)) {
+    $checkResult = 0;
+    foreach ($results as $result) {
+        if ($checkResult > 7) {
+            $limit = 7;
+            break;
+        }
+        if ($result['final_sold'] == NULL || $result['final_sold'] <= 0) {
+            $limit = $checkResult;
+            continue;
+        }
+        $checkResult++;
+    }
+    if (isset($limit)) {
+        $sql .= 'LIMIT ' . $limit . '';
+        $results = $readConnection->fetchAll($sql);
+    }
+}
+?>
+<?php if (count($results) > 0): ?>
+    <div class="entry-edit" id="test">
+        <div class="entry-edit-head">
+            <h4 class="icon-head head-edit-form fieldset-legend"><?php echo $this->__('Chart Report') ?></h4>
+        </div>
+        <!DOCTYPE HTML>
+        <div>
+            <!-- report by product pie -->
+            <div style="width: 99%; float: left;">
+                <?php
+                $series = '';
+                $i = 0;
+                foreach ($results as $result) {
+                    if ($i != 0)
+                        $series .= ',';
+                    $series .= '[\'' . $result['name'] . ' (' . (int) $result['final_sold'] . ' items sold)\',' . (int) $result['final_sold'] . ']';
+                    $i++;
+                }
+                ?>
+                <script type="text/javascript">
+                    $(function () {
+                        $_('#inventorybyproduct_pie').highcharts({
+                            chart: {
+                                type: 'pie',
+                                options3d: {
+                                    enabled: true,
+                                    alpha: 50
+                                }
+                            },
+                            title: {
+                                text: '<?php echo $this->__('Total Qty. Sold by Bestseller') ?>',
+                            },
+                            plotOptions: {
+                                pie: {
+                                    depth: 30
+                                }
+                            },
+                            series: [{
+                                    data: [
+    <?php echo $series; ?>
+                                    ]
+                                }]
+                        });
+                    });
+                </script>
+
+                <div id="inventorybyproduct_pie" style="min-width: 900px; max-height: 450px; margin: 0 auto"></div>
+            </div>
+
+            <?php
+            unset($series);
+            foreach ($results as $result) {
+                $product_name[] = $result['name'];
+                $final_sold[] = ((int) $result['final_sold']);
+            }
+            $i = 0;
+            $categories = '[';
+            foreach ($product_name as $name_value) {
+                if ($i != 0) {
+                    $categories .= ',';
+                }
+                $categories .= '"' . preg_replace('/[^a-zA-Z0-9_ %\[\]\.\(\)%&-]/s', '', $name_value) . '"';
+                $i++;
+            }
+            $categories .= ']';
+//            Zend_debug::dump($categories);
+            $j = 0;
+            $series['inventory_product']['data'] = '[';
+            foreach ($final_sold as $number_value) {
+                if ($j != 0) {
+                    $series['inventory_product']['data'] .= ',';
+                }
+                $series['inventory_product']['data'] .= $number_value;
+                $j++;
+            }
+            $series['inventory_product']['data'] .= ']';
+
+            ?>
+            <div style="width: 99%; float: left;">
+                <script type="text/javascript">
+                    $(function () {
+                        $_('#inventorybyproduct_column').highcharts({
+                        chart: {
+                        type: 'column',
+                                margin: 70,
+                                options3d: {
+                                enabled: true,
+                                        alpha: 20,
+                                        beta: 1,
+                                        depth: 50
+                                }
+                        },
+                                legend: {
+                                enabled:false,
+                                },
+                                title: {
+                                text: '<?php echo $this->__('Total Qty. Sold by Bestseller') ?>',
+                                },
+                                plotOptions: {
+                                column: {
+                                depth: 30
+                                }
+                                },
+                                xAxis: {
+                                categories: <?php echo $categories ?>
+                                },
+                                yAxis: {
+                                opposite: true
+                                },
+                                series: [
+    <?php $count = 0; ?>
+    <?php foreach ($series as $serie): ?>
+        <?php  if ($count != 0) echo ','; ?>
+        <?php $count++; ?>
+                                    {
+                                                data: <?php echo $serie['data']; ?>
+                                        }
+    <?php endforeach; ?>
+                                    ]
+                        }
+                        );
+                    });
+                </script>
+                <div id="inventorybyproduct_column" style="min-width: 900px; height: 450px; margin: 0 auto;"></div>
+            </div>
+        </div>          
+    </div>
+<?php endif; ?>
+<script type="text/javascript" src="<?php echo $this->getJsUrl() ?>magestore/adminhtml/inventory/dashboard/lib/_JSSettings.js"></script>
+<script src="<?php echo $this->getJsUrl() ?>magestore/adminhtml/inventory/dashboard/lib/js_002"></script>
+<script src="<?php echo $this->getJsUrl() ?>magestore/adminhtml/inventory/dashboard/lib/dashboards"></script>
+
+<script type="text/javascript">
+                var saveViewPositions = '<?php echo $this->getUrl('adminhtml/ind_dashboard/saveviewposition') ?>';
+                var saveTabPositions = '<?php echo $this->getUrl('adminhtml/ind_dashboard/savetabposition') ?>';
+                var form_key_dashboard = '<?php echo $this->getFormKey() ?>';</script>
+<script type="text/javascript">
+    var $sd = new InventoryDashboard.Views.Dashboards();
+    $sd.isShare = false;
+    $sd.backgroundColour = '#808080';
+    $sd.init();
+</script>

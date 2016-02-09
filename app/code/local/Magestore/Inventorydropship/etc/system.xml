@@ -1,0 +1,227 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Magestore
+ * 
+ * NOTICE OF LICENSE
+ * 
+ * This source file is subject to the Magestore.com license that is
+ * available through the world-wide-web at this URL:
+ * http://www.magestore.com/license-agreement.html
+ * 
+ * DISCLAIMER
+ * 
+ * Do not edit or add to this file if you wish to upgrade this extension to newer
+ * version in the future.
+ * 
+ * @category    Magestore
+ * @package     Magestore_Inventorydropship
+ * @copyright   Copyright (c) 2012 Magestore (http://www.magestore.com/)
+ * @license     http://www.magestore.com/license-agreement.html
+ */
+-->
+<config>
+    <tabs>
+        <magestore translate="label">
+            <label>Magestore Extension</label>
+            <sort_order>400</sort_order>
+        </magestore>
+    </tabs>
+    <sections>
+        <inventoryplus translate="label" module="inventoryplus">            
+            <groups>
+                <dropship translate="label">
+                    <label>Dropship Configuration</label>
+                    <frontend_type>text</frontend_type>
+                    <sort_order>1000</sort_order>
+                    <show_in_default>1</show_in_default>
+                    <show_in_website>1</show_in_website>
+                    <show_in_store>1</show_in_store>
+                    <fields>        
+                        <enable translate="label">
+                            <label>Enable Dropship plugin</label>
+                            <frontend_type>select</frontend_type>
+                            <sort_order>1</sort_order>
+                            <source_model>adminhtml/system_config_source_yesno</source_model>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                            <comment></comment>
+                        </enable>                                                
+                        
+<!--                        <confirm translate="label">
+                            <label>Require supplier's confirmation</label>
+                            <frontend_type>select</frontend_type>
+                            <sort_order>100</sort_order>
+                            <source_model>adminhtml/system_config_source_yesno</source_model>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                            <comment></comment>
+                        </confirm>-->
+                        <sendemail translate="label">
+                            <label>Send notification email to supplier</label>
+                            <frontend_type>select</frontend_type>
+                            <sort_order>200</sort_order>
+                            <source_model>adminhtml/system_config_source_yesno</source_model>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                            <comment></comment>
+                        </sendemail>
+                        <returntosupplier translate="label">
+                            <label>Allow returning product to supplier</label>
+                            <frontend_type>select</frontend_type>
+                            <sort_order>300</sort_order>
+                            <source_model>adminhtml/system_config_source_yesno</source_model>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                            <comment></comment>
+                        </returntosupplier>
+                        
+                        <processing_configuration_separator translate="label comment">
+                            <label>Drop shipping process</label>
+                            <frontend_type>label</frontend_type>
+                            <frontend_model>inventorydropship/adminhtml_system_config_form_field_separator</frontend_model>
+                            <margin_top>10px</margin_top>
+                            <sort_order>400</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                            <comment></comment>
+                        </processing_configuration_separator>
+                            <supplier_confirm_provide translate="label">
+                                <label>Require supplier's confirmation of available Qty.</label>
+                                <frontend_type>select</frontend_type>
+                                <sort_order>500</sort_order>
+                                <source_model>adminhtml/system_config_source_yesno</source_model>
+                                <show_in_default>1</show_in_default>
+                                <show_in_website>1</show_in_website>
+                                <show_in_store>1</show_in_store>
+                                <comment></comment>
+                            </supplier_confirm_provide>                            
+                            <admin_approve translate="label">
+                                <label>Require admin's approval for Qty. to ship from supplier</label>
+                                <frontend_type>select</frontend_type>
+                                <sort_order>600</sort_order>
+                                <source_model>adminhtml/system_config_source_yesno</source_model>
+                                <show_in_default>1</show_in_default>
+                                <show_in_website>1</show_in_website>
+                                <show_in_store>1</show_in_store>
+                                <comment></comment>
+                            </admin_approve>
+                            <supplier_confirm_shipped translate="label">
+                                <label>Require supplier's confirmation of shipped Qty. after shipping</label>
+                                <frontend_type>select</frontend_type>
+                                <sort_order>700</sort_order>
+                                <source_model>adminhtml/system_config_source_yesno</source_model>
+                                <show_in_default>1</show_in_default>
+                                <show_in_website>1</show_in_website>
+                                <show_in_store>1</show_in_store>
+                                <comment></comment>
+                            </supplier_confirm_shipped>
+                        
+                        
+                        <emailadmintemplate_configuration_separator translate="label comment">
+                            <label>Template of emails from admin to supplier</label>
+                            <frontend_type>label</frontend_type>
+                            <frontend_model>inventorydropship/adminhtml_system_config_form_field_separator</frontend_model>
+                            <margin_top>10px</margin_top>
+                            <sort_order>800</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                            <comment></comment>
+                        </emailadmintemplate_configuration_separator>
+                            <email_request_to_supplier translate="label">
+                                <label>Email template when sending drop shipment request</label>
+                                <frontend_type>select</frontend_type>
+                                <source_model>adminhtml/system_config_source_email_template</source_model>
+                                <sort_order>900</sort_order>
+                                <show_in_default>1</show_in_default>
+                                <show_in_website>1</show_in_website>
+                                <show_in_store>1</show_in_store>
+                            </email_request_to_supplier>
+                            <email_cancel_to_customer translate="label">
+                                <label>Email template when canceling drop shipment request</label>
+                                <frontend_type>select</frontend_type>
+                                <source_model>adminhtml/system_config_source_email_template</source_model>
+                                <sort_order>1000</sort_order>
+                                <show_in_default>1</show_in_default>
+                                <show_in_website>1</show_in_website>
+                                <show_in_store>1</show_in_store>
+                            </email_cancel_to_customer>
+                            <email_approve_to_customer translate="label">
+                                <label>Email template when approving drop shipment confirmation</label>
+                                <frontend_type>select</frontend_type>
+                                <source_model>adminhtml/system_config_source_email_template</source_model>
+                                <sort_order>1100</sort_order>
+                                <show_in_default>1</show_in_default>
+                                <show_in_website>1</show_in_website>
+                                <show_in_store>1</show_in_store>
+                            </email_approve_to_customer>
+                            <email_refund_to_supplier translate="label">
+                                <label>Email template when refunding </label>
+                                <frontend_type>select</frontend_type>
+                                <source_model>adminhtml/system_config_source_email_template</source_model>
+                                <sort_order>1200</sort_order>
+                                <show_in_default>1</show_in_default>
+                                <show_in_website>1</show_in_website>
+                                <show_in_store>1</show_in_store>
+                            </email_refund_to_supplier>
+                            <email_reset_password translate="label">
+                                <label>Email template when resetting supplier's password</label>
+                                <frontend_type>select</frontend_type>
+                                <source_model>adminhtml/system_config_source_email_template</source_model>
+                                <sort_order>1300</sort_order>
+                                <show_in_default>1</show_in_default>
+                                <show_in_website>1</show_in_website>
+                                <show_in_store>1</show_in_store>
+                            </email_reset_password>
+                        
+                        
+                        <emailsuppliertemplate_configuration_separator translate="label comment">
+                            <label>Template of emails from supplier to admin</label>
+                            <frontend_type>label</frontend_type>
+                            <frontend_model>inventorydropship/adminhtml_system_config_form_field_separator</frontend_model>
+                            <margin_top>10px</margin_top>
+                            <sort_order>1400</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                            <comment></comment>
+                        </emailsuppliertemplate_configuration_separator>
+                            <email_cancel_to_admin translate="label">
+                                <label>Email template when refusing drop shipment request</label>
+                                <frontend_type>select</frontend_type>
+                                <source_model>adminhtml/system_config_source_email_template</source_model>
+                                <sort_order>1500</sort_order>
+                                <show_in_default>1</show_in_default>
+                                <show_in_website>1</show_in_website>
+                                <show_in_store>1</show_in_store>
+                            </email_cancel_to_admin>
+                            <email_confirm_to_admin translate="label">
+                                <label>Email template when confirming drop shipment request</label>
+                                <frontend_type>select</frontend_type>
+                                <source_model>adminhtml/system_config_source_email_template</source_model>
+                                <sort_order>1600</sort_order>
+                                <show_in_default>1</show_in_default>
+                                <show_in_website>1</show_in_website>
+                                <show_in_store>1</show_in_store>
+                            </email_confirm_to_admin>
+                            <email_confirm_shipped_to_admin translate="label">
+                                <label>Email template when confirming shipped order</label>
+                                <frontend_type>select</frontend_type>
+                                <source_model>adminhtml/system_config_source_email_template</source_model>
+                                <sort_order>1700</sort_order>
+                                <show_in_default>1</show_in_default>
+                                <show_in_website>1</show_in_website>
+                                <show_in_store>1</show_in_store>
+                            </email_confirm_shipped_to_admin>
+                    </fields>
+                </dropship>
+            </groups>
+        </inventoryplus>
+    </sections>
+</config>

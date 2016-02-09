@@ -1,0 +1,94 @@
+  <div class="modal-dialog">
+        <div class="modal-content">
+            <div id="form-create-customer-loader"></div>
+            <div class="create-customer-fr">                
+                <form id="form-create-customer" class="form-create" method="POST">
+                    <div class="top-create col-lg-12 col-md-12 col-sm-12 col-xs-12">                        
+                        <div class="btn-cancel col-lg-3 col-md-3 col-sm-3 col-xs-3">
+                            <button onclick="hidePopupCustomer()" type="button" class="btn btn-default"><?php echo $this->__('Cancel') ?></button>
+                        </div>
+                        <div class="col-lg-6 col-md-6 col-sm-6 col-xs-6"><h2><?php echo $this->getTitle() ?></h2></div>
+                        <div class="btn-save col-lg-3 col-md-3 col-sm-3 col-xs-3">
+                            <button type="button" onclick="saveCustomer('<?php echo $this->getSaveCustomerUrl() ?>')" class="btn btn-default"><?php echo $this->__('Save') ?></button>
+                        </div>
+                    </div>
+				<?php if ($this->customerHasAddresses() && $this->isCustomerLoggedIn()): ?>
+					<div class="">
+                        <div class="customer_address input-box col-lg-12 col-md-12 col-sm-12 col-xs-12">                            
+                           <?php echo $this->getAddressesHtmlSelect('billing') ?>                              
+                        </div>
+                    </div>
+				<?php endif; ?>
+					<div id='billing_form' class='<?php if ($this->customerHasAddresses() && $this->isCustomerLoggedIn()) echo "hide"; ?>'>
+						<input type="hidden" name="billing[address_id]" value="<?php echo $this->getBillingAddress()->getId() ?>" id="billing:address_id" />
+						<div class="">
+							<div class="col-lg-6 col-md-6 col-sm-6 col-xs-6">
+								<input fieldkey="firstname" type="text" id="first_name" value="<?php echo $this->escapeHtml($this->getBillingAddress()->getFirstname()) ?>" name="billing[firstname]" placeholder="First name" class="input-text required-entry form-control billingdata"/>
+							</div>
+							<div class="col-lg-6 col-md-6 col-sm-6 col-xs-6">
+								<input fieldkey="lastname" type="text" id="last_name" value="<?php echo $this->escapeHtml($this->getBillingAddress()->getLastname()) ?>" name="billing[lastname]" placeholder="Last name" class="input-text required-entry form-control billingdata"/>
+							</div>
+						</div>
+						<div class="">
+							<div class="col-lg-6 col-md-6 col-sm-6 col-xs-6">
+								<input fieldkey="email" type="text" id="email_address" value="<?php echo $this->escapeHtml($this->getBillingAddress()->getEmail()) ?>" name="billing[email]" placeholder="Email" class="input-text required-entry validate-email form-control billingdata"/>
+							</div>
+							<div class="col-lg-6 col-md-6 col-sm-6 col-xs-6">
+								<input fieldkey="telephone" type="text" id="phone_number" value="<?php echo $this->escapeHtml($this->getBillingAddress()->getTelephone()) ?>" name="billing[telephone]" placeholder="Phone" class="input-text form-control billingdata"/>
+							</div>
+						</div>
+						<div class="">
+							<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+								<input fieldkey="street0" type="text" id="address_1" value="<?php echo $this->escapeHtml($this->getBillingAddress()->getStreet(1)) ?>" name="billing[street][0]" placeholder="Address Line 1" class="input-text form-control billingdata"/>
+							</div>                         
+						</div>
+						<div class="">
+							<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+								<input fieldkey="street1" type="text" id="address_2" value="<?php echo $this->escapeHtml($this->getBillingAddress()->getStreet(2)) ?>" name="billing[street][1]" placeholder="Address Line 2" class="input-text form-control billingdata"/>
+							</div>                         
+						</div>
+						<div class="">
+							<div class="col-lg-6 col-md-6 col-sm-6 col-xs-6">
+								<input fieldkey="city" type="text" id="city" value="<?php echo $this->escapeHtml($this->getBillingAddress()->getCity()) ?>" name="billing[city]" placeholder="City" class="input-text form-control billingdata"/>
+							</div>
+							<div class="col-lg-6 col-md-6 col-sm-6 col-xs-6">
+								<input fieldkey="postcode" type="text" id="zipcode" value="<?php echo $this->escapeHtml($this->getBillingAddress()->getPostcode()) ?>" name="billing[postcode]" placeholder="Zip/Postal Code" class="input-text form-control billingdata"/>
+							</div>
+						</div>
+						<div class="">
+							<div class="input-box col-lg-6 col-md-6 col-sm-6 col-xs-6">                            
+							   <?php echo $this->getCountryHtmlSelect('billing') ?>                              
+							</div>
+							<div class="col-lg-6 col-md-6 col-sm-6 col-xs-6">
+								<select fieldkey="region_id" id="billing:region_id" name="billing[region_id]" class="billingdata" title="<?php echo $this->__('State/Province') ?>">
+									<option value=""><?php echo $this->__('Please select state or province') ?></option>
+								</select>
+								<input fieldkey="region" type="text" id="billing:region" name="billing[region]" value="<?php echo $this->getBillingAddress()->getRegion() ?>"  title="<?php echo $this->__('State/Province') ?>" class="input-text form-control billingdata" style="display:none" />
+							</div>
+						</div>
+						<div class="">
+							<div class="col-lg-6 col-md-6 col-sm-6 col-xs-6">
+								<input fieldkey="company" type="text" id="company" value="<?php echo $this->escapeHtml($this->getBillingAddress()->getCompany()) ?>" name="billing[company]" placeholder="Company" class="input-text form-control billingdata"/>
+							</div>
+							<div class="col-lg-6 col-md-6 col-sm-6 col-xs-6">
+								<input fieldkey="fax" type="text" id="fax_number" value="<?php echo $this->escapeHtml($this->getBillingAddress()->getFax()) ?>" name="billing[fax]" placeholder="Fax" class="input-text form-control billingdata"/>
+							</div>
+						</div>
+						<div class="">
+							<div class="input-box col-lg-6 col-md-6 col-sm-6 col-xs-6">                            
+							   <?php echo $this->getCustomerGroupHtmlSelect() ?>                              
+							</div>
+							<div class="col-lg-6 col-md-6 col-sm-6 col-xs-6">
+								<input fieldkey="vat_id" type="text" id="vat_id" value="<?php echo $this->escapeHtml($this->getBillingAddress()->getVatId()) ?>" name="billing[vat_id]" placeholder="Vat ID" class="input-text form-control billingdata"/>
+							</div>
+						</div>
+					</div>
+                </form>
+            </div>
+        </div>
+    </div>
+<script type="text/javascript">
+//<![CDATA[
+new RegionUpdater('billing:country_id', 'billing:region', 'billing:region_id', <?php echo $this->helper('directory')->getRegionJson() ?>);
+    //]]>
+</script>

@@ -1,0 +1,22 @@
+
+<ul>
+ <?php if(!count($items)):?>
+    <li onclick="javascript:void(0)">
+        <div style="float:right; color:red; font-weight:bold;"></div>
+        <strong><?php echo $this->__('Not found') ?></strong><br/>
+       
+    </li>
+<?php endif;?>
+<?php foreach ($items as $item): ?>
+
+    <li id="<?php echo $item['id'] ?>" onclick="showBarcodeInformation(<?php echo $item['barcode_id']?>)" >
+        <!--<div style="float:right; color:red; font-weight:bold;">[<?php echo $item['type'] ?>]</div>-->
+        <strong style="font-size:16px"><?php echo $this->htmlEscape($item['name']) ?></strong><br/>        
+        <span class="informal"><?php echo Mage::helper('inventorybarcode')->__('Product')?>: <strong><?php echo $item['product_name']?></strong></span>
+        <br/>
+        <span class="informal"><?php echo Mage::helper('inventorybarcode')->__('Warehouse')?>: <strong><?php echo $item['warehouse_name']?></strong></span>
+        <br/>
+        <span class="informal"><?php echo Mage::helper('inventorybarcode')->__('Status')?>: <strong><?php echo $item['status']?></strong></span>
+    </li>
+<?php endforeach ?>
+</ul>

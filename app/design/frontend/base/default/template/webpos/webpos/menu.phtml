@@ -1,0 +1,165 @@
+<?php
+$userId = Mage::helper('webpos/permission')->getCurrentUser();
+$isOrderThisUser = Mage::helper('webpos/permission')->isOrderThisUser($userId);
+$isOtherStaff = Mage::helper('webpos/permission')->isOtherStaff($userId);
+$isCreateOrder = Mage::helper('webpos/permission')->isCreateOrder($userId);
+$isManage = Mage::helper('webpos/permission')->isManage($userId);
+$isAllOrder = Mage::helper('webpos/permission')->isAllOrder($userId);
+$logoImg = Mage::helper('webpos')->getPOSLogo();
+$logoImgUrl = Mage::getBaseUrl(Mage_Core_Model_Store::URL_TYPE_MEDIA) . 'webpos/logo/' . $logoImg;
+$username = Mage::getSingleton('webpos/session')->getUser()->getUsername();
+$displayName = Mage::getSingleton('webpos/session')->getUser()->getDisplayName();
+$_helperData = Mage::helper('webpos');
+if ($_helperData->isInventoryWebPOS11Active())
+    $currentWarehouseId = Mage::helper('inventorywebpos')->_getCurrentWarehouseId();
+
+$shortName = '';
+if ($displayName) {
+    $exDisplayName = explode(' ', $displayName);
+    for ($i = 0; $i < count($exDisplayName); $i++)
+        $shortName .= $exDisplayName[$i][0];
+}
+$helperPermission = Mage::helper('webpos/permission');
+$canUseReports = $helperPermission->canUseReports();
+?>
+<div class="overlay_menu" style="display: none" onclick="hideBoxLogout()"></div>
+<ul class='pos_menu'>
+    <li class='menu_item active' id ='show-option' onclick="showhideToggle()" >        
+        <div class="common account"></div>
+        <p><?php echo $this->__('Account') ?></p>
+        <div class="box-logout" style="display: none" onmouseleave="hideBoxLogout()">
+            <ul class='sub_menu'>
+                <div class="border-content">
+                    <li class='log' id=''>
+                        <img style="max-height: 110px;" src='<?php echo $logoImg ? $logoImgUrl : $this->getSkinUrl('images/icon/logo.png'); ?>' />
+                    </li>
+                    <li class="display_name" id="display_name">
+                        <label class="short_name"><?php echo $shortName ? $shortName : $username[0]; ?></label>>
+                        <span class="full_name"><?php echo $displayName ? $displayName : $username; ?></span>
+<!--                        <span class="glyphicon glyphicon-chevron-down" aria-hidden="true"></span>
+                        <span class="glyphicon glyphicon-chevron-up hide" aria-hidden="true"></span>-->
+                    </li>
+                    <?php if (Mage::helper('core')->isModuleEnabled('Magestore_Inventorywebpos')): ?> <!-- Magnus(4543) -->
+                        <?php if ($_helperData->isInventoryWebPOS11Active()): ?>
+                            <li class='log-item' id='select_warehouse_menu'>
+                                <?php $warehouses = Mage::helper('inventorywebpos')->getWarehousesByWebposUser($userId); ?>
+                                <span class="btn btn-default" style="width: 100%;background-color: #fff;border-color: #ccc;color: #333;z-index:30"><span><?php echo $this->__('Warehouse'); ?></span><br/>
+                                    <select id="selectbox_change_warehouse" onchange="changeWarehouse();">
+                                        <?php foreach ($warehouses as $wId => $wName): ?>
+                                            <option value="<?php echo $wId; ?>" <?php if ($currentWarehouseId == $wId) echo "selected='selected'"; ?>><?php echo $wName; ?></option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </span>              
+                            </li>
+                        <?php endif; ?>
+                    <?php endif; ?><br/><br/><!-- endl Magnus(4543) -->
+                    <li class='log-item' id='logout'>
+                        <a class="btn btn-default" style="" href="<?php echo $this->getUrl('webpos/index/logoutPost', array('_forced_secure' => $this->getRequest()->isSecure())); ?>">
+                            <span><img src='<?php echo $this->getSkinUrl('images/icon/icon-logout.png'); ?>' /></span>
+                            <span><?php echo $this->__('Log out'); ?></span>              
+                        </a>
+                    </li>        
+                </div>
+            </ul>
+        </div>
+    </li>
+    <?php if ($isCreateOrder) { ?>
+        <li onclick="menuClick(this)" class='menu_item menuactive' id='checkout'>
+            <div class="common checkout"></div>
+            <p><?php echo $this->__('Checkout') ?></p>
+        </li>
+    <?php } ?>
+    <?php if ($isOrderThisUser == true || $isOtherStaff == true || $isAllOrder == true) { ?>
+        <li onclick="menuClick(this)" class='menu_item' id='orders'>
+            <div class="common orders"></div>
+            <p><?php echo $this->__('Orders') ?></p>
+        </li>
+    <?php } ?>  
+    <li onclick="menuClickNew(this)" class='menu_item' id='holded_orders'>
+        <div class="common holded_orders"></div>
+        <p><?php echo $this->__('On-hold Orders') ?></p>
+    </li>
+    <?php if (Mage::getStoreConfig('webpos/general/enable_tills') == true): ?>
+        <li onclick="menuClickNew(this)" class='menu_item' id='cash_drawer'>
+            <div class="common cashdrawer"></div>
+            <p><?php echo $this->__('Cash Drawer') ?></p>
+        </li>   
+    <?php endif; ?>
+    <?php if ($canUseReports): ?>
+        <li onclick="menuClickNew(this)" class='menu_item' id='reports'>
+            <div class="common reports"></div>
+            <p><?php echo $this->__('Reports') ?></p>
+        </li>   
+    <?php endif; ?>
+    <li onclick="menuClick(this)" class='menu_item' id='settings'>
+        <div class="common settings"></div>
+        <p><?php echo $this->__('Settings') ?></p>
+    </li>
+</ul>
+<div class="store_view">    
+    <?php
+    $offlineConfig = Mage::helper('webpos')->getOfflineConfig();
+    if ($offlineConfig['enable']):
+        ?>
+        <div id='pending_orders'>
+            <button title='<?php echo $this->__('Offline Orders'); ?>' onclick="showPendingOrdersPopup()"><div id='number_order_pending' class='number_order'>0</div><?php echo $this->__('Offline Orders'); ?></button>
+        </div>
+    <?php endif; ?>
+    <?php
+    $storeId = Mage::app()->getStore()->getId();
+    if (Mage::getStoreConfig('webpos/general/switch_languages', $storeId)) {
+        echo $this->getChildHtml('webpos_store_language');
+    }
+    ?>
+    <div id='webpos_currency'>
+        <?php echo $this->getChildHtml('webpos_currency'); ?>
+    </div>
+    <div id='webpos_websites'>
+        <?php
+        if (Mage::getStoreConfig('webpos/general/switch_stores', $storeId)) {
+            echo $this->getChildHtml('webpos_websites');
+        }
+        ?>
+    </div>
+</div>
+<script type="text/javascript">
+    function showhideToggle() {
+
+
+
+
+        $D('.box-logout').show()
+        $D('.overlay_menu').show();
+
+
+    }
+    function hideBoxLogout() {
+
+        $D('.overlay_menu').hide();
+        $D('.box-logout').hide();
+    }
+</script>
+<?php if (($isOrderThisUser == true || $isOtherStaff == true || $isAllOrder == true) && !$isCreateOrder) { ?>
+    <script>
+        localDelete('productsInfo');
+        localDelete('customersInfo');
+        localDelete('productlist');
+        if ($D('#orders'))
+            $D('#orders').click();
+        if ($D('#product_list_wrapper')) {
+            $D('#product_list_wrapper').html('');
+        }
+    </script>
+<?php } ?>
+<?php if (Mage::helper('core')->isModuleEnabled('Magestore_Inventorywebpos') && $_helperData->isInventoryWebPOS11Active()): ?> <!-- Magnus(7686) -->
+    <script>
+        function changeWarehouse() {
+            localDelete('productsInfo');
+            localDelete('customersInfo');
+            localDelete('productlist');
+            var warehouse_id = $('selectbox_change_warehouse').value;
+            var url = '<?php echo $this->getUrl('webpos/index/index/'); ?>' + 'warehouse_id/' + warehouse_id;
+            window.location.href = url;
+        }
+    </script>
+<?php endif; ?><!-- Endl Magnus(7686) -->

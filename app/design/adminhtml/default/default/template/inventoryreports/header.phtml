@@ -1,0 +1,71 @@
+<?php
+/**
+ * Magestore
+ * 
+ * NOTICE OF LICENSE
+ * 
+ * This source file is subject to the Magestore.com license that is
+ * available through the world-wide-web at this URL:
+ * http://www.magestore.com/license-agreement.html
+ * 
+ * DISCLAIMER
+ * 
+ * Do not edit or add to this file if you wish to upgrade this extension to newer
+ * version in the future.
+ * 
+ * @category    Magestore
+ * @package     Magestore_Inventorysupplyneeds
+ * @copyright   Copyright (c) 2012 Magestore (http://www.magestore.com/)
+ * @license     http://www.magestore.com/license-agreement.html
+ */
+
+/**
+ * Inventoryreports Helper
+ * 
+ * @category    Magestore
+ * @package     Magestore_Inventoryreports
+ * @author      Magestore Developer
+ */
+?>
+<div id="inventory_report_header" class="inventory_report_header">
+    <div class="content-header">
+        <h3 class="icon-head inventory_report_header"><?php echo $this->getHeaderText() ?></h3>
+    </div>
+    <!-- Header content -->
+    <?php if($this->isShowReportSelector()): ?>
+    <div class="entry-edit">
+        <div class="entry-edit-head">
+            <h4 class="icon-head head-edit-form fieldset-legend">
+                <?php echo $this->__("Report's Criteria") ?>
+            </h4>
+            <a id="show_report_criteria" href="#" onclick="showReportCriteriaForm(); return false;" style="<?php echo ($this->isDisplayReportCriteria() ? "display:none;" :"") ?>"></a>
+            <a id="hide_report_criteria" href="#" onclick="hideReportCriteriaForm(); return false;" style="<?php echo ($this->isDisplayReportCriteria() ? "" :"display:none;") ?>"></a>
+            <input type="hidden" value="<?php echo $this->getRequestData('is_show_report_criteria') ?>" name="is_show_report_criteria" id="is_show_report_criteria" />
+        </div>
+        <div id="report_criteria_content" style="<?php echo ($this->isDisplayReportCriteria() ? "" :"display:none;") ?>">
+            <div id="date_picker_form" class="fieldset ">
+                <table class="form-list">
+                    <?php if (!$this->isStockOnHandReport()): ?>
+                    <?php echo $this->getChildHtml('header_timeselect'); ?>
+                    <?php echo $this->getChildHtml('header_reportselect'); ?>
+                    <?php endif; ?>
+                    <?php echo $this->getChildHtml('header_others'); ?>
+                    <tr>
+                        <td class="label"></td>
+                        <td class="value">
+                            <button onclick="filterForm(); return false;" ><?php echo $this->__('Show Report'); ?></button>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+    <?php endif; ?>
+    <!-- End of header content -->
+</div>
+<style type="text/css">
+    table tr td select{
+        width:150px;
+        padding:2px;
+    }
+</style>

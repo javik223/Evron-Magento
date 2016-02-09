@@ -1,0 +1,513 @@
+<?php
+    $session = Mage::getModel('core/session');
+    $sessionData = $session->getRpConditions();
+     if( $session->getRpSettings())
+        $settingsData = $session->getRpSettings();
+     else
+        $settingsData = array(
+            'show_empty_result'  => true
+        );
+?>
+<!-- Chart -->
+<div id='contact-grid-message' class='grid-message message-hide'>
+	<div class='content'></div>
+</div>
+<div id='chartContainer'>
+	<div id='chartSettings'>
+		<ul>
+			<li><input type='radio' name='chartype' value='column' class='chartype' id='chartype_column' /><label for='chartype_column'><?php echo $this->__('Vertical bar');?></label></li>
+			<li><input type='radio' name='chartype' value='bar' class='chartype' id='chartype_bar'/><label for='chartype_bar'><?php echo $this->__('Horizontal bar');?></label></li>
+			<li><input type='radio' name='chartype' value='area' class='chartype' id='chartype_area'/><label for='chartype_area'><?php echo $this->__('Area');?></label></li>
+			<li><input type='radio' name='chartype' value='line' class='chartype' id='chartype_line'/><label for='chartype_line'><?php echo $this->__('Line');?></label></li>
+			<li><input type='radio' checked name='chartype' value='pie' class='chartype' id='chartype_pie'/><label for='chartype_pie'><?php echo $this->__('Pie');?></label></li>
+			<li class='last'>
+                            <a id='bt_download_total' href='#'><img  title='Download Charts' src='<?php echo $this->getSkinUrl('images/webpos/icon/download.png');?>' /><?php echo $this->__('Download Chart');?></a>
+                        </li>
+		</ul>
+	</div>
+	<div class='clear'></div>
+        <div id="canvasJsLeadReportChart">
+	</div>
+</div>
+
+<!-- Overlay -->
+<div id='overlay'>
+</div>
+<!-- Scroll to top button -->
+<div id='scroll_to_top' class='scroll_to_top scroll_to_top_hide'></div>
+<!-- Scroll to top button -->
+
+<!-- Scroll grid buttons -->
+<div id='scroll_buttons' class='hideElement'>
+	<div id='scroll_grid_to_left' class='scroll_grid_to_left'></div>
+	<div id='scroll_grid_to_right' class='scroll_grid_to_right'></div>
+	<div id='scroll_grid_to_left_max' class='scroll_grid_to_left_max'></div>
+	<div id='scroll_grid_to_right_max' class='scroll_grid_to_right_max'></div>
+</div>
+<!-- Scroll grid buttons -->
+
+<div id='report_filter_bt' ><img src='<?php echo $this->getSkinUrl('images/icon/filter-2.png');?>' /></div>
+
+<div class='form-container zoom-out-down' id='reports_filter_form'>
+	<div class='form-header'>
+		<div class='filter_title_label'><?php echo $this->__('Filter Criteria');?></div>
+		<div class='ajax-loader' id='report_filter_popup_ajax_loader'><img src='<?php echo $this->getSkinUrl('images/webpos/icon/ajax-loader.gif');?>' /></div>
+		<div id='filter_refresh_icon'><img title='Reset filter' src='<?php echo $this->getSkinUrl('images/webpos/icon/refresh.png');?>' /></div>
+		<div id='chart_icon'><img title='Show chart' src='<?php echo $this->getSkinUrl('images/webpos/icon/chart.png');?>' /></div>
+		<div class='clear'></div>
+	</div>
+	<div class='form-content'>
+		<div class='content-left'>
+                    <div class='row'>
+                        <div class="label"><?php echo $this->__('Report By ');?> <span>*</span></div>
+                        <div class="value">
+                            <select class="filterElement" id="filter_by">
+                                <option value="user"><?php echo $this->__('User') ?></option>
+                                <option value="location"><?php echo $this->__('Location') ?></option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class='row'>
+                            <div class='label'><?php echo $this->__('Select Range ');?><span>*</span></div>
+                            <div class='value'>
+                                    <select class='filterElement' id='filter_range'>
+                                            <option <?php if(isset($sessionData['range']) && $sessionData['range'] == 4) echo 'selected'?> value='1'><?php echo $this->__('This Week');?></option>
+                                            <option <?php if(isset($sessionData['range']) && $sessionData['range'] == 5) echo 'selected'?> value='2'><?php echo $this->__('Last Week');?></option>
+                                            <option <?php if(isset($sessionData['range']) && $sessionData['range'] == 6) echo 'selected'?> value='3'><?php echo $this->__('This Month');?></option>
+                                            <option <?php if(isset($sessionData['range']) && $sessionData['range'] == 7) echo 'selected'?> value='4'><?php echo $this->__('Last Month');?></option>
+                                            <option style="font-size: 16px;color:red;" <?php if(isset($sessionData['range']) && $sessionData['range'] == 8) echo 'selected'?> value='5'><?php echo $this->__('Custom');?></option>
+                                    </select>
+                                    <div class='error_message' id='filter_period_error_message'><?php echo $this->__('Period is invalid <<< ');?></div>
+                            </div>
+                    </div>
+                    <div class='row'>
+                            <div class='label'><?php echo $this->__('Period ');?><span>*</span></div>
+                            <div class='value'>
+                                    <select class='filterElement' id='filter_period'>
+                                            <option <?php if(isset($sessionData['period']) && $sessionData['period'] == 1) echo 'selected'?> value='1'><?php echo $this->__('Year');?></option>
+                                            <option <?php if(isset($sessionData['period']) && $sessionData['period'] == 2) echo 'selected'?> value='2'><?php echo $this->__('Day');?></option>
+                                            <option <?php if(isset($sessionData['period']) && $sessionData['period'] == 3) echo 'selected'?> value='3'><?php echo $this->__('Month');?></option>
+                                            <!--option <?php //if(isset($sessionData['period']) && $sessionData['period'] == 4) echo 'selected'?> value='4'><?php //echo $this->__('This Week');?></option-->
+                                            <!--option <?php //if(isset($sessionData['period']) && $sessionData['period'] == 5) echo 'selected'?> value='5'><?php //echo $this->__('Last Week');?></option-->
+                                            <!--option <?php //if(isset($sessionData['period']) && $sessionData['period'] == 6) echo 'selected'?> value='6'><?php //echo $this->__('This Month');?></option-->
+                                            <!--option <?php //if(isset($sessionData['period']) && $sessionData['period'] == 7) echo 'selected'?> value='7'><?php //echo $this->__('Last Month');?></option-->
+                                    </select>
+                                    <div class='error_message' id='filter_period_error_message'><?php echo $this->__('Period is invalid <<< ');?></div>
+                            </div>
+                    </div>
+                    <div id="from_to" style="display: none;">
+                        <div class='row'>
+                                <div class='label'><?php echo $this->__('From ');?><span>*</span></div>
+                                <div class='value'>
+                                        <input class='filterElement' id='filter_time_from' value='<?php echo $sessionData['from'];?>' placeholder='Example: 2013-01-01'/>
+                                        <img  src='<?php echo Mage::getBlockSingleton('core/template')->getSkinUrl('images/').'grid-cal.gif'?>' class='v-middle' id='filter_time_from_trig'  />
+                                        <div class='error_message' id='filter_time_from_error_message'><?php echo $this->__('This time is invalid <<< ');?></div>
+                                        <script type='text/javascript'>
+                                        //<![CDATA[
+                                                Calendar.setup({
+                                                        inputField: 'filter_time_from',
+                                                        ifFormat: '%Y-%m-%e',
+                                                        showsTime: false,
+                                                        button: 'filter_time_from_trig',
+                                                        align: 'Bl',
+                                                        singleClick : true
+                                                });
+                                                if($('filter_time_from_trig'))
+                                                Event.observe($('filter_time_from_trig'),'click',function(event){
+                                                        var calendars = $$('.calendar');
+                                                        if(calendars.length > 0){
+                                                                var lastCalendar = calendars[calendars.length - 1];
+                                                                if(lastCalendar){
+                                                                        var old_style = lastCalendar.getAttribute('style');
+                                                                        var new_style = old_style+' top:'+ event.pageY + 'px !important;left:'+ (event.pageX + 10) + 'px !important;z-index:99999 !important;position:absolute !important;';
+                                                                        lastCalendar.setAttribute('style',new_style);
+                                                                } 
+                                                        }
+                                                });
+                                        //]]>
+                                        </script>
+                                </div>		
+                        </div>
+                        <div class='row'>
+                                <div class='label'><?php echo $this->__('To ');?><span>*</span></div>
+                                <div class='value'>
+                                        <input class='filterElement' id='filter_time_to' value='<?php echo $sessionData['to'];?>' placeholder='Example: 2015-01-01'/>
+                                        <img  src='<?php echo Mage::getBlockSingleton('core/template')->getSkinUrl('images/').'grid-cal.gif'?>' class='v-middle' id='filter_time_to_trig'  />
+                                        <div class='error_message' id='filter_time_to_error_message'><?php echo $this->__('This time is invalid <<< ');?></div>
+                                        <script type='text/javascript'>
+                                        //<![CDATA[
+                                                Calendar.setup({
+                                                        inputField: 'filter_time_to',
+                                                        ifFormat: '%Y-%m-%e',
+                                                        showsTime: false,
+                                                        button: 'filter_time_to_trig',
+                                                        align: 'Bl',
+                                                        singleClick : true
+                                                });
+                                                if($('filter_time_to_trig'))
+                                                Event.observe($('filter_time_to_trig'),'click',function(event){
+                                                        var calendars = $$('.calendar');
+                                                        if(calendars.length > 0){
+                                                                var lastCalendar = calendars[calendars.length - 1];
+                                                                if(lastCalendar){
+                                                                        var old_style = lastCalendar.getAttribute('style');
+                                                                        var new_style = old_style+' top:'+ event.pageY + 'px !important;left:'+ (event.pageX + 10) + 'px !important;z-index:99999 !important;position:absolute !important;';
+                                                                        lastCalendar.setAttribute('style',new_style);
+                                                                } 
+                                                        }
+                                                });
+                                        //]]>
+                                        </script>
+                                </div>
+                        </div>
+                    </div>  
+                    <div class="row">
+                        <div class='label'><?php echo $this->__('Order Status');?></div>
+                        <div class='value'>
+                            <select id="wp_report_show_order_statuses" name="wp_show_order_statuses" class=" select">
+                                <option value="0" selected="selected"><?php echo $this->__('Any') ?></option>
+                                <option value="1"><?php echo $this->__('Specified') ?></option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row hide" id="wp_order_status">
+                        <div class='label'></div>
+                        <div style="margin-left: 20%;width: 100%;" class='value'>
+                            <select id="wp_report_order_statuses" name="wp_order_statuses[]" size="5" class="select multiselect" multiple="multiple">
+                                <option value="pending"><?php echo $this->__('Pending') ?></option>
+                                <option value="closed"><?php echo $this->__('Closed') ?></option>
+                                <option value="complete"><?php echo $this->__('Complete') ?></option>
+                                <option value="processing"><?php echo $this->__('Processing') ?></option>
+                            </select>
+                        </div>
+                    </div>
+		</div>
+		<div class='content-right'>
+			<div class='button waves-light waves-effect' id='bt_show_report'><?php echo $this->__('Show report');?></div>
+                         <div class='content_right_left'>
+                            <div class='subRow'>
+                                <div class='col_right'><input type='checkbox' value='1' id='filter_showEmpty' <?php if($settingsData['show_empty_result']) echo 'checked' ?> /><?php echo $this->__('Show empty records')?></div>
+                            </div>
+                        </div>
+                </div>
+	</div>
+		<div class='clear'></div>
+	</div>
+	<div class='clear'></div>
+	
+</div>
+
+<script type='text/javascript'>
+var bodyStyle = document.body.style;
+var supported = false;
+if ('WebkitTransform' in bodyStyle || 'MozTransform' in bodyStyle || 'OTransform' in bodyStyle || 'transform' in bodyStyle){
+	supported = true;
+}
+
+var overlay = $('overlay');
+if(overlay){ 
+	Event.observe(overlay,'click',function(){
+		hideReportsFilterPopup();
+		hideOverlay();
+		hideChart();
+	});
+}
+
+if($('report_filter_bt'))
+Event.observe($('report_filter_bt'),'click',function(){
+	if(!$('reports_filter_form').hasClassName('showing')){
+		showOverlay();
+		showReportsFilterPopup();
+	}else{
+		hideOverlay();
+		hideReportsFilterPopup();
+	}
+});
+
+if($('filter_refresh_icon'))
+Event.observe($('filter_refresh_icon'),'click',function(){
+	resetFilter();
+});
+/**/
+if($('bt_show_report')){
+	Event.observe($('bt_show_report'),'click',function(){
+		var filterUrl = '<?php echo $this->getUrl('*/*/filter',array('_current' => true));?>';
+		showReport(filterUrl);
+	}); 
+}
+/**/
+var filterElements = $$('.filterElement');
+if(filterElements.length > 0)
+filterElements.each(function(el){
+	Event.observe(el,'change',function(){
+		if(el.id == 'filter_period')
+		$('filter_period_error_message').style.display = ($('filter_period').value =='')?'block':'none';
+		if(el.id == 'filter_time_from')
+		$('filter_time_from_error_message').style.display = ($('filter_time_from').value =='')?'block':'none';
+		if(el.id == 'filter_time_to')
+		$('filter_time_to_error_message').style.display = ($('filter_time_to').value =='')?'block':'none';
+	});
+});
+
+/* Start: Added by Daniel - js for scroll to top button */
+Event.observe(window,'scroll',function(){
+	if(window.pageYOffset >= 310){
+		if(supported) if($('scroll_to_top'))  $('scroll_to_top').removeClassName('scroll_to_top_hide');
+		else if($('scroll_to_top')) $('scroll_to_top').show();	
+	}else{
+		if(supported) if($('scroll_to_top')) $('scroll_to_top').addClassName('scroll_to_top_hide');
+		else if($('scroll_to_top')) $('scroll_to_top').hide();
+	}
+});
+
+var scroll_to_top = $('scroll_to_top');
+Event.observe(scroll_to_top,'click',function(){
+	$D('body,html').animate({scrollTop:0},300);
+});
+/* End: Added by Daniel - js for scroll to top button */
+
+/* Start: Js for scroll grid buttons */
+var scroll_grid_to_left = $('scroll_grid_to_left');
+var scroll_grid_to_left_max = $('scroll_grid_to_left_max');
+var scroll_grid_to_right = $('scroll_grid_to_right');
+var scroll_grid_to_right_max = $('scroll_grid_to_right_max');
+if(scroll_grid_to_left){
+Event.observe(scroll_grid_to_left,'click',function(){
+	var gridScrollElement = $D('#reportGrid .grid .hor-scroll');
+	if(gridScrollElement){
+		scrollGrid(gridScrollElement,'left',false);
+	}
+});
+}
+if(scroll_grid_to_left_max){
+Event.observe(scroll_grid_to_left_max,'click',function(){
+	var gridScrollElement = $D('#reportGrid .grid .hor-scroll');
+	if(gridScrollElement){
+		scrollGrid(gridScrollElement,'left',true);
+	}
+});
+}
+if(scroll_grid_to_right){
+Event.observe(scroll_grid_to_right,'click',function(){
+	var gridScrollElement = $D('#reportGrid .grid .hor-scroll');
+	if(gridScrollElement){
+		scrollGrid(gridScrollElement,'right',false);
+	}
+});
+}
+if(scroll_grid_to_right_max){
+Event.observe(scroll_grid_to_right_max,'click',function(){
+	var gridScrollElement = $D('#reportGrid .grid .hor-scroll');
+	if(gridScrollElement){
+		scrollGrid(gridScrollElement,'right',true);
+	}
+});
+}
+/* End: Js for scroll grid buttons  */
+
+/* S: effect*/
+$D(document).ready(function(){
+	$('reports_filter_form').removeClassName('zoom-out-down');
+	if($('reportGrid_table').down('tbody').innerHTML.replace(/ /g,'').replace(/\r?\n|\r/g,'') == '' ){
+		$('reportGrid_table').down('tbody').innerHTML = "<tr><td colspan='100' class='totals_column' style='padding:5px;text-align:center'>No records found</td></tr>";
+	}
+})
+/* E: effect */
+
+/* S: Show chart Mr.Jack*/
+<?php
+    $totalSales = Mage::getSingleton('core/session')->getData('total_sales');
+    $totalSalesByUser = Mage::getSingleton('core/session')->getData('total_sales_by_user');
+?>
+var total_datas = [];
+var total_datasByUser  = [];
+var reportBy = 'user';
+var totalLocation = <?php echo isset($totalSales)?json_encode($totalSales):"' '";?>;
+var totalLocationByUser = <?php echo isset($totalSalesByUser)?json_encode($totalSalesByUser):"' '";?>;
+var drawReportChart = function(charttype){
+        if(charttype == 'undefined') var charttype = 'pie';
+        if(reportBy == 'location'){
+            var i = 0;
+            var showChart = false;
+            for (var key in totalLocation) {
+                if(!isNaN(totalLocation[key])){
+                    if(charttype == 'pie')
+                        total_datas[iuser] = {label:key,y: totalLocation[key]};
+                    else
+                        total_datas[iuser] = {label:key,y: parseFloat(totalLocation[key])?parseFloat(totalLocation[key]):0};
+                    i++;
+                    if(totalLocation[key] > 0)
+                        showChart = true;
+                }
+            }
+            var totalsLeadchart = new CanvasJS.Chart("canvasJsLeadReportChart", {
+            title:{
+                    text: "Sales Report"              
+            },
+            data: [           
+                    {
+                     /*** Change type "column" to "bar", "area", "line" or "pie"***/
+                     type: charttype,
+                     dataPoints: total_datas
+               }
+            ]
+            });
+            if(showChart) totalsLeadchart.render();
+        }
+        if(reportBy == 'user'){
+            var iuser = 0;
+            var showChart = false;
+             for (var key in totalLocationByUser) {
+                if(!isNaN(totalLocationByUser[key])){
+                    if(charttype == 'pie')
+                        total_datasByUser[iuser] = {label:key,y: totalLocationByUser[key]};
+                    else
+                        total_datasByUser[iuser] = {label:key,y: parseFloat(totalLocationByUser[key])?parseFloat(totalLocationByUser[key]):0};
+                    iuser++;
+                    if(totalLocationByUser[key] > 0)
+                        showChart = true;
+                }
+            }
+            var totalsLeadchart = new CanvasJS.Chart("canvasJsLeadReportChart", {
+            title:{
+                    text: "Sales Report"              
+            },
+            data: [           
+                    {
+                     /*** Change type "column" to "bar", "area", "line" or "pie"***/
+                     type: charttype,
+                     dataPoints: total_datasByUser
+               }
+            ]
+            });
+            if(showChart) totalsLeadchart.render();
+        }
+}
+/**/
+if($('chart_icon')){
+Event.observe($('chart_icon'),'click',function(){
+	if($('chartContainer').hasClassName('showing')){
+		hideChart();
+		hideOverlay();
+	}else{
+		showChart();
+		showOverlay();
+		drawReportChartWithType();
+	}
+});
+}
+
+var drawReportChartWithType = function(){
+	var changedType = false;
+	if($$('.chartype').length > 0)
+	$$('.chartype').each(function(el){
+		if(el.checked == true){ 
+			drawReportChart(el.value);
+			changedType = true;
+		}
+	});
+	if(changedType == false) drawReportChart('pie');
+}
+
+var chartypes = $$('.chartype');
+if(chartypes.length > 0)
+chartypes.each(function(el){
+	Event.observe(el,'click',function(){
+		var charttype = el.value;
+		drawReportChart(charttype);
+	});
+});
+
+var downloadLeadChart = function(btDownloadEl){
+	if($('canvasJsLeadReportChart').down('.canvasjs-chart-container')){
+		var leadsCanvas = $('canvasJsLeadReportChart').down('.canvasjs-chart-container').down('.canvasjs-chart-canvas');
+		btDownloadEl.href = leadsCanvas.toDataURL("image/png");
+		btDownloadEl.download = "chart.png";
+	}
+}
+
+if($('bt_download_total'))
+Event.observe($('bt_download_total'),'click',function(){
+	downloadLeadChart(this);
+});
+
+/* E: Show chart */
+/*Refresh Data Mr.Jack*/
+    function disableSelectOption(element,option_selected){
+        var optionArr = element.getElementsByTagName("option");
+        for(var i = 0; i < optionArr.length;i++){
+           var disabled = true;
+           for(var j = 0; j < option_selected.length;j++){
+               if(optionArr[i].value == option_selected[j])
+                   disabled = false;
+           }
+           if(disabled)
+               optionArr[i].disabled = true;
+           else
+               optionArr[i].disabled = false;
+        }
+    }
+    if($('filter_range'))
+        if($('filter_range').value == 5){
+            $('from_to').style.display = 'block';
+            disableSelectOption($('filter_period'),[1,2,3]);
+        }
+        else{
+            $('from_to').style.display = 'none';
+            if($('filter_range').value == 1 || $('filter_range').value == 2){
+                $('filter_period').value = 2;
+                disableSelectOption($('filter_period'),[$('filter_period').value]);
+            }
+            if($('filter_range').value == 3 || $('filter_range').value == 4){
+                $('filter_period').value = 2;
+                disableSelectOption($('filter_period'),[2,3]);
+            }
+        }
+        Event.observe($('filter_range'),'change',function(){
+            if($('filter_range').value == 5){
+                $('from_to').style.display = 'block';
+                disableSelectOption($('filter_period'),[1,2,3]);
+            }
+            else{
+                $('from_to').style.display = 'none';
+                if($('filter_range').value == 1 || $('filter_range').value == 2){
+                    $('filter_period').value = 2;
+                    disableSelectOption($('filter_period'),[$('filter_period').value]);
+                }
+                if($('filter_range').value == 3 || $('filter_range').value == 4){
+                    $('filter_period').value = 2;
+                    disableSelectOption($('filter_period'),[2,3]);
+                }
+            }
+        });
+    if($('wp_report_show_order_statuses'))
+        Event.observe($('wp_report_show_order_statuses'),'change',function(){
+            if($('wp_report_show_order_statuses').value == 1)
+                $('wp_order_status').removeClassName('hide');
+            else
+                $('wp_order_status').addClassName('hide');
+        });
+    function refreshData(){
+        var url = '<?php echo $this->getUrl('webposadmin/adminhtml_report/refreshData')?>';
+        var parameters = {
+        }; 
+        var request = new Ajax.Request(url,
+            {
+                method:'post',
+                parameters:parameters,
+                onSuccess: function(transport){
+                    if(transport.responseText){  
+                        $('contact-grid-message').removeClassName('message-hide');
+                        $('contact-grid-message').down('.content').innerHTML = transport.responseText;
+                        setTimeout(function(){
+                            $('contact-grid-message').addClassName('message-hide');
+                        }, 4000);
+                    }
+                },
+                onComplete:function(){
+                }
+            }
+        ); 
+    }
+/**/
+</script>

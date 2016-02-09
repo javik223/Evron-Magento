@@ -1,0 +1,17 @@
+
+
+<script type="text/javascript" src="<?php echo $this->getJsUrl() ?>magestore/adminhtml/inventory/dashboard/lib/_JSSettings.js"></script>
+<script src="<?php echo $this->getJsUrl() ?>magestore/adminhtml/inventory/dashboard/lib/js_002"></script>
+<script src="<?php echo $this->getJsUrl() ?>magestore/adminhtml/inventory/dashboard/lib/dashboards"></script>
+
+<script type="text/javascript">
+    var saveViewPositions = '<?php echo $this->getUrl('adminhtml/ind_dashboard/saveviewposition') ?>';
+    var saveTabPositions = '<?php echo $this->getUrl('adminhtml/ind_dashboard/savetabposition') ?>';
+    var form_key_dashboard = '<?php echo $this->getFormKey() ?>';
+</script>
+<script type="text/javascript">
+    var $sd = new InventoryDashboard.Views.Dashboards();
+    $sd.isShare = false;
+    $sd.backgroundColour = '#808080';
+    $sd.init();
+</script>

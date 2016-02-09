@@ -1,0 +1,43 @@
+<div class="content-header">
+    <h3 class="icon-head head-adminhtml-adjuststock"><?php echo $this->__('Adjust Stock') ?></h3>
+    <p class="form-buttons">
+        <button style="" onclick="setLocation('<?php echo $this->getUrl('adminhtml/inp_adjuststock/index/') ?>')" class="scalable back" type="button" id="id_02f63433870535cac7681f5c6ec5edb3">
+            <span><?php echo $this->__('Back'); ?></span>
+        </button>
+        <button style="" onclick="setLocation(window.location.href)" class="scalable " type="button" id="id_87ecfc78a1d41044599d433af1bbd811">
+            <span><?php echo $this->__('Reset'); ?></span>
+        </button>
+    </p>
+</div>
+<?php $warehouses = Mage::helper('inventorywarehouse/adjuststock')->getWarehouseByAdmin() ?>
+<?php if(count($warehouses)): ?>
+    <form enctype="multipart/form-data" method="post" action="<?php echo $this->getUrl('adminhtml/inp_adjuststock/prepare') ?>" id="edit_form">
+        <div class="entry-edit">
+            <div id="adjuststock_form" class="fieldset ">
+                <input name="form_key" type="hidden" value="<?php echo $this->getFormKey() ?>" id="form_key"/>
+                <div>
+                    <label for="warehouse">
+                        <?php echo $this->__('Please select a Warehouse to adjust stock') ?>:&nbsp;&nbsp;
+                    </label>
+                    <select name="warehouse_id">
+                        <?php foreach($warehouses as $warehouse): ?>
+                            <option value="<?php echo $warehouse->getId() ?>"><?php echo $warehouse->getWarehouseName() ?></option>
+                        <?php endforeach; ?>                        
+                    </select>
+                </div><br />                 
+                <div>
+                    <button style="" type="submit" class="scalable task" id="Upload">
+                        <span><?php echo $this->__('Continue') ?></span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </form>
+    <script type="text/javascript">
+        //<![CDATA[
+        var dataForm = new varienForm('edit_form', true);
+    //]]>
+    </script>
+<?php else: ?>
+    <?php echo $this->__('You have not permission to adjust stock any warehouse!') ?>
+<?php endif; ?>

@@ -1,0 +1,139 @@
+<?php echo $this->getChildHtml('topBar'); ?>
+<!-- Header -->
+<header class="container header">
+	<div class="row-main">
+		<div class="menu-wrapper"><span class="menu"></span><span class="sm-hide">Menu</span>
+
+			<!-- Navigation -->
+
+			<div class="side-menu nav">
+				<ul class="menu-items">
+						
+						<?php $_helper = Mage::helper('catalog/category') ?>
+						<?php $_categories = $_helper->getStoreCategories() ?>
+						<?php $currentCategory = Mage::registry('current_category') ?>
+						<?php if (count($_categories) > 0): ?>
+						    <ul>
+						        <?php foreach($_categories as $_category): ?>
+						        	<?php $_category = Mage::getModel('catalog/category')->load($_category->getId()) ?>
+						        	<?php $_subcategories = $_category->getChildrenCategories() ?>
+
+						            <li <?php if(count($_subcategories) > 0):?>class="dropdown"<?php endif; ?> 
+										<?php if( (int) $_category->getId() == 20): ?> class="prominent" <?php endif; ?>
+										<?php if( (int) $_category->getId() == 19): ?> class="semi-prominent" <?php endif; ?>
+						            >
+						                <a href="<?php echo $_helper->getCategoryUrl($_category) ?>" title="<?php echo $_category->getName() ?>">
+						                    <?php echo $_category->getName() ?>
+						                </a>
+						         
+						                <?php if (count($_subcategories) > 0): ?>
+						                    <ul>
+						                    	<li class="semi-prominent"><a href="<?php echo $_helper->getCategoryUrl($_category) ?>" title="<?php echo $_category->getName(); ?>" class="dropdown">All <?php echo $_category->getName(); ?></a></li>
+						                        <?php foreach($_subcategories as $_subcategory): ?>
+						                            <li>
+						                                <a href="<?php echo $_helper->getCategoryUrl($_subcategory) ?>" title="<?php echo $_subcategory->getName() ?>">
+						                                    <?php echo $_subcategory->getName() ?>
+						                                </a>
+						                            </li>
+						                        <?php endforeach; ?>
+						                        <?php if(!empty($_category->getImageUrl())): ?>
+					                        		<li class="menu-image"><img src="<?php echo $_category->getImageUrl();?>" alt="<?php echo $_category->getName(); ?>"></li>
+					                        	<?php endif; ?>
+						                    </ul>
+						                <?php endif; ?>
+						            </li>
+						        <?php endforeach; ?>
+						    </ul>
+						<?php endif; ?>
+					</ul>
+			</div>
+		</div>
+
+		<!-- Search icon for mobile -->
+
+		<div class="mobile-search-icon">
+			<span class="icon icon-search"></span>
+		</div>
+
+		<!-- Store Logo -->
+
+		<div class="evron-logo">
+			<a href="/" title="Evron Food Store"><img src="/assets/img/evron-logo.svg" alt="Evron Food Store" width="200" class="sm-hide">
+			<img src="/assets/img/evron-logo-symbol.svg" alt="Evron Food Store" width="50" class="l-hide"></a>
+		</div>
+
+
+		<!-- Search -->
+
+		<div class="search_wrapper s-hide">
+			<div class="search">
+				<?php echo $this->getChildHtml('topSearch');?>
+			</div>
+		</div>
+
+		<!-- Account login -->
+
+		<div>
+			<div class="right">
+				<div class="account-login text-right">
+					<p class="mb-0 overlayBtn s-hide">Welcome 
+					<?php $_customerHelper = Mage::getSingleton('customer/session');
+					if ($_customerHelper->isLoggedIn()) :
+							//var_dump($_customerHelper);
+							echo $_customerHelper->getCustomer()->getFirstname();
+						else :
+							echo 'Sign-in';
+						endif;
+					?><br>My Account</p>
+
+					<p class="mb-0 overlayBtn ml-hide"><span class="icon icon-account"></span></p>
+					<?php $_helper = Mage::helper('customer'); ?>
+					<div class="overlay_wrapper">
+						<div class="overlay">
+							<ul>
+								<?php if(!$_helper->isLoggedIn()): ?>
+								<li><a href="<?php echo $_helper->getLoginUrl(); ?>" title="Sign in to your account">
+									<h3>Sign-in</h3>
+									<p>View my account</p>
+									</a>
+								</li>
+
+								<li>
+									<a href="<?php echo $_helper->getRegisterUrl(); ?>" title="Register on Evron Food Store">
+									<h3>Register</h3>
+									<p>Get more out of your Evron Experience</p></a>
+								</li>
+							<?php else: ?>
+								<li><a href="<?php echo $_helper->getLoginUrl(); ?>" title="My Account">
+									<h3>My Account</h3>
+									</a>
+								</li>
+
+								<li>
+									<a href="<?php echo $_helper->getRegisterUrl(); ?>" title="My Evron Shopping List">
+									<h3>My Shopping List</h3>
+								</li>
+
+								<li>
+									<a href="<?php echo Mage::helper('checkout/url')->getCheckoutUrl(); ?>" title="Checkout my cart">
+									<h3>Checkout</h3>
+								</li>
+
+								<li>
+									<a href="<?php echo $_helper->getLogoutUrl(); ?>" title="Logout from my account">
+									<h3>Logout</h3></a>
+								</li>
+							<?php endif; ?>
+							</ul>
+						</div>
+					</div>
+				</div>
+				
+				<!-- Cart -->
+
+				<?php echo $this->getChildHtml('topcart'); ?>
+				
+			</div>
+		</div>
+	</div>
+</header>

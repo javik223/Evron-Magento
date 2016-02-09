@@ -1,0 +1,337 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="<?php echo $this->getLang() ?>" lang="<?php echo $this->getLang() ?>">
+    <head>
+        <meta charset="utf-8" />
+        <style> 
+            @media (max-width: 480px) {
+                .items-view table .row-total {
+                    display: none;
+                }items-view table td[data-metadata='qty']
+                .methods {
+                    display: block !important;
+                }
+            }
+            @media (max-width: 380px) {
+                .items-view table .item-name {
+                    max-width: 120px;
+                }
+                .items-view table .price-container,
+                .items-view table .tax {
+                    display: none !important;
+                }
+                .items-view table .row-total {
+                    display: table-cell !important;
+                }
+            }
+
+            * {
+                box-sizing: border-box;
+            }
+            html {
+                font-family: <?php echo $this->getFont(); ?>;
+                font-size: 13px;
+            }
+            body, h1, h2, h3, h4, h5, h6, ul {
+                padding: 0;
+                margin: 0;
+                font-weight: normal;
+            }
+            table {
+                border-spacing: 0;
+            }
+            ul {
+                list-style: none;
+            }
+            .flex-container {
+                display: -webkit-flex;
+                display: flex;
+                -webkit-justify-content: space-around;
+                justify-content: space-around;
+            }
+
+            .paper {
+                margin: 0;
+                padding: 5px 0;
+            }
+
+            .logo-container, .store-info, .print-footer {
+                text-align: center;
+            }
+            .store-info {
+                margin-bottom: 7px;
+            }
+            .store-info .name {
+                font-weight: 800;
+                text-align: inherit;
+            }
+
+            #logo {
+                font-family: Segoe UI, Arial, sans-serif;
+                font-weight: 800;
+                font-size: 32px;
+            }
+
+            #logo img {
+                max-width: 200px;
+            }
+
+            .receipt-info {
+                display: -webkit-flex;
+                display: flex;
+                -webkit-justify-content: space-between;
+                justify-content: space-between;
+                margin-bottom: 7px;
+            }
+
+            .receipt-info .customer-info {
+                text-transform: uppercase;
+            }
+
+            .items-view {
+                padding: 3px 0;
+                margin-bottom: 7px;
+            }
+            .items-view table {
+                width: 100%;
+                text-align: right;
+                font-size: inherit;
+                font-weight: inherit;
+                border-collapse: separate;
+            }
+
+            .items-view table thead {
+                vertical-align: top;
+            }
+
+            .items-view table tbody {
+                vertical-align: top;
+            }
+
+            .items-view table tbody tr td {
+                padding: 5px 0;
+            }
+
+            .items-view table td,
+            .items-view table th {
+                border-left: 10px solid transparent;
+            }
+
+            .items-view table td:first-child,
+            .items-view table th:first-child {
+                border-left: none;
+            }
+
+            .items-view table .item-name {
+                overflow: hidden;
+                white-space: normal;
+                text-transform: capitalize;
+            }
+
+            .items-view table .item-name .sku {
+                display: block;
+                text-transform: none;
+            }
+
+            .total-zone {
+                margin-bottom: 7px;
+                text-transform: uppercase;
+            }
+            .total-zone .title {
+                display: -webkit-flex;
+                display: flex;
+                font-weight: 800;
+                -webkit-justify-content: space-between;
+                justify-content: space-between;
+                -webkit-align-items: center;
+                align-items: center;
+            }
+            .total-zone .title .literal {
+
+            }
+            .total-zone table {
+                font-weight: inherit;
+                font-size: inherit;
+                width: 100%;
+            }
+            .methods {
+                display: block;
+                margin-bottom: 7px;
+                text-transform: uppercase;
+            }
+            .shipping_area, .shipping_area address {
+                text-transform: uppercase;
+                font-style: normal;
+            }
+            .footer {
+                text-align: center;
+            }
+            .footer .highlight {
+                text-transform: uppercase;
+                font-weight: 400;
+                font-size: 28px;
+            }
+            .footer .separate {
+
+            }
+            .date {
+                text-align: right;
+            }
+            #store-name {
+                text-transform: uppercase;
+                font-weight: bold;
+                font-size: 30px;
+            }
+            #store-star {
+                text-transform: uppercase;
+                font-weight: 400;
+                font-size: 16px;
+            }
+            #store-info {
+                font-weight: 200;
+                font-size: 16px;
+            }
+
+            @media screen {
+                .paper {
+                    margin: 5px auto;
+                    max-width: 600px;
+                }
+            }
+            @media print {
+                body {
+                    color: #000;
+                    background-color: #fff;
+                }
+            }
+            @page 
+            {
+                size: auto;
+                margin: 2mm 4mm;
+            }
+            #print_layout .barcode{
+                text-align:center;
+                margin-top: 5px;
+            }
+        </style>
+
+    </head>
+    <body>
+        <!--Header-->
+        <?php
+        $current_user = Mage::getSingleton('webpos/session')->getUser();
+        $userName = $current_user->getUsername();
+        $userRole = Mage::getModel('webpos/role')->load($current_user->getRoleId());
+        $userRole->getIsManager();
+        $printBlock = Mage::getBlockSingleton('webpos/admin_orderlist_printinvoice');
+        $userDataFromOrder = $printBlock->getUserDataFromOrder();
+        $storeInformation = $printBlock->getStoreInformation();
+        $receiptSettings = $printBlock->getReceiptSettings();
+        $imageResource = $printBlock->getBarcodeImgSource();
+        $title = 'ORDER SUMMARY';
+        ob_start();
+        imagepng($imageResource->draw());
+        $imageResource->render();
+        $barcodeData = ob_get_contents();
+        ob_end_clean();
+
+        if (isset($userDataFromOrder['display_name'])) {
+            $userName = $userDataFromOrder['display_name'];
+        }
+        $storeInformations = Mage::app()->getStore()->getName();
+        if (isset($storeInformation['storeName']) && $storeInformation['storeName'] != '') {
+            $storeInformations = $storeInformation['storeName'];
+        }
+        if (isset($storeInformation['storeAddress']) && $storeInformation['storeAddress'] != '') {
+            $storeInformations .= ': ' . $storeInformation['storeAddress'];
+        }
+        if (isset($storeInformation['storePhone']) && $storeInformation['storePhone'] != '') {
+            $storeInformations .= '<br/>' . $this->__('Phone: ') . $storeInformation['storePhone'];
+        }
+        ?>
+        <?php
+        ?>
+        <div class="paper fluid-container">
+
+            <div id="print_layout">
+                <?php
+                $_order = $printBlock->getOrder();
+                $_invoice = $printBlock->getInvoice();
+                $header = $receiptSettings['header_text'];
+                $footer = $receiptSettings['footer_text'];
+                $date_format = $receiptSettings['date_format'];
+                $logoPath = $receiptSettings['webpos_logo'];
+                $logoUrl = Mage::getBaseUrl(Mage_Core_Model_Store::URL_TYPE_MEDIA) . DS . 'webpos' . DS . 'logo' . DS . $logoPath;
+                ?>
+                <div class="logo-container container">
+                    <?php if (isset($receiptSettings['show_receipt_logo']) && $receiptSettings['show_receipt_logo'] == true): ?>
+                        <img src="<?php echo ($logoPath) ? $logoUrl : $this->getSkinUrl('images/icon/logo.png'); ?>" title="Webpos Receipt Logo" alt="Webpos Receipt Logo"/>
+                    <?php endif; ?>
+                    <div id="store-name"><?php echo $this->__('INVOICE'); ?></div>
+                    <div id="store-star"><?php echo $this->__('**** ****'); ?></div>
+                    <?php if (isset($receiptSettings['show_store_information']) && $receiptSettings['show_store_information'] == true): ?>
+                        <div id="store-info"><?php echo $storeInformations; ?></div> 
+                    <?php endif; ?>
+                    <div class="header-text"><?php echo $header; ?></div> 
+                    <div class="info-invoice">
+                        <br/><span><?php echo $this->__('Order <b>#%s</b>', $_order->getIncrementId()) ?>&nbsp;<br/><b><?php echo Mage::helper('core')->formatDate($_order->getData('created_at'), Mage_Core_Model_Locale::FORMAT_TYPE_MEDIUM, true); ?></b></span>
+                    </div>
+                    <?php if (isset($receiptSettings['show_cashier_name']) && $receiptSettings['show_cashier_name'] == true): ?>
+                        <div class="user-info">
+                            <p style="text-transform: uppercase;"><?php echo $this->__('CASHIER'); ?>: <?php echo $userName; ?></p>
+                        </div>
+                    <?php endif; ?>
+                </div>
+
+                <div class="shipping_area">
+                    <?php if (isset($receiptSettings['show_shipping_method']) && $receiptSettings['show_shipping_method'] == true): ?>
+                        <span><?php echo $this->__('SHIPPING : <b>%s</b>', $_order->getShippingDescription()) ?></span> <br/>
+                    <?php endif; ?>
+                    <?php if (isset($receiptSettings['show_payment_method']) && $receiptSettings['show_payment_method'] == true): ?>
+                        <span><?php echo $this->__('PAYMENT : <b>%s</b>', $_order->getPayment()->getMethodInstance()->getTitle()) ?></span>
+                    <?php endif; ?>
+                </div>
+                <div class="items-view-container container">
+                    <?php
+                    $this->getChild('items')->setData("order", $printBlock->getOrder());
+                    echo $this->getChildHtml('items', false);
+                    ?>
+                </div>
+                <div class="total-zone-container container">
+                    <?php
+                    $this->getChild('totals')->setData("order", $printBlock->getOrder());
+                    echo $this->getChildHtml('totals', false);
+                    ?>
+                </div>
+                <?php
+                if (isset($receiptSettings['show_comment']) && $receiptSettings['show_comment'] == true):
+                    $comment = $_order->getCustomerNote();
+                    if ($comment != ''):
+                        ?>
+                        <div id='comment_area'>
+                            <?php
+                            echo $this->__("<b>Note</b>: " . $comment);
+                            ?>
+                        </div>
+                        <?php
+                    endif;
+                endif;
+                ?>
+                <div class="print-footer" id="store-star"><?php echo $this->__('-------- **** --------'); ?></div>
+                <div class="print-footer"><?php echo html_entity_decode($footer); ?></div>
+                <?php
+                if (isset($receiptSettings['show_barcode']) && $receiptSettings['show_barcode'] == true):
+                    ?>
+                    <div class='barcode'>
+                        <img name='barcode' src="data:image/png;base64,<?php echo base64_encode($barcodeData); ?>"  />
+                    </div>
+                <?php endif; ?>
+            </div>
+        </div>
+        <script type="text/javascript">
+            window.print();
+            window.onfocus = function () {
+                window.close();
+            }
+        </script>
+    </body>
+</html>

@@ -1,0 +1,79 @@
+<?php
+$requestData = Mage::helper('adminhtml')->prepareFilterString($this->getRequest()->getParam('top_filter'));
+$reportCode = $this->getReportCode();
+$id_box = $this->getIdBox();
+if (empty($requestData)) {
+    $requestData = array();
+    $requestData['report_radio_select'] = $reportCode;
+    $isFound = false;
+    $reportTypes = Mage::helper('inventorydashboard/constant')->getReportTypes();
+    foreach ($reportTypes as $type => $value) {
+        foreach ($value['report_code'] as $code => $value2) {
+            if (strcmp($code, $reportCode) == 0) {
+                $requestData['select_time'] = $value2['default_time_range'];
+                $isFound = true;
+                break;
+            }
+        }
+        if ($isFound == true) {
+            break;
+        }
+    }
+}
+$dataCollection = Mage::helper('inventoryreports/customer')->getCustomerReportCollection($requestData);
+if (is_array($dataCollection)) {
+    $collection = $dataCollection['collection'];
+} else {
+    $collection = $dataCollection;
+}
+?>
+<div class="chart-parent-div">
+    <?php
+    $columnData = Mage::helper('inventorydashboard')->getCustomerChartColumnData($collection, $requestData);
+    ?>
+    <?php if ($columnData['series']['inventory_customer']['data']): ?>
+        <script type="text/javascript">
+            $(function () {
+            $_('#<?php echo $id_box ?>').highcharts({
+                chart: {
+                    type: 'column',
+                    margin: 70,
+                    options3d: {
+                        enabled: false,
+                        alpha: 20,
+                        beta: 1,
+                        depth: 50
+                    }
+                },
+            title: {
+            text: '<?php echo $this->__('Customer Report') ?>'
+            },
+                    xAxis: {
+                    categories: <?php echo $columnData['categories'] ?>
+                    },
+                    yAxis: {
+                    min: 0,
+                    },
+                    labels: {
+                    items: [{
+                    style: {
+                    left: '20px',
+                            top: '-30px',
+                            color: (Highcharts.theme && Highcharts.theme.textColor) || 'black'
+                    }
+                    }]
+                    },
+                    series: [
+                    {
+                    type: 'column',
+                            name: '<?php echo $this->__('Grand Total') ?>',
+                            pointWidth: 70,
+                            groupPadding: 0,
+                            data: <?php echo $columnData['series']['inventory_customer']['data']; ?>
+                    }]
+            });
+            });
+        </script>
+    <?php endif; ?>
+    <div class="chart-child-div" id="<?php echo $id_box ?>" ></div>
+</div>

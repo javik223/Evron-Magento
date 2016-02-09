@@ -1,0 +1,399 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Magestore
+ * 
+ * NOTICE OF LICENSE
+ * 
+ * This source file is subject to the Magestore.com license that is
+ * available through the world-wide-web at this URL:
+ * http://www.magestore.com/license-agreement.html
+ * 
+ * DISCLAIMER
+ * 
+ * Do not edit or add to this file if you wish to upgrade this extension to newer
+ * version in the future.
+ * 
+ * @category    Magestore
+ * @package     Magestore_Inventory
+ * @copyright   Copyright (c) 2012 Magestore (http://www.magestore.com/)
+ * @license     http://www.magestore.com/license-agreement.html
+ */
+-->
+<layout version="0.1.0">
+    <adminhtml_catalog_product_edit>
+        <reference name = "head">            
+            <action method="addJs">
+                <script>magestore/inventory/tinybox.js</script>
+            </action>
+            <action method="addCss">
+                <stylesheet>css/tinybox/style.css</stylesheet>
+            </action>                
+        </reference>    
+    </adminhtml_catalog_product_edit>
+    <adminhtml_inventoryplus_layout>
+        <reference name="head">           
+            <action method="addCss">
+                <stylesheet>css/magestore/inventoryplus/menu.css</stylesheet>
+            </action>
+            <action method="addCss">
+                <stylesheet>css/magestore/inventoryplus/style.css</stylesheet>
+            </action>   
+            <action method="addCss">
+                <stylesheet>css/tinybox/style.css</stylesheet>
+            </action>      
+            <action method="addJs">
+                <script>magestore/inventory/tinybox.js</script>
+            </action>                         
+        </reference>
+        <reference name="root">
+            <action method="setTemplate">
+                <template>inventoryplus/page-2column-left.phtml</template>
+            </action>
+            <reference name="notifications" >
+                <block type="adminhtml/notification_baseurl" name="notification_baseurl" as="notification_baseurl" template="notification/baseurl.phtml"></block>
+                <block type="adminhtml/cache_notifications" name="cache_notifications" template="system/cache/notifications.phtml"></block>
+                <block type="adminhtml/notification_survey" name="notification_survey" template="notification/survey.phtml"/>
+                <block type="adminhtml/notification_security" name="notification_security" as="notification_security" template="notification/security.phtml"></block>            
+            </reference>
+            <block type="inventoryplus/adminhtml_title" name="inventoryplus_title" as="inventoryplus_title" template="inventoryplus/title.phtml"/>
+            <block type="core/text_list" name="inventoryplus_header" as="inventoryplus_header">
+            </block>
+            <block type="core/text_list" name="left_menu" as="left_menu">
+                <block type="inventoryplus/adminhtml_menu" name="inventory_menu" as="inventory_menu"></block>
+            </block>
+        </reference> 
+    </adminhtml_inventoryplus_layout>
+    <adminhtml_inventoryplus_one_tab>
+        <update handle="adminhtml_inventoryplus_layout" />
+        <reference name="head">           
+            <action method="addCss">
+                <stylesheet>css/magestore/inventoryplus/one-tab-layout.css</stylesheet>
+            </action>
+        </reference>        
+    </adminhtml_inventoryplus_one_tab>
+    <!--Inventory Adjust Stock -->
+    <adminhtml_inp_adjuststock_index>
+        <update handle="adminhtml_inventoryplus_layout" />
+        <reference name="content">
+            <block type="inventoryplus/adminhtml_listadjuststock" name="inventoryplus_listadjuststock" />
+        </reference>
+    </adminhtml_inp_adjuststock_index>
+    <adminhtml_inp_adjuststock_grid>
+        <block type="core/text_list" name="root">
+            <block type="inventoryplus/adminhtml_adjuststock_listadjuststock_grid" name="inventoryplus_listadjuststock_grid" />
+        </block>
+    </adminhtml_inp_adjuststock_grid>
+    <adminhtml_inp_adjuststock_new>
+        <update handle="adminhtml_inventoryplus_layout" />
+        <reference name="content">
+            <block type="inventoryplus/adminhtml_adjuststock" name="adminhtml_adjuststock" /> 
+        </reference>
+    </adminhtml_inp_adjuststock_new>
+    <adminhtml_inp_adjuststock_edit>
+        <update handle="adminhtml_inventoryplus_one_tab" />                
+    </adminhtml_inp_adjuststock_edit>
+    <adminhtml_inp_adjuststock_run>
+        <update handle="inventoryplus_adminhtml_process_run" />  
+        <reference name="convert_root">
+            <block type="inventoryplus/adminhtml_adjuststock_process" name="adminhtml_adjuststock_process" output="toHtml" />
+        </reference>
+    </adminhtml_inp_adjuststock_run>        
+    <adminhtml_inp_adjuststock_prepare>
+        <update handle="adminhtml_inventoryplus_one_tab" />         
+    </adminhtml_inp_adjuststock_prepare>
+    <adminhtml_inp_adjuststock_product>
+        <block type="core/text_list" name="root">
+            <block type="inventoryplus/adminhtml_adjuststock_warehouse" name="warehouse_informarion" template="inventoryplus/adjuststock/warehouse_information.phtml" />
+            <block type="inventoryplus/adminhtml_adjuststock_edit_tab_products" name="inventoryplus.adjuststock.edit.tab.products"/>
+            <block type="adminhtml/widget_grid_serializer" name="related_grid_serializer">
+                <action method="initSerializerBlock">
+                    <grid_block_name>inventoryplus.adjuststock.edit.tab.products</grid_block_name>
+                    <data_callback>getSelectedRelatedProducts</data_callback>
+                    <hidden_input_name>adjuststock_products</hidden_input_name>
+                    <reload_param_name>adjuststock_products</reload_param_name>
+                </action>
+                <action method="addColumnInputName">
+                    <input_name>adjust_qty</input_name>
+                    <input_name>qty</input_name>
+                </action>
+            </block>
+        </block>
+    </adminhtml_inp_adjuststock_product>
+    <adminhtml_inp_adjuststock_productgrid>
+        <block type="core/text_list" name="root">
+            <block type="inventoryplus/adminhtml_adjuststock_edit_tab_products" name="inventoryplus.adjuststock.edit.tab.products"/>
+        </block>
+    </adminhtml_inp_adjuststock_productgrid>
+    
+    <!--warehouse -->
+    <adminhtml_inp_warehouse_index>
+        <update handle="adminhtml_inventoryplus_layout" />
+        <reference name="content">
+            <block type="inventoryplus/adminhtml_warehouse" name="inventoryplus_warehouse" />
+        </reference>
+    </adminhtml_inp_warehouse_index>
+    <adminhtml_inp_warehouse_grid>
+        <block type="core/text_list" name="root">
+            <block type="inventoryplus/adminhtml_warehouse_grid" name="inventoryplus_warehouse_grid" />
+        </block>
+    </adminhtml_inp_warehouse_grid>
+    
+    <adminhtml_inp_warehouse_edit>
+        <update handle="adminhtml_inventoryplus_layout" />
+    </adminhtml_inp_warehouse_edit>
+    
+    <adminhtml_inp_warehouse_products>
+        <block type="core/text_list" name="root">
+            <block type="inventoryplus/adminhtml_warehouse" name="warehouse_delete_product" template="inventoryplus/warehouse/guidedeleteproduct.phtml" />
+            <block type="inventoryplus/adminhtml_warehouse" name="warehouse_qtys" template="inventoryplus/warehouse/guide_qty.phtml" />
+            <block type="inventoryplus/adminhtml_warehouse_edit_tab_products" name="warehouse.edit.tab.products"/>
+            <block type="adminhtml/widget_grid_serializer" name="related_grid_serializer">
+                <action method="initSerializerBlock">
+                    <grid_block_name>warehouse.edit.tab.products</grid_block_name>
+                    <data_callback>getSelectedProducts</data_callback>
+                    <hidden_input_name>warehouse_products</hidden_input_name>
+                    <reload_param_name>warehouse_products</reload_param_name>
+                </action>
+                <action method="addColumnInputName">
+                    <input_name>total_qty</input_name>
+                </action>
+            </block>
+        </block>
+    </adminhtml_inp_warehouse_products>
+    
+    <adminhtml_inp_warehouse_productsgrid>
+        <block type="core/text_list" name="root">
+            <block type="inventoryplus/adminhtml_warehouse_edit_tab_products" name="warehouse.edit.tab.products"/>
+        </block>
+    </adminhtml_inp_warehouse_productsgrid>
+    
+    <adminhtml_inp_warehouse_permission>
+        <block type="core/text_list" name="root">
+            <block type="inventoryplus/adminhtml_warehouse_edit_tab_permission" name="warehouse.edit.tab.permission"/>
+            <block type="adminhtml/widget_grid_serializer" name="grid_serializer">
+                <reference name="grid_serializer">
+                    <action method="initSerializerBlock">
+                        <grid_block_name>warehouse.edit.tab.assignment</grid_block_name>
+                        <data_callback>getSelectedAssignments</data_callback>
+                    </action>
+                </reference>
+            </block>
+        </block>
+    </adminhtml_inp_warehouse_permission>
+    
+    <adminhtml_inp_warehouse_permissiongrid>
+        <block type="core/text_list" name="root">
+            <block type="inventoryplus/adminhtml_warehouse_edit_tab_permission" name="warehouse.edit.tab.permission"/>
+        </block>
+    </adminhtml_inp_warehouse_permissiongrid>
+    
+    <adminhtml_inp_warehouse_history>
+        <block type="core/text_list" name="root">
+            <block type="inventoryplus/adminhtml_warehouse_edit_tab_history" name="inventoryplus.warehouse.edit.tab.history"/>
+        </block>
+    </adminhtml_inp_warehouse_history>   
+     
+    <adminhtml_inp_warehouse_historygrid>
+        <block type="core/text_list" name="root">
+            <block type="inventoryplus/adminhtml_warehouse_edit_tab_history" name="inventoryplus.warehouse.edit.tab.history"/>
+        </block>
+    </adminhtml_inp_warehouse_historygrid>
+    <!--
+    <adminhtml_system_config_edit>
+        <update handle="adminhtml_inventoryplus_layout" />
+    </adminhtml_system_config_edit>
+    -->
+    <!-- Dashboard Inventory -->
+    <adminhtml_inp_dashboard_index>
+        <update handle="adminhtml_inventoryplus_layout" />
+        <reference name="head">            
+            <action method="addCss">
+                <stylesheet>css/magestore/jquery-ui.css</stylesheet>
+            </action>
+        </reference>
+        <reference name="content">
+            <block type="inventoryplus/adminhtml_dashboard" name="dashboard_inventoryplus">
+                <block type="adminhtml/store_switcher" name="store_switcher" as="store_switcher" template="store/switcher.phtml">
+                    <action method="setUseConfirm">
+                        <params>0</params>
+                    </action>
+                </block>
+            </block>
+        </reference>
+    </adminhtml_inp_dashboard_index>
+    
+    <adminhtml_inp_dashboard_run>
+        <update handle="inventoryplus_adminhtml_process_run" />  
+        <reference name="convert_root">
+            <block type="inventoryplus/adminhtml_install_process" name="adminhtml_install_process" output="toHtml" />
+        </reference>
+    </adminhtml_inp_dashboard_run>    
+    
+    <!-- Manage Stock -->
+    <adminhtml_inp_stock_index>      
+        <update handle="adminhtml_inventoryplus_layout" />  
+        <reference name="content">
+            <block type="inventoryplus/adminhtml_stock" name="stock_css" template="inventoryplus/stock/css.phtml" />            
+        </reference>
+    </adminhtml_inp_stock_index>
+    <adminhtml_inp_stock_products>
+        <block type="core/text_list" name="root">   
+            <block type="inventoryplus/adminhtml_stock" name="warehouse_id" template="inventoryplus/stock/warehouse.phtml" />
+            <block type="inventoryplus/adminhtml_stock_edit_tab_products" name="stock.edit.tab.products"/>
+            <block type="adminhtml/widget_grid_serializer" name="related_grid_serializer">
+                <action method="initSerializerBlock">
+                    <grid_block_name>stock.edit.tab.products</grid_block_name>
+                    <data_callback>getSelectedProducts</data_callback>
+                    <hidden_input_name>stock_products</hidden_input_name>
+                    <reload_param_name>stock_products</reload_param_name>
+                </action>
+                <action method="addColumnInputName">
+                    <input_name>total_qty</input_name>
+                </action>
+            </block>        
+        </block>
+    </adminhtml_inp_stock_products>
+    
+    <adminhtml_inp_stock_productsgrid>
+        <block type="core/text_list" name="root">
+            <block type="inventoryplus/adminhtml_stock_edit_tab_products" name="stock.edit.tab.products"/>
+        </block>
+    </adminhtml_inp_stock_productsgrid>
+    
+    <!--Select warehouse to ship-->
+    <adminhtml_sales_order_shipment_new>
+        <reference name="head">
+            <action method="addJs">
+                <script>magestore/inventory/tinybox.js</script>
+            </action>
+            <action method="addCss">
+                <stylesheet>css/magestore/inventoryplus/style.css</stylesheet>
+            </action>
+            <action method="addJs">
+                <script>prototype/tooltip.js</script>
+            </action> 
+            <action method="addJs">
+                <script>prototype/tooltip_manager.js</script>
+            </action> 
+        </reference>
+        <reference name="order_items">
+            <action method="setTemplate">
+                <template>inventoryplus/shipment/sales/order/shipment/create/items.phtml</template>
+            </action>
+            <action method="addItemRender">
+                <type>default</type>
+                <block>adminhtml/sales_items_renderer_default</block>
+                <template>inventoryplus/shipment/sales/order/shipment/create/items/renderer/default.phtml</template>
+            </action>
+            <action method="addItemRender">
+                <type>bundle</type>
+                <block>bundle/adminhtml_sales_order_items_renderer</block>
+                <template>inventoryplus/bundle/sales/shipment/create/items/renderer.phtml</template>
+            </action>
+        </reference>
+    </adminhtml_sales_order_shipment_new>
+    <adminhtml_sales_order_shipment_view>
+        <reference name="shipment_items">
+            <action method="setTemplate">
+                <template>inventoryplus/shipment/sales/order/shipment/view/items.phtml</template>
+            </action>
+            <action method="addItemRender">
+                <type>default</type>
+                <block>adminhtml/sales_items_renderer_default</block>
+                <template>inventoryplus/shipment/sales/order/shipment/view/items/renderer/default.phtml</template>
+            </action>
+            <action method="addItemRender">
+                <type>bundle</type>
+                <block>bundle/adminhtml_sales_order_items_renderer</block>
+                <template>inventoryplus/bundle/sales/shipment/view/items/renderer.phtml</template>
+            </action>
+        </reference>
+    </adminhtml_sales_order_shipment_view>
+    
+    <!-- Credit memo -->
+    <adminhtml_sales_order_creditmemo_new>
+        <reference name="order_items">
+            <action method="setTemplate">
+                <template>inventoryplus/creditmemo/sales/order/creditmemo/create/items.phtml</template>
+            </action>
+            <action method="addItemRender">
+                <type>default</type>
+                <block>adminhtml/sales_items_renderer_default</block>
+                <template>inventoryplus/creditmemo/sales/order/creditmemo/create/items/renderer/default.phtml</template>
+            </action>
+            <action method="addItemRender">
+                <type>bundle</type>
+                <block>bundle/adminhtml_sales_order_items_renderer</block>
+                <template>inventoryplus/bundle/sales/creditmemo/create/items/renderer.phtml</template>
+            </action>
+        </reference>
+    </adminhtml_sales_order_creditmemo_new>
+    <!-- email send to supplier -->   
+    <inventoryplusadmin_email_sendtowarehouse>
+        <block type="inventoryplus/adminhtml_email" name="inventory_send_email_to_warehouse" template="inventoryplus/email/sendtowarehouse.phtml" />
+    </inventoryplusadmin_email_sendtowarehouse>
+    <inventoryplus_adminhtml_process_run>
+        <remove name="root"/>
+        <block type="adminhtml/page" name="convert_root" output="toHtml" template="page.phtml">
+            <block type="adminhtml/page_head" name="convert_root_head" as="head" template="page/head.phtml">
+                <action method="addJs">
+                    <script>prototype/prototype.js</script>
+                </action>
+                <action method="addJs">
+                    <script>prototype/validation.js</script>
+                </action>
+                <action method="addJs">
+                    <script>varien/js.js</script>
+                </action>
+                <action method="addJs">
+                    <script>mage/translate.js</script>
+                </action>
+                <action method="addJs">
+                    <script>mage/adminhtml/tools.js</script>
+                </action>
+                <action method="addJs">
+                    <script>magestore/inventory/processbar.js</script>
+                </action>
+                <action method="addJs">
+                    <script>magestore/inventory/process.js</script>
+                </action>
+                <action method="addCss">
+                    <stylesheet>css/magestore/inventoryplus/style.css</stylesheet>
+                </action>                
+            </block>
+        </block>        
+    </inventoryplus_adminhtml_process_run>
+    <adminhtml_inp_process_run>
+        <remove name="root"/>
+        <block type="adminhtml/page" name="convert_root" output="toHtml" template="page.phtml">
+            <block type="adminhtml/page_head" name="convert_root_head" as="head" template="page/head.phtml">
+                <action method="addJs">
+                    <script>prototype/prototype.js</script>
+                </action>
+                <action method="addJs">
+                    <script>prototype/validation.js</script>
+                </action>
+                <action method="addJs">
+                    <script>varien/js.js</script>
+                </action>
+                <action method="addJs">
+                    <script>mage/translate.js</script>
+                </action>
+                <action method="addJs">
+                    <script>mage/adminhtml/tools.js</script>
+                </action>
+                <action method="addJs">
+                    <script>magestore/inventory/processbar.js</script>
+                </action>
+                <action method="addJs">
+                    <script>magestore/inventory/process.js</script>
+                </action>
+                <action method="addCss">
+                    <stylesheet>css/magestore/inventoryplus/style.css</stylesheet>
+                </action>                
+            </block>
+            <block type="inventoryplus/adminhtml_process_popup" name="adminhtml_process_popup" output="toHtml"/>
+        </block>
+    </adminhtml_inp_process_run>      
+</layout>

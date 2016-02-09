@@ -1,0 +1,437 @@
+<?php
+/**
+ * Magestore
+ * 
+ * NOTICE OF LICENSE
+ * 
+ * This source file is subject to the Magestore.com license that is
+ * available through the world-wide-web at this URL:
+ * http://www.magestore.com/license-agreement.html
+ * 
+ * DISCLAIMER
+ * 
+ * Do not edit or add to this file if you wish to upgrade this extension to newer
+ * version in the future.
+ * 
+ * @category    Magestore
+ * @package     Magestore_Inventorysupplyneeds
+ * @copyright   Copyright (c) 2012 Magestore (http://www.magestore.com/)
+ * @license     http://www.magestore.com/license-agreement.html
+ */
+
+/**
+ * Inventorysupplyneeds Adminhtml Controller
+ * 
+ * @category    Magestore
+ * @package     Magestore_Inventorywarehouse
+ * @author      Magestore Developer
+ */
+?>
+<?php
+$qtyOrderedStr = $this->getQtyOrderedLast30daysToString();
+$itemSoldStr = $this->getItemSoldLast30daysToString();
+$revenueSaleOrderStr = $this->getRevenueLast30daysToString();
+$totalOrdered = $this->getTotalQtyOrderedLast30days();
+$totalUnitSold = $this->getUnitSoldLast30days();
+$totalRevenue = $this->getTotalRevenueLast30days();
+$qtyPurchasedStr = $this->getQtyPurchasedLast30daysToString();
+$qtyBoughtStr = $this->getItemBoughtLast30daysToString();
+$purchaseValuesStr = $this->getCostPurchasedLast30daysToString();
+$totalPurchaseQtyStr = $this->getTotalPurchaseQtyLast30days();
+$totalUnitBoughtStr = $this->getTotalItemBoughtLast30days();
+$totalCostStr = $this->getTotalCostLast30days();
+?>
+<style>#container_sales_report svg{width:500px} .highcharts-container{overflow: visible !important;}</style>
+<script src="<?php echo $this->getJsUrl() ?>magestore/adminhtml/inventory/dashboard/lib/charts/prototype-adapter.js"></script>
+<script src="<?php echo $this->getJsUrl() ?>magestore/adminhtml/inventory/dashboard/lib/charts/highcharts.js"></script>
+<script src="<?php echo $this->getJsUrl() ?>magestore/adminhtml/inventory/dashboard/lib/charts/modules/exporting.js"></script>
+<?php
+for ($i = 30; $i >= 0; $i--) {
+    if ($i == 30)
+        $d = date("d", strtotime('-' . $i . ' days'));
+    else
+        $d .= "," . date("d", strtotime('-' . $i . ' days'));
+}
+?>
+<div class="clear fix"></div>
+<div class="inventory-dashboard-container">
+    <table cellspacing="0" width="100%" class="report-table">
+        <tbody>
+            <tr>
+                <td>
+                    <div class="report_box entry-edit">
+                        <fieldset>
+                            <h2 class="mbl"><?php echo $this->__("Sales"); ?></h2>
+                            <div class="report_list">
+                                <span class="report_image sales"> </span>
+                                <p class="report_type_description"></p>
+                                <div id="container_sales_report" style="height: 400px; margin: 0 auto;"></div>
+                                <script>
+                                    var d = new Date();
+                                    var m = d.getMonth();
+                                    d.setMonth(d.getMonth() - 1);
+                                    if (d.getMonth() === m)
+                                        d.setDate(0);
+                                    d.setHours(0, 0, 0);
+                                    new Highcharts.Chart({
+                                        chart: {
+                                            renderTo: 'container_sales_report',
+                                            type: 'line',
+                                            height: 380,
+                                            width: 460,
+                                            zoomType: 'xy'
+                                        },
+                                        plotOptions: {
+                                            series: {
+                                                marker: {
+                                                    enabled: false
+                                                }
+                                            }
+                                        },
+                                        title: {
+                                            text: '<?php echo $this->__('Last 30 days sales report') ?>',
+                                            x: -20 //center
+                                        },
+                                        xAxis: [{
+                                            type: 'datetime',
+                                            dateTimeLabelFormats: {
+                                                day: '%e of %b'
+                                            },
+                                            crosshair: true
+                                        }],
+                                        yAxis: [{
+                                                labels: {
+                                                    format: '{value}',
+                                                    style: {
+                                                        color: Highcharts.getOptions().colors[1]
+                                                    }
+                                                },
+                                                title: {
+                                                    text: '<?php echo $this->__('Products Ordered & Qty Ordered') ?>',
+                                                    style: {
+                                                        color: Highcharts.getOptions().colors[1]
+                                                    }
+                                                }
+                                            }, {// Secondary yAxis
+                                                title: {
+                                                    text: '<?php echo $this->__('Revenue') ?>',
+                                                    style: {
+                                                        color: Highcharts.getOptions().colors[0]
+                                                    }
+                                                },
+                                                labels: {
+                                                    format: '{value}$',
+                                                    style: {
+                                                        color: Highcharts.getOptions().colors[0]
+                                                    }
+                                                },
+                                                opposite: true
+                                            }],
+                                        tooltip: {
+                                            shared: true
+                                        },
+                                        legend: {
+                                            layout: 'horizontal',
+                                            align: 'bottom',
+                                            verticalAlign: 'bottom',
+                                            borderWidth: 0,
+                                            backgroundColor: (Highcharts.theme && Highcharts.theme.legendBackgroundColor) || '#FFFFFF'
+                                        },
+                                        series: [{
+                                                name: '<?php echo $this->__('Products Ordered') ?>',
+                                                type: 'spline',
+                                                data: [<?php echo $itemSoldStr; ?>],
+                                                pointStart: Date.UTC(d.getYear(), d.getMonth(), d.getDate()),
+                                                pointInterval: 24 * 3600 * 1000, // one day
+                                                tooltip: {
+                                                    valueSuffix: ''
+                                                }
+                                            },
+                                            {
+                                                name: '<?php echo $this->__('Qty Ordered') ?>',
+                                                type: 'spline',
+                                                data: [<?php echo $qtyOrderedStr; ?>],
+                                                pointStart: Date.UTC(d.getYear(), d.getMonth(), d.getDate()),
+                                                pointInterval: 24 * 3600 * 1000, // one day
+                                                tooltip: {
+                                                    valueSuffix: ''
+                                                }
+                                            }
+                                            , {
+                                                name: '<?php echo $this->__('Revenue') ?>',
+                                                type: 'spline',
+                                                yAxis: 1,
+                                                data: [<?php echo $revenueSaleOrderStr; ?>],
+                                                pointStart: Date.UTC(d.getYear(), d.getMonth(), d.getDate()),
+                                                pointInterval: 24 * 3600 * 1000, // one day
+                                                tooltip: {
+                                                    valueSuffix: ' $'
+                                                }
+
+                                            }]
+                                    });
+                                </script>
+                            </div>
+                            <div style="margin:20px;">
+                                <div id="dashboard_diagram_totals" class="box">
+                                    <div class="entry-edit" style="float:none">
+                                        <table cellspacing="0" width="100%">
+                                            <tbody><tr>
+                                                    <td class="a-center bold">
+                                                        <span><?php echo $this->__('Products Ordered') ?></span><br>
+                                                        <span style="font-size:18px; color:#EA7601;" class="nowrap"><?php echo $totalUnitSold; ?><span style="font-size:14px; color:#DE8946;"></span></span>
+                                                    </td>
+                                                    <td class="a-center bold">
+                                                        <span><?php echo $this->__('Qty Ordered') ?></span><br>
+                                                        <span style="font-size:18px; color:#EA7601;" class="nowrap"><?php echo $totalOrdered; ?><span style="font-size:14px; color:#DE8946;"></span></span>
+                                                    </td>
+                                                    <td class="a-center bold">
+                                                        <span><?php echo $this->__('Revenue') ?></span><br>
+                                                        <span style="font-size:18px; color:#EA7601;" class="nowrap"><?php echo Mage::helper('core')->currency($totalRevenue, true, false); ?><span style="font-size:14px; color:#DE8946;"></span></span>
+                                                    </td>
+                                                </tr>
+                                            </tbody></table>
+                                    </div>
+                                </div>
+                            </div>
+                        </fieldset>
+                    </div>
+                </td>
+                <td width="5"></td>
+                <td><!-- The right Chart  -->
+                    <div class="report_box entry-edit">
+                        <fieldset>
+                            <h2 class="mbl"><?php echo $this->__("Purchases"); ?></h2>
+                            <div class="report_list">
+                                <span class="report_image sales"> </span>
+                                <p class="report_type_description"></p>
+                                <div id="container_purchase_supplier_report" style="height: 400px; margin: 0 auto;"></div>
+                                <script>
+                                    var d = new Date();
+                                    var m = d.getMonth();
+                                    d.setMonth(d.getMonth() - 1);
+                                    if (d.getMonth() === m)
+                                        d.setDate(0);
+                                    d.setHours(0, 0, 0);
+                                    new Highcharts.Chart({
+                                        chart: {
+                                            renderTo: 'container_purchase_supplier_report',
+                                            type: 'line',
+                                            height: 380,
+                                            width: 460,
+                                            zoomType: 'xy'
+                                        },
+                                        plotOptions: {
+                                            series: {
+                                                marker: {
+                                                    enabled: false
+                                                }
+                                            }
+                                        },
+                                        title: {
+                                            text: '<?php echo $this->__('Last 30 days purchases report') ?>',
+                                            x: -20 //center
+                                        },
+                                        xAxis: [{
+                                            type: 'datetime',
+                                            dateTimeLabelFormats: {
+                                                day: '%e of %b'
+                                            },
+                                            crosshair: true
+                                        }],
+                                        yAxis: [{
+                                                labels: {
+                                                    format: '{value}',
+                                                    style: {
+                                                        color: Highcharts.getOptions().colors[1]
+                                                    }
+                                                },
+                                                title: {
+                                                    text: '<?php echo $this->__('Products Purchased & Qty Purchased') ?>',
+                                                    style: {
+                                                        color: Highcharts.getOptions().colors[1]
+                                                    }
+                                                }
+                                            }, {// Secondary yAxis
+                                                title: {
+                                                    text: '<?php echo $this->__('Values') ?>',
+                                                    style: {
+                                                        color: Highcharts.getOptions().colors[0]
+                                                    }
+                                                },
+                                                labels: {
+                                                    format: '{value}$',
+                                                    style: {
+                                                        color: Highcharts.getOptions().colors[0]
+                                                    }
+                                                },
+                                                opposite: true
+                                            }],
+                                        tooltip: {
+                                            shared: true
+                                        },
+                                        legend: {
+                                            layout: 'horizontal',
+                                            align: 'bottom',
+                                            verticalAlign: 'bottom',
+                                            borderWidth: 0,
+                                            backgroundColor: (Highcharts.theme && Highcharts.theme.legendBackgroundColor) || '#FFFFFF'
+                                        },
+                                        series: [{
+                                                name: '<?php echo $this->__('Products Purchased') ?>',
+                                                type: 'spline',
+                                                data: [<?php echo $qtyBoughtStr; ?>],
+                                                pointStart: Date.UTC(d.getYear(), d.getMonth(), d.getDate()),
+                                                pointInterval: 24 * 3600 * 1000, // one day
+                                                tooltip: {
+                                                    valueSuffix: ''
+                                                }
+                                            },
+                                            {
+                                                name: '<?php echo $this->__('Qty Purchased') ?>',
+                                                type: 'spline',
+                                                data: [<?php echo $qtyPurchasedStr; ?>],
+                                                pointStart: Date.UTC(d.getYear(), d.getMonth(), d.getDate()),
+                                                pointInterval: 24 * 3600 * 1000, // one day
+                                                tooltip: {
+                                                    valueSuffix: ''
+                                                }
+                                            }
+                                            , {
+                                                name: '<?php echo $this->__('Total Cost') ?>',
+                                                type: 'spline',
+                                                yAxis: 1,
+                                                data: [<?php echo $purchaseValuesStr; ?>],
+                                                pointStart: Date.UTC(d.getYear(), d.getMonth(), d.getDate()),
+                                                pointInterval: 24 * 3600 * 1000, // one day
+                                                tooltip: {
+                                                    valueSuffix: ' $'
+                                                }
+
+                                            }]
+                                    });
+                                </script>
+                            </div>
+                            <div style="margin:20px;">
+                                <div id="dashboard_diagram_totals" class="box">
+                                    <div class="entry-edit" style="float:none">
+                                        <table cellspacing="0" width="100%">
+                                            <tbody><tr>
+                                                    <td class="a-center bold">
+                                                        <span><?php echo $this->__('Products Purchased') ?></span><br>
+                                                        <span style="font-size:18px; color:#EA7601;" class="nowrap"><?php echo $totalUnitBoughtStr; ?><span style="font-size:14px; color:#DE8946;"></span></span>
+                                                    </td>
+                                                    <td class="a-center bold">
+                                                        <span><?php echo $this->__('Qty Purchased') ?></span><br>
+                                                        <span style="font-size:18px; color:#EA7601;" class="nowrap"><?php echo $totalPurchaseQtyStr; ?><span style="font-size:14px; color:#DE8946;"></span></span>
+                                                    </td>
+                                                    <td class="a-center bold">
+                                                        <span><?php echo $this->__('Total Cost') ?></span><br>
+                                                        <span style="font-size:18px; color:#EA7601;" class="nowrap"><span class="price"><?php echo Mage::helper('core')->currency($totalCostStr, true, false); ?></span><span style="font-size:14px; color:#DE8946;"></span></span>
+                                                    </td>
+                                                </tr>
+                                            </tbody></table>
+                                    </div>
+                                </div>
+                            </div>
+                        </fieldset>
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <?php
+    $stockOnHand = $this->getStockOnHand();
+    $stockOnHandDetail = $this->getStockOnHandDetail();
+    ?>
+
+    <style>#container_sales_report svg{width:500px} .highcharts-container{overflow: visible !important;}</style>
+    <script src="<?php echo $this->getJsUrl() ?>magestore/adminhtml/inventory/dashboard/lib/charts/prototype-adapter.js"></script>
+    <script src="<?php echo $this->getJsUrl() ?>magestore/adminhtml/inventory/dashboard/lib/charts/highcharts.js"></script>
+    <script src="<?php echo $this->getJsUrl() ?>magestore/adminhtml/inventory/dashboard/lib/charts/modules/exporting.js"></script>
+
+    <?php
+    $stockOnHand = $this->getStockOnHand();
+    $stockOnHandDetail = $this->getStockOnHandDetail();
+    ?>
+    <div style="margin:20px 0;" class="report_box entry-edit">
+        <fieldset>
+            <h2 class="mbl"><?php echo $this->__("Stock On-Hand"); ?></h2>
+            <div class="report_list" style="margin:15px;">
+                <span class="report_image sales"> </span>
+                <div id="container_warehouse_stockonhand_report" style="height: 400px; margin: 0 auto;"></div>
+                <script>
+                    new Highcharts.Chart({
+                        chart: {
+                            renderTo: 'container_warehouse_stockonhand_report',
+                            type: 'column',
+                            height: 380,
+                            width: 850,
+                            zoomType: 'xy'
+                        },
+                        colors: ['#00CC00'],
+                        title: {
+                            text: '<?php echo $this->__('Stock On-Hand Reports') ?>',
+                            x: -20 //center
+                        },
+                        xAxis: [{
+                                categories: <?php echo $stockOnHand['product_name'] ?>,
+                                                crosshair: true
+                                            }],
+                                        yAxis: [{
+                                                labels: {
+                                                    format: '{value}',
+                                                    style: {
+                                                        color: Highcharts.getOptions().colors[1]
+                                                    }
+                                                },
+                                                title: {
+                                                    text: '',                                                     style: {
+                                                        color: Highcharts.getOptions().colors[1]
+                                                    }
+                                                }
+                                            }],
+                                        legend: {
+                                            layout: 'horizontal',
+                                            align: 'bottom',
+                                            verticalAlign: 'bottom',
+                                            borderWidth: 0,
+                                            backgroundColor: (Highcharts.theme && Highcharts.theme.legendBackgroundColor) || '#FFFFFF'
+                                        },
+                                        tooltip: {
+                                            formatter: function () {
+                                                var index = this.series.data.indexOf(this.point); // Get index of current column
+                                                return <?php echo $stockOnHand['product_sku']; ?>[index] + " : " + this.y;
+                                                            }
+                                                        },
+                                                        series: [{
+                                                                name: '<?php echo $this->__('On-Hand Qty')?>',
+                                                                type: 'column',
+                                                                data: [<?php echo $stockOnHand['product_qty']; ?>]
+                                                                            }]
+                                                                    });</script>
+            </div>
+            <div style="margin:20px 0;">
+                <div class="box" id="dashboard_diagram_totals">
+                    <div style="float:none" class="entry-edit">
+                        <table cellspacing="0" width="100%">
+                            <tbody><tr>
+                                    <td class="a-center bold">
+                                        <span><?php echo $this->__('Products On-hand') ?></span><br>
+                                        <span class="nowrap" style="font-size:18px; color:#EA7601;"><?php echo $stockOnHandDetail['on_hand_unit']; ?><span style="font-size:14px; color:#DE8946;"></span></span>
+                                    </td>
+                                    <td class="a-center bold">
+                                        <span><?php echo $this->__('Total Qty') ?></span><br>
+                                        <span class="nowrap" style="font-size:18px; color:#EA7601;"><?php echo $stockOnHandDetail['on_hand_qty']; ?><span style="font-size:14px; color:#DE8946;"></span></span>
+                                    </td>
+                                    <td class="a-center bold">
+                                        <span><?php echo $this->__('Inventory Value') ?></span><br>
+                                        <span class="nowrap" style="font-size:18px; color:#EA7601;"><?php echo Mage::helper('core')->currency($stockOnHandDetail['value_on_hand'], true, false); ?><span style="font-size:14px; color:#DE8946;"></span></span>
+                                    </td>
+                                </tr>
+                            </tbody></table>
+                    </div>
+                </div>             
+        </fieldset>
+    </div>
+</div>

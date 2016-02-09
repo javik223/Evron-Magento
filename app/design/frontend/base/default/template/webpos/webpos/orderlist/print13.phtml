@@ -1,0 +1,123 @@
+<style type="text/css">
+	.info-invoice{
+		background: none repeat scroll 0 0 #D4D4D4;
+		border: 1px solid #BEBCB7;
+		margin-bottom: -1px;
+		padding: 10px;
+	}
+	.col-1 h2, .col-2 h2{
+		 background-color: #E8E8E8;
+		border: 1px solid #D9DDE3;
+		padding: 14px;
+	}
+	.col2-set{
+		  border: 1px solid #BEBCB7;
+	}
+	.col2-set .col-1, .col2-set .col-2{
+		width: 50%;
+	}
+	.col-1{
+		
+	}
+	.col-1 address, .col-2 address{
+		margin: 16px;
+	}
+	.method-info{
+		margin-left: 16px;
+	}
+	.items-order-head{
+		 background-color: #E8E8E8;
+		border: 1px solid #D9DDE3;
+		margin-bottom: -1px;
+		padding: 14px;
+		width: 97.7%;
+	}	
+	.data-table tfoot tr{
+		background-color: #FFFFFF !important;
+		font-size:14px;
+	}
+	.data-table tfoot td{
+		 border-bottom: 0 none;
+		border-right: 1px none;
+		padding-bottom: 1px;
+		padding-top: 1px;
+	}
+	.data-table thead th {
+	   
+		 background: none repeat scroll 0 0 transparent;
+		 background-color: #E8E8E8;
+	}
+	.data-table tbody.odd tr {
+		background: none repeat scroll 0 0 #FFFFFF !important;
+	}	
+	.data-table tfoot tr.first td {
+		background: none repeat scroll 0 0 transparent;
+		border-top: 1px solid #D9DDE3;
+	}
+</style>
+<?php $_order = $this->getOrder();
+ $_invoice = $this->getInvoice() ?>
+<div class="info-invoice">
+	<?php if($_invoice->getId()):?>
+		<h1><?php echo $this->__('Invoice #%s', $_invoice->getIncrementId()) ?></h1>
+	<?php endif;?>
+	<h1><?php echo $this->__('Order #%s', $_order->getRealOrderId()) ?></h1>
+	<h2><?php echo $this->__('Status: %s', $_order->getStatusLabel()) ?></h2>
+	<h2><?php echo $this->__('Order Date: %s', $this->formatDate($_order->getCreatedAtStoreDate(), 'long')) ?></h2>
+</div>
+<div class="col2-set">
+    <?php if (!$_order->getIsVirtual()): ?>
+    <div class="col-1">
+        <h2><?php echo $this->__('Shipping Address') ?></h2>
+        <address><?php echo $_order->getShippingAddress()->format('html') ?></address>
+    </div>
+    <div class="col-2">
+    <?php else: ?>
+    <div class="col-1">
+    <?php endif; ?>
+        <h2><?php echo $this->__('Billing Address') ?></h2>
+        <address><?php echo $_order->getBillingAddress()->format('html') ?></address>
+    </div>
+<?php if (!$_order->getIsVirtual()): ?>
+</div>
+<div class="col2-set">
+    <div class="col-1">
+        <h2><?php echo $this->__('Shipping Method') ?></h2>
+        <div class="method-info"><?php echo $this->escapeHtml($_order->getShippingDescription()) ?></div>
+    </div>
+<?php endif; ?>
+    <div class="col-2">
+        <h2><?php echo $this->__('Payment Method') ?></h2>
+        <div class="method-info"><?php echo $this->getPaymentInfoHtml() ?></div>
+    </div>
+</div>
+
+<table class="data-table" id="my-orders-table">
+    <col />
+    <col width="1" />
+    <col width="1" />
+    <col width="1" />
+    <col width="1" />
+    <thead>
+        <tr>
+            <th><?php echo $this->__('Product Name') ?></th>
+            <th><?php echo $this->__('SKU') ?></th>
+            <th class="a-right"><?php echo $this->__('Price') ?></th>
+            <th class="a-center"><?php echo $this->__('Qty') ?></th>
+            <th class="a-right"><?php echo $this->__('Subtotal') ?></th>
+        </tr>
+    </thead>
+    <tfoot class="foot-totals">
+        <?php echo $this->getChildHtml('order_totals') ?>
+    </tfoot>
+    <?php $_items = $_order->getItemsCollection(); ?>
+    <?php $_count = $_items->count(); ?>
+    <?php foreach ($_items as $_item): ?>
+    <?php if ($_item->getParentItem()) continue; ?>
+    <tbody>
+        <?php echo $this->getItemHtml($_item) ?>
+    </tbody>
+        <?php endforeach; ?>
+</table>
+<script type="text/javascript">decorateTable('my-orders-table', {'tbody' : ['odd', 'even'], 'tbody tr' : ['first', 'last']})</script>
+<script type="text/javascript">window.print();</script>

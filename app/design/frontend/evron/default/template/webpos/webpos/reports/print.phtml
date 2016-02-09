@@ -1,0 +1,259 @@
+
+<?php
+$transfered = number_format($this->getRequest()->getParam('transfer_amout'), 2, '.', '');
+$diff_total = number_format($this->getRequest()->getParam('diff_total'), 2, '.', '');
+$cash_count = number_format($this->getRequest()->getParam('cash_count'), 2, '.', '');
+$check_count = number_format($this->getRequest()->getParam('check_count'), 2, '.', '');
+$cc_count = number_format($this->getRequest()->getParam('cc_count'), 2, '.', '');
+$other_count = number_format($this->getRequest()->getParam('other_count'), 2, '.', '');
+$report_type = $this->getRequest()->getParam('report_type');
+$paymentInfo = Mage::getSingleton('adminhtml/session')->getPaymentInfo();
+
+$transfer = number_format($paymentInfo['cashforpos']['previous_transfer'], 2, '.', '');
+$discountInfo = Mage::getSingleton('adminhtml/session')->getDiscountInfo();
+$store_id = Mage::app()->getStore()->getId();
+$cashier_name = Mage::getSingleton('webpos/session')->getUser()->getDisplayName();
+$receiptSettings = Mage::helper('webpos')->getReceiptSettings();
+$logoPath = $receiptSettings['webpos_logo'];
+$logoUrl = Mage::getBaseUrl(Mage_Core_Model_Store::URL_TYPE_MEDIA) . DS . 'webpos' . DS . 'logo' . DS . $logoPath;
+
+$storeInformation = Mage::helper('webpos')->getStoreInformation();
+$store_name = Mage::app()->getStore()->getName();
+if (isset($storeInformation['storeName']) && $storeInformation['storeName'] != '') {
+    $store_name = $storeInformation['storeName'];
+}
+$till_name = '';
+$till = Mage::getSingleton('webpos/session')->getTill();
+if($till->getId()){
+	$till_name = $till->getTillName();
+}
+?>
+<style>
+    body { font-family:"Open Sans","DejaVu Sans",sans-serif; font-size:14px;}
+    .adminhtml-report-printzreport .wrapper {
+        min-width: inherit;
+    }
+    #wrapper table {
+        width: 100%;
+    }
+    #wrapper table td{
+        padding: 2px;
+    }
+    #wrapper table .align_right{
+        text-align: right;
+    }
+    .logo-container{
+        text-align: center;
+    }
+    #logo {
+        font-family: Segoe UI, Arial, sans-serif;
+        font-weight: 800;
+        font-size: 32px;
+    }
+
+    #logo img {
+        max-width: 200px;
+    }
+    #wrapper {page-break-inside:avoid;
+              page-break-before:auto;
+              page-break-after:auto;}
+
+    #wrapper {page-break-after: always;}
+
+    @media not|only mediatype and (expressions) {
+        body { font-size:0.7em !important;font-family:"Open Sans","DejaVu Sans"; font-size:8pt !important;}
+        #printxzreport td {font-size:8pt !important;}
+        #wrapper {page-break-inside:avoid;
+                  page-break-before:auto;
+                  page-break-after:auto;}
+
+        #wrapper {page-break-after: always;}
+    }
+    @page 
+    {
+        size: auto;
+        margin: 2mm 4mm;
+    }
+    #wrapper{
+        float:left;
+        width: 100%;
+    }
+</style>
+<div id="wrapper">
+    <div id="header">
+        <div class="logo-container container">
+            <?php if (isset($receiptSettings['show_receipt_logo']) && $receiptSettings['show_receipt_logo'] == true): ?>
+                <img src="<?php echo ($logoPath) ? $logoUrl : $this->getSkinUrl('images/icon/logo.png'); ?>" title="Webpos Receipt Logo" alt="Webpos Receipt Logo"/>
+            <?php endif; ?>
+        </div>
+        <h4 style="font-size:8pt !important;"><?php if ($store_id) echo $store_name . '  -'; ?>  <?php
+            if ($report_type == 'z-report')
+                echo 'Z -Report';
+            else
+                echo 'X -Report';
+            ?></h4>
+
+        <table id="printxzreport">            
+            <?php if ($till_name != '') { ?>
+                <tr>
+                    <td style="font-weight: bold; font-size:10pt !important;"><?php echo $this->__('Till'); ?></td>
+                    <td style="font-size:10pt !important;"><?php echo $till_name ?></td>
+                </tr>
+            <?php } ?>            
+			<?php if ($store_id) { ?>
+                <tr>
+                    <td style="font-weight: bold; font-size:10pt !important;"><?php echo $this->__('Store'); ?></td>
+                    <td style="font-size:10pt !important;"><?php echo $store_name ?></td>
+                </tr>
+            <?php } ?>
+            <?php if (isset($cashier_name)) { ?>
+                <tr>
+                    <td style="font-weight: bold; font-size:10pt !important;"><?php echo $this->__('Cashier'); ?></td>
+                    <td style="font-size:10pt !important;"><?php echo $cashier_name ?></td>
+                </tr>
+            <?php } ?>
+            <tr>
+                <td style="font-weight: bold; font-size:10pt !important;"><?php echo $this->__('Period'); ?></td>                
+                <td style="font-size:10pt !important;"><?php echo Mage::helper('core')->formatDate($paymentInfo['other_payment']['previous_time'], Mage_Core_Model_Locale::FORMAT_TYPE_MEDIUM, true); ?></td>
+            </tr>
+            <tr>                
+                <td style="font-size:10pt !important;">
+                <td style="font-size:10pt !important;"><?php echo Mage::helper('core')->formatDate(now(), Mage_Core_Model_Locale::FORMAT_TYPE_MEDIUM, true); ?></td>                    
+            </tr>
+            <tr>
+                <td style="font-weight: bold; font-size:10pt !important;"><?php echo $this->__('Orders'); ?></td>
+                <td style="font-size:10pt !important;"><?php echo $paymentInfo['other_payment']['num_order_total'] ?></td>
+            </tr>
+        </table>
+    </div>
+    <div id="content">
+        <table>
+            <tr>
+                <td style="font-weight: bold; font-size:10pt !important;"><?php echo $this->__('Payment Method'); ?></td>
+                <td style="font-weight: bold; font-size:10pt !important;" align="right"><?php echo $this->__('System'); ?></td>
+                <?php if ($report_type == 'z-report') { ?>
+                    <td style="font-weight: bold; font-size:10pt !important;" align="right"><?php echo $this->__('Difference'); ?></td>
+                <?php } ?>
+            </tr>
+            <tr><td colspan="3" style="border-bottom: 1px solid #496778;"></td></tr>
+            <?php
+            if ($paymentInfo)
+                foreach ($paymentInfo as $name => $payment) {
+                    if ($payment['money_system'] != 0) {
+                        ?>
+                        <tr>
+                            <td style="font-size:10pt !important;"><?php echo $payment['payment_name'] ?></td>
+                            <td class="align_right" style="font-size:10pt !important;"><?php echo Mage::helper('core')->currency($payment['money_system'], true, false); ?></td>
+                            <?php if ($report_type == 'z-report') { ?>
+                                <td class="align_right" style="font-size:10pt !important;"><?php
+                                    switch ($name) {
+                                        case 'cashforpos':
+
+                                            echo Mage::helper('core')->currency($diff_total, true, false);
+                                            break;
+                                    }
+                                    ?></td>
+                                <?php
+                            }
+                        }
+                        ?>
+                    </tr>
+                <?php } ?>     
+
+            <tr><td colspan="3" style="border-bottom: 1px solid #496778;"></td></tr>
+            <tr>
+                <td style="font-size:10pt !important;"><?php echo $this->__('Cash Drawer Balance'); ?></td>
+
+                <td class="align_right" style="font-size:10pt !important;"><?php echo Mage::helper('core')->currency($transfer, true, false); ?></td>                    
+            </tr>
+            <tr><td colspan="3" style="border-bottom: 1px solid #496778; font-size:10pt !important;"></td></tr>
+            <?php if ($discountInfo) { ?>
+                <tr>
+                    <td style="font-size:10pt !important;"><?php echo $this->__('Discount'); ?></td>
+                    <td class="align_right" style="font-size:10pt !important;"><?php
+                        if ($discountInfo['discount_amount'] > 0)
+                            echo Mage::helper('core')->currency($discountInfo['discount_amount'], true, false);
+                        else
+                            echo Mage::helper('core')->currency(-$discountInfo['discount_amount'], true, false);
+                            ?></td>
+                    <?php if ($report_type == 'z-report') { ?>
+                        <td class="align_right" style="font-size:10pt !important;"><?php
+                            if ($discountInfo['discount_amount'] > 0)
+                                echo Mage::helper('core')->currency($discountInfo['discount_amount'], true, false);
+                            else
+                                echo Mage::helper('core')->currency(-$discountInfo['discount_amount'], true, false);
+                                ?></td>
+                    <?php } ?>
+                </tr>
+            <?php }else { ?>
+                <tr>
+                    <td style="font-size:10pt !important;"><?php echo $this->__('Discount'); ?></td>
+                    <td class="align_right" style="font-size:10pt !important;"><?php echo Mage::helper('core')->currency(0, true, false); ?></td>
+                    <?php if ($report_type == 'z-report') { ?>
+                        <td class="align_right" style="font-size:10pt !important;"><?php echo Mage::helper('core')->currency(0, true, false); ?></td>
+                    <?php } ?>
+                </tr>
+            <?php } ?>
+            <?php /*if (Mage::getEdition() == "Enterprise") { ?>
+
+                <tr>
+                    <td style=" font-size:10pt !important;"><?php echo $this->__('Vouchers'); ?></td>
+                    <td class="align_right" style=" font-size:10pt !important;"><?php
+                        if ($discountInfo['voucher'] > 0)
+                            echo number_format($discountInfo['voucher'], 2, '.', '');
+
+                        else
+                            echo number_format(-$discountInfo['voucher'], 2, '.', '')
+
+                            ?></td>
+                    <?php if ($report_type == 'z-report') { ?>
+                        <td class="align_right"><?php
+                            if ($discountInfo['voucher'] > 0)
+                                echo number_format($discountInfo['voucher'], 2, '.', '');
+
+                            else
+                                echo number_format(-$discountInfo['voucher'], 2, '.', '')
+
+
+
+
+                                ?></td>
+                    <?php } ?>
+                </tr>
+            <?php }*/ ?>           
+            <tr>
+                <td style=" font-size:10pt !important;"><?php echo $this->__('Tax Amount'); ?></td>
+                <td class="align_right" style=" font-size:10pt !important;"><?php echo Mage::helper('core')->currency($paymentInfo['other_payment']['tax_order_total'], true, false); ?></td>
+                <?php if ($report_type == 'z-report') { ?>
+                    <td class="align_right" style=" font-size:10pt !important;"><?php echo Mage::helper('core')->currency($paymentInfo['other_payment']['tax_order_total'], true, false); ?></td>
+                <?php } ?>
+            </tr>
+            <tr><td colspan="3" style="border-bottom: 1px solid #496778;"></td></tr>
+            <tr>
+                <td style=" font-size:10pt !important;"><?php echo $this->__('Total (Incl Tax)'); ?></td>
+                <td class="align_right" style=" font-size:10pt !important;"><?php echo Mage::helper('core')->currency($paymentInfo['other_payment']['grand_order_total'], true, false); ?></td>
+                <?php if ($report_type == 'z-report') { ?>
+                    <td class="align_right" style=" font-size:10pt !important;"><?php echo Mage::helper('core')->currency($paymentInfo['other_payment']['grand_order_total'], true, false); ?></td>
+                <?php } ?>
+            </tr>
+
+            <?php if ($report_type == 'z-report') { ?>
+                <tr>
+                    <td style=" font-size:10pt !important;"><?php echo $this->__('Difference'); ?></td>
+                    <td></td>
+                    <td class="align_right" style=" font-size:10pt !important;"><?php echo Mage::helper('core')->currency($diff_total, true, false); ?></td>
+                </tr>
+                <tr>
+                    <td colspan="2" style=" font-size:10pt !important;"><?php echo $this->__('Transfered to Cash Drawer'); ?></td>
+                    <td class="align_right" style=" font-size:10pt !important;"><?php echo Mage::helper('core')->currency($transfered, true, false); ?></td>
+                </tr>
+
+            <?php } ?>
+        </table>
+    </div>
+
+</div>
+<script type="text/javascript">window.print();</script>
+<script type="text/javascript">window.onfocus = function () {
+        window.close();
+    }</script>

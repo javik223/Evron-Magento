@@ -1,0 +1,120 @@
+<?php
+$_collection = $this->getOrder();
+?>
+<?php if (count($_collection)): ?>
+        <?php
+        $i = 0;
+        $currentDate = '';
+        $startGroup = false;
+        foreach ($_collection as $_order): $i++;
+            $incrementId = $_order->getIncrementId();
+            $orderId = $_order->getId();
+            $printLink = $this->getUrl('webpos/order/print', array('order_id' => $orderId, '_forced_secure' => $this->getRequest()->isSecure()));
+
+            $create_time = Mage::app()->getLocale()->date(strtotime($_order->getData('created_at')), null, null, false)->toString('H:m:s');
+            $create_date = Mage::app()->getLocale()->date(strtotime($_order->getData('created_at')), null, null, false)->toString('d:M:Y');
+            $create_at = Mage::helper('core')->formatDate(Mage::app()->getLocale()->date(strtotime($_order->getData('created_at')), null, null, false), Mage_Core_Model_Locale::FORMAT_TYPE_LONG, false);
+            if ($currentDate != $create_date) {
+                $currentDate = $create_date;
+                Mage::getModel('webpos/session')->setData('currentDate', $currentDate);
+                $startGroup = true;
+            } else
+                $startGroup = false;
+            $grand_total = Mage::helper('core')->currency($_order->getData('base_grand_total'), true, false);
+            $statusOrderClass = '';
+            $orderStatus = $_order->getStatus();
+            $orderStatusLabel = $_order->getStatusLabel();
+            $canCancel = ($_order->canCancel()) ? 'true' : 'false';
+            $userId = Mage::helper('webpos/permission')->getCurrentUser();
+            $canManageOrder = Mage::helper('webpos/permission')->canManageOrder($userId, $_order->getId());
+            if ($canManageOrder == false) {
+                $showLabel = 'false';
+            } else {
+                $showLabel = '';
+            }
+            $allInvoiceIds = array();
+            $invoices = Mage::getResourceModel('sales/order_invoice_collection')
+                    ->setOrderFilter($_order->getId())
+                    ->load();
+            if (count($invoices) > 0)
+                foreach ($invoices as $invoice) {
+                    $allInvoiceIds[] = $invoice->getId();
+                }
+            switch ($orderStatus) {
+                case "canceled":
+                    $statusOrderClass = 'type2';
+                    break;
+                case "closed":
+                    $statusOrderClass = 'type2';
+                    break;
+                case "pending":
+                    $statusOrderClass = 'type4';
+                    break;
+                case "pending_payment":
+                    $statusOrderClass = 'type4';
+                    break;
+                case "complete":
+                    $statusOrderClass = 'type1';
+                    break;
+                case "processing":
+                    $statusOrderClass = 'type3';
+                    break;
+                case "holded":
+                    $statusOrderClass = 'type5';
+                    break;
+            }
+            $url = $this->getUrl('webpos/index/printInvoice', array('order_id' => $orderId, '_forced_secure' => $this->getRequest()->isSecure()));
+            $skus = '';
+            $items = $_order->getAllVisibleItems();
+            if (count($items) > 0) {
+                $numberItems = count($items);
+                $index = 1;
+                foreach ($items as $item) {
+                    if ($index == $numberItems)
+                        $skus .= $item->getSku();
+                    else
+                        $skus .= $item->getSku() . ', ';
+                    $index++;
+                }
+            }
+            $customerNote = $_order->getCustomerNote();
+            ?>
+            <div class="form-row">
+                <?php if ($startGroup): ?>
+                    <div class="create-at">
+                        <div class="date col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                            <?php echo $create_at; ?>
+                        </div>
+						<div class='clear'></div>
+                    </div>
+                <?php endif; ?>
+				<div class='holded_item_wrapper'>
+					<div invoiceId="<?php echo (isset($allInvoiceIds[0])) ? $allInvoiceIds[0] : 'null'; ?>" canCancel="<?php echo $canCancel; ?>" increment_id="<?php echo '#' . $incrementId; ?>" created_at="<?php echo $create_at; ?>" grand_total="<?php echo $grand_total; ?>" status="<?php echo $orderStatus; ?>" show_label="<?php echo $showLabel ?>" status_label="<?php echo $orderStatusLabel; ?>"  id='orderlist_row_<?php echo $_order->getId(); ?>' class="info <?php echo $statusOrderClass; ?> col-lg-12 col-md-12 col-sm-12 col-xs-12" onclick="previewHoldedOrder('<?php echo $orderId; ?>');">
+						<ul class="line1">
+							<li class="order-id col-lg-6 col-md-6 col-sm-6 col-xs-6">#<?php echo $incrementId ?></li>
+							<li class="price col-lg-6 col-md-6 col-sm-6 col-xs-6"><?php echo $grand_total; ?></li>
+						</ul>
+						<ul>
+							<li class="order-id col-lg-6 col-md-6 col-sm-6 col-xs-6"><?php echo $_order->getCustomerName(); ?></li>
+							<li class="price col-lg-6 col-md-6 col-sm-6 col-xs-6"><?php echo $create_time; ?></li>
+						</ul>
+						<ul class="building-address">
+							<li class="col-lg-6 col-md-6 col-sm-6 col-xs-6">
+								<?php echo $skus; ?>
+							</li>
+							<li class="col-lg-6 col-md-6 col-sm-6 col-xs-6">
+								<?php echo $customerNote; ?>
+							</li>
+						</ul>
+					</div>
+					<div class='clear'></div>
+					<div class='button_wrapper' onmouseover="addTempClass($('orderlist_row_<?php echo $_order->getId(); ?>'),'tempactive')" onmouseout="removeTempClass($('orderlist_row_<?php echo $_order->getId(); ?>'),'tempactive')">
+						<button type="button" class="btn btn-warning bt_reload_order_online" onclick="reloadOrderByOrderId('<?php echo $orderId; ?>');" style=""><?php echo $this->__('Continue Processing'); ?></button>
+						<button type="button" class="btn btn-warning bt_cancel_order_online" onclick="deleteHoldedOrderByOrderId('<?php echo $orderId; ?>');" style=""><?php echo $this->__('Cancel'); ?></button>
+						<div class='clear'></div>   
+					</div>            
+			   </div>
+            </div>
+        <?php endforeach ?>
+        <input type="text" id="current_holded_page_number" style="display: none;"/> <!-- Mr.Jack current page -->
+<?php endif ?>

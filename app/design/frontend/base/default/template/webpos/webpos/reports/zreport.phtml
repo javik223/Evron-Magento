@@ -1,0 +1,221 @@
+<?php
+$default_transfer_money = Mage::getStoreConfig('webpos/report/default_transfer_money');
+$data = $this->getPaymentPaidInfo();
+echo "<input type='hidden' name = 'till_current_balance' id='till_current_balance' value='" . $data['other_payment']['till_current'] . "' />";
+$zreport = 'z-report';
+if (count($data) > 0) {
+    if ($zreport != 'z-report') {
+        if ($data['other_payment']['num_order_total'] == 0) {
+            echo "<h5 style='margin-top: 40px;margin-left: 50px;font-weight: bold;text-align: center;'> " . $this->__('No Data') . " </h5>";
+            return;
+        }
+    }
+    if (count($data) == 1) {
+        foreach ($data as $other => $val) {
+            if ($val['num_order_total'] == 0)
+                echo "<h5 style='margin-top: 40px;margin-left: 50px;font-weight: bold;text-align: center;'> " . $this->__('No Data') . " </h5>";
+            return;
+        }
+    }
+    ?>
+    <style>
+        .dataTable-gird { height:auto;}
+    </style>
+    <div class="container">
+        <div class="row">
+            <div class="dataTable-gird">
+                <table id="report_till">
+                    <tr>
+                        <td>
+                            <table class="table-bordered webpos_bordered_table">
+                                <thead>
+                                <th width="30%"><?php echo $this->__('Store'); ?></th>
+                                <th width="30%"><?php echo $this->__('Cashier'); ?></th>
+                                <th width="20%" class="align_right"><?php echo $this->__('From'); ?></th>
+                                <th width="20%" class="align_right"><?php echo $this->__('To'); ?></th>                           
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><?php echo $this->getStoreName(); ?></td>
+                                        <td><?php echo Mage::getSingleton('webpos/session')->getUser()->getUsername(); ?></td>
+                                        <td class="align_right"><?php echo Mage::helper('core')->formatDate($data['other_payment']['previous_time'], Mage_Core_Model_Locale::FORMAT_TYPE_MEDIUM, true); ?></td>
+                                        <td class="align_right"><?php echo Mage::helper('core')->formatDate(now(), Mage_Core_Model_Locale::FORMAT_TYPE_MEDIUM, true); ?></td>                                                              
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="tablezreport">
+                                <table class="table-bordered webpos_bordered_table">
+                                    <thead>
+                                    <th width="60%" align="left"><?php echo $this->__('Payment Method'); ?></th>
+                                    <th width="10%" align="center"><?php echo $this->__('No. of Orders'); ?></th>
+                                    <th width="10%" align="center"><?php echo $this->__('Recorded Grand Totals'); ?></th>
+                                    <?php if ($zreport == 'z-report') { ?>
+                                        <th width="10%" align="center"><?php echo $this->__('Manual Count'); ?></th>
+                                        <th width="10%" align="center"><?php echo $this->__('Difference'); ?></th>
+                                    <?php } ?>
+                                    </thead>
+                                    <tbody>
+                                        <?php
+                                        foreach ($data as $payment => $info) {
+
+                                            if ($payment == 'other_payment' && $info['money_system'] == 0) {
+                                                
+                                            } else {
+                                                ?>
+                                                <tr>
+                                                    <td><?php
+                                                        echo $info['payment_name'];
+                                                        if ($payment == 'cashforpos') {
+                                                            if ($zreport == 'z-report') {
+                                                                echo "  <button id='count_cash' onclick='showCountCashArea()'>" . $this->__('Count') . "</button>";
+                                                            }
+                                                            echo "<br/>(<br/>Total: " . Mage::helper('core')->currency($info['total'], true, false) . " ,<br/> Opening Cash: " . Mage::helper('core')->currency($info['previous_transfer'], true, false) . ",<br/> Other In-Out Transactions: " . Mage::helper('core')->currency($info['in_out'], true, false) . "<br/>)";
+                                                        }
+                                                        ?></td>
+                                                    <td class='align_center'><?php
+                                                        if (isset($info['order_count']))
+                                                            echo $info['order_count'];
+                                                        else
+                                                            echo 0;
+                                                        ?></td>
+                                                    <td class="align_right"><span id="<?php echo $payment . '_money_system' ?>"><?php echo Mage::helper('core')->currency($info['money_system'], true, false); ?></span></td>
+                                                    <?php if ($zreport == 'z-report' && $payment == 'cashforpos') {
+                                                        ?>
+                                                        <td class="align_right"><input onblur="cashCounted(this)" class="manual_cal edit_report_value payment1" type="text" value="" name="<?php echo $payment ?>" id="<?php echo $payment ?>" /></td>
+                                                        <td class="align_right"><span id="<?php echo $payment . '_diff' ?>">0</span></td>
+                                                    <?php } else {
+                                                        ?>
+                                                        <td class="align_right"></td>
+                                                        <td class="align_right"></td>
+                                                    <?php }
+                                                    ?>
+                                                </tr>
+                                                <?php
+                                            }
+                                        }
+                                        ?>
+                                        <tr style="border-bottom: 1px solid #0d2131;"></tr>
+                                        <?php $discountData = $this->getDiscountPaidInfo(); ?>
+
+                                        <tr style="border-bottom: 1px solid #0d2131;"></tr>
+                                        <tr class="total">
+                                            <td style="padding: 4px"><?php echo $this->__('Sum of Grand Totals'); ?></td>
+                                            <td class='align_center'><span id="num_order_total" class='align_center'> <?php echo $data['other_payment']['num_order_total'] ?></span></td>
+                                            <td class="align_right"><span id="grand_system"><?php echo Mage::helper('core')->currency($data['other_payment']['grand_order_total'], true, false) ?></span></td>
+                                            <?php if ($zreport == 'z-report') { ?>
+                                                <td class="align_right"><span class="edit_report_value totals"  id="total_value_report" ></span></td>
+                                                <td class="align_right"><span id="total_value_diff">0</span></td>
+                                            <?php } ?>
+                                        </tr>
+                                        <?php /* if (Mage::getEdition() == "Enterprise") { ?>
+                                          <tr class="total">
+                                          <td style="padding: 4px"><?php echo $this->__('Vouchers'); ?></td>
+                                          <td><?php echo $discountData['voucher_orders'] ?></td>
+                                          <td class="align_right"><span id="discount_system"><?php
+                                          if ($discountData['voucher'] < 0)
+                                          echo number_format(-$discountData['voucher'], 2, '.', '');
+                                          else
+                                          echo number_format($discountData['voucher'], 2, '.', '')
+                                          ?></span> </td>
+                                          <?php if ($zreport == 'z-report') { ?>
+                                          <td class="align_right"><span class="edit_report_value discount" name="discount_value_report" id="discount_value_report" ><?php
+                                          if ($discountData['voucher'] < 0)
+                                          echo number_format(-$discountData['voucher'], 2, '.', '');
+                                          else
+                                          echo number_format($discountData['voucher'], 2, '.', '');
+                                          ?></span></td>
+                                          <td class="align_right"><span id="discount_value_diff"></span></td>
+                                          <?php } ?>
+                                          </tr>
+
+                                          <?php } */ ?>
+                                        <tr class="total">
+                                            <td style="padding: 4px"><?php echo $this->__('Sum of Discounts'); ?></td>
+                                            <td class='align_center'><?php echo $discountData['order_count'] ?></td>
+                                            <td class="align_right"><span id="discount_system"><?php
+                                                    if ($discountData['discount_amount'] < 0)
+                                                        echo Mage::helper('core')->currency(-$discountData['discount_amount'], true, false);
+                                                    else
+                                                        echo Mage::helper('core')->currency($discountData['discount_amount'], true, false);
+                                                    ?></span> </td>
+                                            <?php if ($zreport == 'z-report') { ?>
+                                                <td class="align_right"><span class="edit_report_value discount" name="discount_value_report" id="discount_value_report" ><?php
+                                                        if ($discountData['discount_amount'] < 0)
+                                                            echo Mage::helper('core')->currency(-$discountData['discount_amount'], true, false);
+                                                        else
+                                                            echo Mage::helper('core')->currency($discountData['discount_amount'], true, false);
+                                                        ?></span></td>
+                                                <td class="align_right"><span id="discount_value_diff"></span></td>
+                                            <?php } ?>
+                                        </tr>
+                                        <tr class="total">
+                                            <td style="padding: 4px"><?php echo $this->__('Sum of Tax Amounts'); ?></td>
+                                            <td class='align_center'></td>
+                                            <td class="align_right"><span id="tax_system"><?php echo Mage::helper('core')->currency($data['other_payment']['tax_order_total'], true, false); ?></span></td>
+                                            <?php if ($zreport == 'z-report') { ?>
+                                                <td class="align_right"><span class="edit_report_value tax"  name="tax_value_report" id="tax_value_report" ><?php echo Mage::helper('core')->currency($data['other_payment']['tax_order_total'], true, false); ?></span></td>
+                                                <td class="align_right"><span id="tax_value_diff"></span></td>
+                                            <?php } ?>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+
+                <div class="action" style="margin:20px 0 0;">
+                    <div class="block-left container">
+                        <div class="row">
+                            <div class="transfer col-lg-4 col-md-4 col-sm-4 col-xs-4">
+                                <div class="row">
+                                    <label class="transfer_cashdrawer"><?php echo $this->__('Cash Amount Kept in Drawer for Next Shift/ Day'); ?></label><input type="text" class="manual_cal cash_report form-control transfer_cashdrawer" name="cash_report" id="cash_report" value="<?php echo $default_transfer_money; ?>" />
+                                </div>
+                            </div>
+                            <div class="btn-close col-lg-2 col-md-2 col-sm-2 col-xs-2 col-sm-offset-6"><div class="row"><button id="close_store" class="scalable" onclick="saveZreport()"><?php echo $this->__('Close Store'); ?></button></div></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+<?php } ?>
+
+<script>
+
+
+    $D(document).ready(function () {
+        $D('#total_value_report').html(0);
+    });
+
+    $D('body').on("keydown", '.manual_cal', function (event) {
+
+        if (event.shiftKey == true) {
+            // event.preventDefault(); allow to enter % char
+        }
+
+        if ((event.keyCode >= 48 && event.keyCode <= 57) ||
+                (event.keyCode >= 96 && event.keyCode <= 105) ||
+                event.keyCode == 16 ||
+                event.keyCode == 8 || event.keyCode == 9 || event.keyCode == 37 ||
+                event.keyCode == 39 || event.keyCode == 46 || event.keyCode == 190 || event.keyCode == 110 || event.keyCode == 188) {
+
+        } else {
+            event.preventDefault();
+        }
+
+        if (($D(this).val().indexOf('.') !== -1 || $D(this).val().indexOf(',') !== -1) && event.keyCode == 190)
+            event.preventDefault();
+
+        if (($D(this).val().indexOf(',') !== -1 || $D(this).val().indexOf('.') !== -1) && event.keyCode == 188)
+            event.preventDefault();
+
+        if (($D(this).val().indexOf(',') !== -1 || $D(this).val().indexOf('.') !== -1) && event.keyCode == 110)
+            event.preventDefault();
+
+    });
+</script>

@@ -1,0 +1,64 @@
+<?xml version="1.0"?>
+<config>
+    <tabs>
+        <categorygridfilter translate="label" module="categorygridfilter">
+            <label>SSTech</label>
+            <sort_order>102</sort_order>
+        </categorygridfilter>
+    </tabs>
+    <sections>
+        <categorygridfilter translate="label" module="categorygridfilter">
+            <label>SSTech Grid</label>
+            <tab>categorygridfilter</tab>
+            <frontend_type>text</frontend_type>
+            <sort_order>110</sort_order>
+            <show_in_default>1</show_in_default>
+            <show_in_website>1</show_in_website>
+            <show_in_store>0</show_in_store>
+            <groups>
+                <settings translate="label">
+                    <label>Grid Filter Settings</label>
+                    <frontend_type>text</frontend_type>
+                    <sort_order>1</sort_order>
+                    <show_in_default>1</show_in_default>
+                    <show_in_website>1</show_in_website>
+                    <show_in_store>0</show_in_store>
+                    <fields>
+                        <category_column_enabled translate="label">
+                            <label>Category Column Enabled</label>
+                            <frontend_type>select</frontend_type>
+                            <source_model>adminhtml/system_config_source_yesno</source_model>
+                            <sort_order>20</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                            <comment><![CDATA[Enable if category filter required]]></comment>
+                        </category_column_enabled>
+                        <thumbnail_column_enabled translate="label">
+                            <label>Thumbnail Column Enabled</label>
+                            <frontend_type>select</frontend_type>
+                            <source_model>adminhtml/system_config_source_yesno</source_model>
+                            <sort_order>30</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                            <comment><![CDATA[Enable if Thumbnail filter required]]></comment>
+                        </thumbnail_column_enabled>
+                        <thumbnail_width translate="label">
+                            <label>Thumbnail Width</label>                           
+                            <comment>
+                                <![CDATA[Thumbnail width in px.]]>
+                            </comment>
+                            <frontend_type>text</frontend_type>
+                            <sort_order>40</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                            <can_be_empty>1</can_be_empty>     
+                        </thumbnail_width>
+                    </fields>
+                </settings>                               
+            </groups>
+        </categorygridfilter>
+    </sections>
+</config>

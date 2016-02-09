@@ -1,0 +1,99 @@
+<div class="content-header">
+    <table cellspacing="0">
+        <tbody>
+            <tr>
+                <td style="width:50%;"><h3 class="icon-head head-adminhtml-inventory"><?php echo $this->__('Report Time Inventory by Warehouse'); ?></h3></td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+<?php 
+    $warehouseId = $this->getRequest()->getParam('warehouse_id');
+    $productId = $this->getRequest()->getParam('product_id');
+    $now = time();
+    if(Mage::helper('core')->isModuleEnabled('Magestore_Inventorybarcode')){
+        $resource = Mage::getSingleton('core/resource');        
+        $readConnection = $resource->getConnection('core_read');
+        $results = '';
+        $purchaseOrderIds = array();
+        
+        $barcodes = Mage::getModel('inventorybarcode/barcode')->getCollection()
+                ->addFieldToFilter('product_entity_id', $productId)
+                ->addFieldToFilter('barcode_status', 1)
+                ->addFieldToFilter('qty', array('gt' => 0));
+        foreach($barcodes as $barcode){
+            $barcodeWarehouseId = explode(',', $barcode->getWarehouseWarehouseId());
+            if ($warehouseId && (!in_array($warehouseId, $barcodeWarehouseId) || in_array($barcode->getData('purchaseorder_purchase_order_id'),$purchaseOrderIds))) {
+                continue;
+            } else {
+                $purchaseOrderIds[] = $barcode->getData('purchaseorder_purchase_order_id');
+            }
+        }       
+    }else{
+        $deliveries = Mage::getModel('inventorypurchasing/purchaseorder_delivery')
+                            ->getCollection()
+                            ->addFieldToFilter('product_id',$row->getId());
+        foreach($deliveries as $delivery){            
+            $count++;            
+            $your_date = strtotime($delivery->getDeliveryDate());
+            $datediff = $now - $your_date;
+            $time = 1;
+            $totalTime += floor($datediff/(60*60*24));
+        }
+        if($time == ''){
+            $time = $this->__('N/A');
+        }else
+            $time = round($totalTime/$count,1); 
+    }        
+?>
+<?php $product = Mage::getModel('catalog/product')->load($productId) ?>
+<?php $warehouse = Mage::getModel('inventoryplus/warehouse')->load($warehouseId) ?>
+<?php echo $this->__('Product: %s','<a href="'.$this->getUrl('adminhtml/catalog_product/edit',array('id'=>$productId)).'">'.$product->getName().'</a>') ?><br />
+<?php echo $this->__('Warehouse: %s','<a href="'.$this->getUrl('adminhtml/inp_warehouse/edit',array('id'=>$warehouseId)).'">'.$warehouse->getWarehouseName().'</a>') ?><br />
+<?php //echo $this->__('Time Inventory(days): %s',$time); ?>
+<?php if(Mage::helper('core')->isModuleEnabled('Magestore_Inventorybarcode')): ?>
+    <?php 
+        $purchaseOrders = Mage::getModel('inventorypurchasing/purchaseorder')->getCollection()
+                                                ->addFieldToFilter('purchase_order_id',array('in'=>$purchaseOrderIds));
+    ?>
+    <?php if($purchaseOrders->getSize() > 0): ?>
+        <div class="grid">
+            <div class="hor-scroll" style="max-height:300px;overflow-y:auto;">
+                <table cellspacing="0" class="data">
+                    <colgroup>
+                        <col>            
+                        <col width="60">
+                        <col width="60">
+                    </colgroup>
+                    <thead>
+                        <tr class="headings">
+                            <th><span class="nobr"><?php echo $this->__('Barcode') ?></th>
+                            <th><span class="nobr"><?php echo $this->__('Qty') ?></th>
+                            <th class=" last"><?php echo $this->__('Time Inventory(days)') ?></th>
+                        </tr>            
+                    </thead>
+                    <tbody>
+                        <?php foreach($purchaseOrders as $purchaseOrder): ?>
+                            <?php 
+                                $barcodes = Mage::getModel('inventorybarcode/barcode')->getCollection() 
+                                                        ->addFieldToFilter('purchaseorder_purchase_order_id',$purchaseOrder->getId())
+                                                        ->addFieldToFilter('qty',array('gt'=>0));
+                            ?>
+                            <?php foreach($barcodes as $barcode): ?>
+                                <?php $barcodeWarehouseId = explode(',', $barcode->getWarehouseWarehouseId()) ?>
+                                <?php if ($warehouseId && !in_array($warehouseId, $barcodeWarehouseId)): ?>
+                                    <?php continue; ?>
+                                <?php endif ?>
+                                <tr class="even pointer">
+                                    <td class=""><?php echo $barcode->getBarcode() ?></td>
+                                    <td class=""><?php echo $barcode->getQty() ?></td>
+                                    <td class="last"><?php echo floor(($now - strtotime($purchaseOrder->getPurchaseOn()))/(60*60*24)) ?></td>
+                                </tr>
+                            <?php endforeach; ?>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    <?php endif; ?>
+<?php endif ?>

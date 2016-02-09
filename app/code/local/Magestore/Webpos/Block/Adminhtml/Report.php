@@ -1,0 +1,44 @@
+<?php
+/**
+ * Magestore
+ * 
+ * NOTICE OF LICENSE
+ * 
+ * This source file is subject to the Magestore.com license that is
+ * available through the world-wide-web at this URL:
+ * http://www.magestore.com/license-agreement.html
+ * 
+ * DISCLAIMER
+ * 
+ * Do not edit or add to this file if you wish to upgrade this extension to newer
+ * version in the future.
+ * 
+ * @category    Magestore
+ * @package     Magestore_Marketingautomation
+ * @copyright   Copyright (c) 2012 Magestore (http://www.magestore.com/)
+ * @license     http://www.magestore.com/license-agreement.html
+ */
+
+/**
+ * webpos Adminhtml Block
+ * 
+ * @category    Magestore
+ * @package     Magestore_Marketingautomation
+ * @author      Magestore Developer
+ */
+class Magestore_Webpos_Block_Adminhtml_Report extends Mage_Adminhtml_Block_Widget_Grid_Container
+{
+    public function __construct()
+    {
+        $this->_controller = 'adminhtml_report';
+        $this->_blockGroup = 'webpos';
+        $this->_headerText = Mage::helper('webpos')->__('Web POS Sales Report');
+         $this->_addButton('refresh_data', array(
+            'label'   => Mage::helper('catalog')->__('Refresh Data Before Showing Report'),
+            'onclick' => "refreshData()",
+            'class'   => 'add'
+        ));
+        parent::__construct();
+        $this->_removeButton('add');
+    }
+}

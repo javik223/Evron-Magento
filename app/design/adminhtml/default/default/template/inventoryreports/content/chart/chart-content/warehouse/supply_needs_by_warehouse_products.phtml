@@ -1,0 +1,239 @@
+<?php
+$series = array();
+$requestData = Mage::helper('adminhtml')->prepareFilterString($this->getRequest()->getParam('top_filter'));
+if (empty($requestData)) {
+    $requestData = Mage::Helper('inventoryreports')->getDefaultOptionsWarehouse();
+}
+$name = 'All Warehouses';
+if ($requestData['warehouse_select'] > 0) {
+    $name = Mage::helper('inventoryreports')->getWarehouseName($requestData['warehouse_select']);
+}
+$warehouse = $requestData['warehouse_select'];
+$gettime = Mage::Helper('inventoryreports')->getTimeSelected($requestData);
+$datefrom = $gettime['date_from'];
+$dateto = $gettime['date_to'];
+if ($warehouse == 0) {
+    $total_supplyneeds = array();
+    $warehouse_collection = Mage::getModel('inventoryplus/warehouse')->getCollection();
+    foreach ($warehouse_collection as $value) {
+        $warehouse_id = $value->getWarehouseId();
+        $warehouse_product = Mage::getModel('inventoryplus/warehouse_product')
+                ->getCollection()
+                ->addFieldToFilter('warehouse_id', $warehouse_id);
+        $supplyneeds = array();
+        foreach ($warehouse_product as $value) {
+            $product_id = $value->getProductId();
+            $method = Mage::getStoreConfig('inventory/supplyneed/supplyneeds_method');
+            if ($datefrom && $dateto && $method == 2 && (strtotime($datefrom) <= strtotime($dateto))) {
+                $max_needs = Mage::helper('inventorysupplyneeds')->calMaxAverage($product_id, $datefrom, $dateto, $warehouse_id);
+            } elseif ($datefrom && $dateto && $method == 1 && strtotime($datefrom) <= strtotime($dateto)) {
+                $max_needs = Mage::helper('inventorysupplyneeds')->calMaxExponential($product_id, $datefrom, $dateto, $warehouse_id);
+            } else {
+                $max_needs = 0;
+            }
+            if ($max_needs > 0) {
+                $supplyneeds[$product_id] = $max_needs;
+            }
+        }
+        $total_supplyneeds[$warehouse_id] = $supplyneeds;
+        unset($supplyneeds);
+    }
+    $warehouse_name = array();
+    $total_request = array();
+    $chart_data = array();
+    $count = 0;
+    foreach ($total_supplyneeds as $key => $values) {
+//            if(!empty($values)){
+        $total_value = 0;
+        foreach ($values as $value) {
+            $total_value += $value;
+        }
+        if ($total_value > 0) {
+            $warehouse_name[] = Mage::getModel('inventoryplus/warehouse')->load($key)->getWarehouseName();
+            $total_request[] = $total_value;
+            $chart_data[$count]['warehouse_name'] = Mage::getModel('inventoryplus/warehouse')->load($key)->getWarehouseName();
+            $chart_data[$count]['total_request'] = $total_value;
+        }
+        $count++;
+    }
+} else {
+    $warehouse_product = Mage::getModel('inventoryplus/warehouse_product')
+            ->getCollection()
+            ->addFieldToFilter('warehouse_id', $warehouse);
+    $supplyneeds = array();
+    foreach ($warehouse_product as $value) {
+        $product_id = $value->getProductId();
+        $method = Mage::getStoreConfig('inventory/supplyneed/supplyneeds_method');
+        if ($datefrom && $dateto && $method == 2 && (strtotime($datefrom) <= strtotime($dateto))) {
+            $max_needs = Mage::helper('inventorysupplyneeds')->calMaxAverage($product_id, $datefrom, $dateto, $warehouse);
+        } elseif ($datefrom && $dateto && $method == 1 && strtotime($datefrom) <= strtotime($dateto)) {
+            $max_needs = Mage::helper('inventorysupplyneeds')->calMaxExponential($product_id, $datefrom, $dateto, $warehouse);
+        } else {
+            $max_needs = 0;
+        }
+        if ($max_needs > 0) {
+            $supplyneeds[$product_id] = $max_needs;
+        }
+    }
+    $warehouse_name = array();
+    $total_request = array();
+    $count = 0;
+    foreach ($supplyneeds as $key => $data) {
+        if ($data > 0) {
+            $warehouse_name[] = Mage::getModel('catalog/product')->load($key)->getName();
+            $total_request[] = $data;
+            $chart_data[$count]['product_name'] = Mage::getModel('catalog/product')->load($key)->getName();
+            $chart_data[$count]['total_request'] = $data;
+            $count++;
+        }
+    }
+}
+//            Zend_debug::dump($warehouse_name);
+//            Zend_debug::dump($total_request);
+$i = 0;
+$categories = '[';
+foreach ($warehouse_name as $name_value) {
+    if ($i != 0) {
+        $categories .= ',';
+    }
+    $categories .= '"' . $name_value . '"';
+    $i++;
+}
+$categories .= ']';
+$j = 0;
+$series['inventory_warehouse']['data'] = '[';
+foreach ($total_request as $number_value) {
+    if ($j != 0) {
+        $series['inventory_warehouse']['data'] .= ',';
+    }
+    $series['inventory_warehouse']['data'] .= $number_value;
+    $j++;
+}
+$series['inventory_warehouse']['data'] .= ']';
+?>
+<?php if (count($total_request) > 0): ?>
+    <div class="entry-edit" id="test">
+        <div class="entry-edit-head">
+            <h4 class="icon-head head-edit-form fieldset-legend"><?php echo $this->__('Chart Report') ?></h4>
+        </div>
+        <!DOCTYPE HTML>
+        <div>
+            <div style="width: 99%; float: left;">
+                <script type="text/javascript">
+                    $(function () {
+                        $_('#inventorybywarehouse_column').highcharts({
+                        chart: {
+                        type: 'column',
+                                margin: 70,
+                                options3d: {
+                                enabled: true,
+                                        alpha: 20,
+                                        beta: 1,
+                                        depth: 50
+                                }
+                        },
+                                legend:{
+                                enabled:false,
+                                },
+                                title: {
+                                text: '<?php echo $this->__('Total Qty. Needed Purchasing by Warehouse: "' . $name . '"') ?>'
+                                },
+                                plotOptions: {
+                                column: {
+                                depth: 30
+                                }
+                                },
+                                xAxis: {
+                                categories: <?php echo $categories ?>
+                                },
+                                yAxis: {
+                                opposite: true
+                                },
+                                series: [
+    <?php $count = 0; ?>
+    <?php foreach ($series as $serie): ?>
+        <?php if (!$count == 0) echo ','; ?>
+        <?php $count++; ?>
+                                    {
+                                        name: '<?php echo $serie['name']; ?>',
+                                                data: <?php echo $serie['data']; ?>
+                                        }
+    <?php endforeach; ?>
+                                    ]
+                        }
+                        );
+                    });
+                </script>
+
+                <div id="inventorybywarehouse_column" style="min-width: 900px; height: 450px; margin: 0 auto"></div>
+            </div>
+
+            <!-- report by warehouse pie -->
+            <div style="width: 99%; float: left;">
+                <?php
+                $series = '';
+                $i = 0;
+//                Zend_debug::dump($chart_data);
+                foreach ($chart_data as $result) {
+                    if ($i != 0)
+                        $series .= ',';
+                    if ($warehouse > 0) {
+                        $series .= '[\'' . $result['product_name'] . '(' . $result['total_request'] . ' items supplyneeds)\',' . $result['total_request'] . ']';
+                    } else {
+                        $series .= '[\'' . $result['warehouse_name'] . '(' . $result['total_request'] . ' items supplyneeds)\',' . $result['total_request'] . ']';
+                    }
+                    $i++;
+                }
+                ?>
+
+                <script type="text/javascript">
+                    $(function () {
+                        $_('#inventorybywarehouse_pie').highcharts({
+                            chart: {
+                                type: 'pie',
+                                options3d: {
+                                    enabled: true,
+                                    alpha: 50
+                                }
+                            },
+                            title: {
+                                text: '<?php echo $this->__('Total Qty. Needed Purchasing by Warehouse: "' . $name . '"') ?>',
+                            },
+                            plotOptions: {
+                                pie: {
+                                    depth: 30
+                                }
+                            },
+                            series: [{
+                                    name: 'Supplyneeds',
+                                    data: [
+    <?php echo $series; ?>
+                                    ]
+                                }]
+                        });
+                    });
+                </script>
+
+                <div id="inventorybywarehouse_pie" style="min-width: 900px; max-height: 450px; margin: 0 auto"></div>
+            </div>
+        </div>          
+    </div>
+<?php endif; ?>
+
+
+
+
+<script type="text/javascript" src="<?php echo $this->getJsUrl() ?>magestore/adminhtml/inventory/dashboard/lib/_JSSettings.js"></script>
+<script src="<?php echo $this->getJsUrl() ?>magestore/adminhtml/inventory/dashboard/lib/js_002"></script>
+<script src="<?php echo $this->getJsUrl() ?>magestore/adminhtml/inventory/dashboard/lib/dashboards"></script>
+
+<script type="text/javascript">
+                var saveViewPositions = '<?php echo $this->getUrl('adminhtml/ind_dashboard/saveviewposition') ?>';
+                var saveTabPositions = '<?php echo $this->getUrl('adminhtml/ind_dashboard/savetabposition') ?>';
+                var form_key_dashboard = '<?php echo $this->getFormKey() ?>';</script>
+<script type="text/javascript">
+    var $sd = new InventoryDashboard.Views.Dashboards();
+    $sd.isShare = false;
+    $sd.backgroundColour = '#808080';
+    $sd.init();
+</script>

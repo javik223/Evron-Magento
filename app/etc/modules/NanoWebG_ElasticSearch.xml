@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<config>
+	<modules>
+        <NanoWebG_ElasticSearch>
+            <active>false</active>
+            <codePool>local</codePool>
+        </NanoWebG_ElasticSearch>
+	</modules>
+</config>
+ 

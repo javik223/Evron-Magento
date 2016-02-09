@@ -1,0 +1,22 @@
+<script type="text/javascript">
+    function showTimeDelivery(supplierId, productId)
+    {
+        url = '<?php echo $this->getUrl('adminhtml/inr_supplier/timedeliverybysupplier') ?>';
+        url += 'supplier_id/'+supplierId+'/product_id/'+productId;
+        TINY.box.show(url,1, 800, 400, 1);
+    }
+    
+    function showWarehouseInventory(warehouseId, productId)
+    {
+        url = '<?php echo $this->getUrl('adminhtml/inr_supplier/timedeliverybywarehouse') ?>';
+        url += 'warehouse_id/'+warehouseId+'/product_id/'+productId;
+        TINY.box.show(url,1, 800, 400, 1);
+    }
+    
+    function showTimeDeliveryByProduct(productId)
+    {
+        url = '<?php echo $this->getUrl('adminhtml/inr_supplier/timedeliverybyproduct') ?>';
+        url += 'product_id/'+productId;
+        TINY.box.show(url,1, 800, 400, 1);
+    }
+</script>

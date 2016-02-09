@@ -1,0 +1,23 @@
+<?xml version="1.0" ?>
+
+<config>
+	<acl>
+		<resources>
+			<admin>
+				<children>
+					<system>
+						<children>
+							<config>
+								<children>
+									<customer_navigation>
+										<title>Het Nieuwe Web - Customer Navigation</title>
+									</customer_navigation>
+								</children>
+							</config>
+						</children>
+					</system>
+				</children>
+			</admin>
+		</resources>
+	</acl>
+</config>

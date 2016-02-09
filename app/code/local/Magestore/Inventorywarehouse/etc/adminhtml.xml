@@ -1,0 +1,77 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Magestore
+ * 
+ * NOTICE OF LICENSE
+ * 
+ * This source file is subject to the Magestore.com license that is
+ * available through the world-wide-web at this URL:
+ * http://www.magestore.com/license-agreement.html
+ * 
+ * DISCLAIMER
+ * 
+ * Do not edit or add to this file if you wish to upgrade this extension to newer
+ * version in the future.
+ * 
+ * @category    Magestore
+ * @package     Magestore_Inventory
+ * @copyright   Copyright (c) 2012 Magestore (http://www.magestore.com/)
+ * @license     http://www.magestore.com/license-agreement.html
+ */
+-->
+<config>
+    <inventoryplus_menu>
+        <stock_in>
+            <children>
+                <requeststock module="inventorywarehouse" translate="title">
+                    <title>Request Stock</title>
+                    <sort_order>20</sort_order>    
+                    <action>adminhtml/inw_requeststock</action>
+                </requeststock>  
+            </children> 
+        </stock_in>    
+        <stock_out>  
+            <children>
+                <sendstock module="inventorywarehouse" translate="title">
+                    <title>Send Stock</title>
+                    <sort_order>20</sort_order>    
+                    <action>adminhtml/inw_sendstock</action>
+                </sendstock>   
+            </children>                                            
+        </stock_out>                                     
+    </inventoryplus_menu>
+    <acl>
+        <resources>
+            <all>
+                <title>Allow Everything</title>
+            </all>
+            <admin>
+                <children>
+                    <inventoryplus>  
+                        <children>    
+                            <stock_in>
+                                <children>
+                                    <requeststock module="inventorywarehouse" translate="title">
+                                        <title>Request Stock</title>
+                                        <sort_order>20</sort_order>
+                                        <action>adminhtml/inw_requeststock</action>
+                                    </requeststock>  
+                                </children> 
+                            </stock_in>    
+                            <stock_out>  
+                                <children>
+                                    <sendstock module="inventorywarehouse" translate="title">
+                                        <title>Send Stock</title>
+                                        <sort_order>20</sort_order>
+                                        <action>adminhtml/inw_sendstock</action>
+                                    </sendstock>   
+                                </children>                                            
+                            </stock_out>                                              
+                        </children>                    
+                    </inventoryplus>
+                </children>
+            </admin>
+        </resources>
+    </acl>
+</config>

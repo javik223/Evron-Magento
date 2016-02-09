@@ -1,0 +1,161 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Magestore
+ * 
+ * NOTICE OF LICENSE
+ * 
+ * This source file is subject to the Magestore.com license that is
+ * available through the world-wide-web at this URL:
+ * http://www.magestore.com/license-agreement.html
+ * 
+ * DISCLAIMER
+ * 
+ * Do not edit or add to this file if you wish to upgrade this extension to newer
+ * version in the future.
+ * 
+ * @category    Magestore
+ * @package     Magestore_Inventorysupplyneeds
+ * @copyright   Copyright (c) 2012 Magestore (http://www.magestore.com/)
+ * @license     http://www.magestore.com/license-agreement.html
+ */
+-->
+<config>
+    <modules>
+        <Magestore_Inventorysupplyneeds>
+            <version>0.1.1</version>
+        </Magestore_Inventorysupplyneeds>
+    </modules>
+    <frontend>
+        <routers>
+            <inventorysupplyneeds>
+                <use>standard</use>
+                <args>
+                    <module>Magestore_Inventorysupplyneeds</module>
+                    <frontName>inventorysupplyneeds</frontName>
+                </args>
+            </inventorysupplyneeds>
+        </routers>
+        <layout>
+            <updates>
+                <inventorysupplyneeds>
+                    <file>inventorysupplyneeds.xml</file>
+                </inventorysupplyneeds>
+            </updates>
+        </layout>
+        <translate>
+            <modules>
+                <Magestore_Inventorysupplyneeds>
+                    <files>
+                        <default>Magestore_Inventorysupplyneeds.csv</default>
+                    </files>
+                </Magestore_Inventorysupplyneeds>
+            </modules>
+        </translate>
+    </frontend>
+    <admin> 
+        <routers> 
+            <adminhtml> 
+                <args> 
+                    <modules> 
+                        <magestore_inventorysupplyneeds after="Mage_Adminhtml">Magestore_Inventorysupplyneeds_Adminhtml</magestore_inventorysupplyneeds> 
+                    </modules> 
+                </args> 
+            </adminhtml> 
+        </routers> 
+    </admin>
+    <adminhtml>
+        <layout>
+            <updates>
+                <inventorysupplyneeds>
+                    <file>inventorysupplyneeds.xml</file>
+                </inventorysupplyneeds>
+            </updates>
+        </layout>
+        <translate>
+            <modules>
+                <Magestore_Inventorysupplyneeds>
+                    <files>
+                        <default>Magestore_Inventorysupplyneeds.csv</default>
+                    </files>
+                </Magestore_Inventorysupplyneeds>
+            </modules>
+        </translate>
+        <events>
+            <inventory_menu_list>
+                <observers>
+                    <inventorysupplyneeds_observers>
+                        <class>inventorysupplyneeds/observer</class>
+                        <method>addMenu</method>
+                    </inventorysupplyneeds_observers>
+                </observers>
+            </inventory_menu_list>         
+        </events>
+    </adminhtml>   
+    <global>
+        <models>
+            <inventorysupplyneeds>
+                <class>Magestore_Inventorysupplyneeds_Model</class>
+                <resourceModel>inventorysupplyneeds_mysql4</resourceModel>
+            </inventorysupplyneeds>
+            <inventorysupplyneeds_mysql4>
+                <class>Magestore_Inventorysupplyneeds_Model_Mysql4</class>
+                <entities>   
+                    <draftpo>
+                        <table>erp_inventory_draft_purchase_order</table>
+                    </draftpo>  
+                    <draftpo_product>
+                        <table>erp_inventory_draft_purchase_order_product</table>
+                    </draftpo_product>                                                         
+                </entities>
+            </inventorysupplyneeds_mysql4>
+        </models>
+        <resources>
+            <inventorysupplyneeds_setup>
+                <setup>
+                    <module>Magestore_Inventorysupplyneeds</module>
+                </setup>
+                <connection>
+                    <use>core_setup</use>
+                </connection>
+            </inventorysupplyneeds_setup>
+            <inventorysupplyneeds_write>
+                <connection>
+                    <use>core_write</use>
+                </connection>
+            </inventorysupplyneeds_write>
+            <inventorysupplyneeds_read>
+                <connection>
+                    <use>core_read</use>
+                </connection>
+            </inventorysupplyneeds_read>
+        </resources>
+        <blocks>
+            <inventorysupplyneeds>
+                <class>Magestore_Inventorysupplyneeds_Block</class>
+            </inventorysupplyneeds>
+        </blocks>
+        <helpers>
+            <inventorysupplyneeds>
+                <class>Magestore_Inventorysupplyneeds_Helper</class>
+            </inventorysupplyneeds>
+        </helpers>
+        <!-- <events>
+            <controller_action_predispatch>
+                <observers>
+                    <inventorysupplyneeds_observers>
+                        <class>inventorysupplyneeds/observer</class>
+                        <method>controllerActionPredispatch</method>
+                    </inventorysupplyneeds_observers>
+                </observers>
+            </controller_action_predispatch>
+        </events> -->
+    </global>
+    <default>
+        <inventory>            
+            <supplyneed>
+                <supplyneeds_method>1</supplyneeds_method>                
+            </supplyneed>
+        </inventory>
+    </default>
+</config>

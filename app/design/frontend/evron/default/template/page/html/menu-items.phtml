@@ -1,0 +1,39 @@
+<ul class="menu-items">
+						
+						<?php $_helper = Mage::helper('catalog/category') ?>
+						<?php $_categories = $_helper->getStoreCategories() ?>
+						<?php $currentCategory = Mage::registry('current_category') ?>
+						<?php if (count($_categories) > 0): ?>
+						    <ul>
+						        <?php foreach($_categories as $_category): ?>
+						        	<?php $_category = Mage::getModel('catalog/category')->load($_category->getId()) ?>
+						        	<?php $_subcategories = $_category->getChildrenCategories() ?>
+
+						            <li <?php if(count($_subcategories) > 0):?>class="dropdown"<?php endif; ?> 
+										<?php if( (int) $_category->getId() == 20): ?> class="prominent" <?php endif; ?>
+										<?php if( (int) $_category->getId() == 19): ?> class="semi-prominent" <?php endif; ?>
+						            >
+						                <a href="<?php echo $_helper->getCategoryUrl($_category) ?>" title="<?php echo $_category->getName() ?>">
+						                    <?php echo $_category->getName() ?>
+						                </a>
+						         
+						                <?php if (count($_subcategories) > 0): ?>
+						                    <ul>
+						                    	<li class="semi-prominent"><a href="<?php echo $_helper->getCategoryUrl($_category) ?>" title="<?php echo $_category->getName(); ?>" class="dropdown"h &amp; Seafood">All <?php echo $_category->getName(); ?></a></li>
+						                        <?php foreach($_subcategories as $_subcategory): ?>
+						                            <li>
+						                                <a href="<?php echo $_helper->getCategoryUrl($_subcategory) ?>" title="<?php echo $_subcategory->getName() ?>">
+						                                    <?php echo $_subcategory->getName() ?>
+						                                </a>
+						                            </li>
+						                        <?php endforeach; ?>
+						                        <?php if(!empty($_category->getImageUrl())): ?>
+					                        		<li class="menu-image"><img src="<?php echo $_category->getImageUrl();?>" alt="<?php echo $_category->getName(); ?>"></li>
+					                        	<?php endif; ?>
+						                    </ul>
+						                <?php endif; ?>
+						            </li>
+						        <?php endforeach; ?>
+						    </ul>
+						<?php endif; ?>
+					</ul>

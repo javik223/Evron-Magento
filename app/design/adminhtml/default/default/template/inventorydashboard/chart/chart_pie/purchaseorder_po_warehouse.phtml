@@ -1,0 +1,71 @@
+<?php
+$requestData = Mage::helper('adminhtml')->prepareFilterString($this->getRequest()->getParam('top_filter'));
+$reportCode = $this->getReportCode();
+$id_box = $this->getIdBox();
+if (empty($requestData)) {
+    $requestData = array();
+    $requestData['report_radio_select'] = $reportCode;
+    $isFound = false;
+    $reportTypes = Mage::helper('inventorydashboard/constant')->getReportTypes();
+    foreach ($reportTypes as $type => $value) {
+        foreach ($value['report_code'] as $code => $value2) {
+            if (strcmp($code, $reportCode) == 0) {
+                $requestData['select_time'] = $value2['default_time_range'];
+                $isFound = true;
+                break;
+            }
+        }
+        if ($isFound == true) {
+            break;
+        }
+    }
+}
+$dataCollection = Mage::helper('inventoryreports/purchaseorder')->getCollection($requestData);
+if (is_array($dataCollection)) {
+    $collection = $dataCollection['collection'];
+} else {
+    $collection = $dataCollection;
+}
+$collection->getSelect()->order('total_value DESC');
+?>
+<div class="chart-parent-div">
+    <?php
+    $pieData = Mage::helper('inventorydashboard')->getPurchaseorderChartPieData($collection, $requestData);
+    $seriesPie = $pieData['series'];
+    ?>
+    <script type="text/javascript">
+        $(function () {
+            $_('#<?php echo $id_box ?>').highcharts({
+                chart: {
+                    type: 'pie'
+                },
+                title: {
+                    text: '<?php echo $this->__('Purchase Report by Supplier') ?>'
+                },
+                plotOptions: {
+                    pie: {
+                        depth: 30,
+                        allowPointSelect: true,
+                        cursor: 'pointer',
+                        dataLabels: {
+                            enabled: true,
+                            format: '<b>{point.name}</b>: {point.percentage:.1f} %',
+                            style: {
+                                color: (Highcharts.theme && Highcharts.theme.contrastTextColor) || 'black'
+                            }
+                        }
+                    }
+                },
+                tooltip: {
+                    pointFormat: '<b>{point.percentage:.1f}%</b>'
+                },
+                series: [{
+                        type: 'pie',
+                        data: [
+<?php echo $seriesPie ?>
+                        ]
+                    }]
+            });
+        });</script>
+    <div class="chart-child-div" id="<?php echo $id_box ?>" ></div>
+</div>

@@ -1,0 +1,140 @@
+<style type="text/css">
+	.info-invoice{
+/*		background: none repeat scroll 0 0 #D4D4D4;
+		border: 1px solid #BEBCB7;
+		margin-bottom: -1px;
+		padding: 10px;*/
+	}
+	.col-1 h2, .col-2 h2{
+		 background-color: #E8E8E8;
+		border: 1px solid #D9DDE3;
+		padding: 14px;
+	}
+	.col2-set{
+		  border: 1px solid #BEBCB7;
+	}
+	.col2-set .col-1, .col2-set .col-2{
+		width: 50%;
+	}
+	.col-1{
+		
+	}
+	.col-1 address, .col-2 address{
+		margin: 16px;
+	}
+	.method-info{
+		margin-left: 16px;
+	}
+	.items-order-head{
+		 background-color: #E8E8E8;
+		border: 1px solid #D9DDE3;
+		margin-bottom: -1px;
+		padding: 14px;
+		width: 97.7%;
+	}
+        .data-table{
+            border-top:1px solid #ededed;
+			border-bottom: 1px solid #ededed;
+        }
+	.data-table tfoot tr{
+		background-color: #FFFFFF !important;
+		font-size:14px;
+	}
+        .data-table th{
+            background : none !important;
+        }
+	.data-table tfoot td{
+		 border-bottom: 0 none;
+		border-right: 1px none;
+		padding-bottom: 1px;
+		padding-top: 1px;
+	}
+	.data-table thead th {
+	   
+		 background: none repeat scroll 0 0 transparent;
+		 background-color: #E8E8E8;
+	}
+	.data-table tbody.odd tr {
+		background: none repeat scroll 0 0 #FFFFFF !important;
+	}	
+	.data-table tfoot tr.first td {
+		background: none repeat scroll 0 0 transparent;
+		border-top: 1px solid #D9DDE3;
+	}
+        .buttons-set{
+            display:none;
+        }
+        .data-table tbody td, .data-table tfoot td,
+        h2.product-name, h3.product-name, h4.product-name, h5.product-name, p.product-name,
+        .price-box .price, .price, #print_layout h2{
+            font-family : verdana !important;
+        }
+
+#comment_area{margin-top:5px;}
+.shipping_area{
+	margin:10px 5px;
+}
+.shipping_area h2{
+    font-weight: bold;
+    font-size: 1.1em;
+}
+#my-orders-table td{
+	padding: 0px 5px;
+}
+#my-orders-table{
+    border-top: 1px #eee solid;
+    border-bottom: 1px #eee solid;
+    padding: 5px 0px;
+}
+</style>
+<div id="print_layout" style="width: 80mm; font-family : verdana !important;">
+    <?php $_order = $this->getOrder();
+     $_invoice = $this->getInvoice() ?>
+    <p id="store-name"><h2><?php echo Mage::app()->getStore()->getName(); ?></h2></p> 
+    <div class="info-invoice">
+            <?php if($_invoice->getId()):?>
+                    <span><?php echo $this->__('Invoice #%s', $_invoice->getIncrementId()) ?></span>
+            <?php endif;?>
+                    <br/><span><?php echo $this->__('Order #%s', $_order->getIncrementId()) ?>&nbsp;<?php echo $this->formatDate($_order->getCreatedAtStoreDate(), 'long'); ?></span>
+    </div>
+
+<div class="shipping_area">
+		<h2><?php echo $this->__('Shipping Address') ?></h2>
+		<?php if (!$_order->getIsVirtual()): ?>
+		<address><?php echo $_order->getShippingAddress()->format('html') ?></address>
+		<?php else: ?>
+		<address><?php echo $_order->getBillingAddress()->format('html') ?></address>
+		<?php endif; ?>
+</div>
+<table class="" id="my-orders-table">
+        <col />
+        <col width="1" />
+        <col width="1" />
+        <col width="1" />
+        <col width="1" />
+        <tfoot class="foot-totals">
+            <?php echo $this->getChildHtml('order_totals') ?>
+        </tfoot>
+        <?php $_items = $_order->getItemsCollection(); ?>
+        <?php $_count = $_items->count(); ?>
+        <?php foreach ($_items as $_item): ?>
+        <?php if ($_item->getParentItem()) continue; ?>
+        <tbody>
+            <?php echo $this->getItemHtml($_item) ?>
+        </tbody>
+        <?php endforeach; ?>
+    </table>
+	<?php 
+		$comment = $_order->getCustomerNote();
+		if($comment != ''):
+	?>
+	<div id='comment_area'>
+		<?php
+			echo $this->__("<b>Note</b>: ".$comment);
+		?>
+	</div>
+	<?php endif;?>
+</div>
+<script type="text/javascript">decorateTable('my-orders-table', {'tbody' : ['odd', 'even'], 'tbody tr' : ['first', 'last']})</script>
+<script type="text/javascript">window.print();</script>
+<script type="text/javascript">window.onfocus=function(){ window.close();} </script>

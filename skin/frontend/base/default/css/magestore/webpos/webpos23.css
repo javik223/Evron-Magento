@@ -1,0 +1,555 @@
+#reports_area,
+#cashdrawer_area,
+#holded_orders_section{
+    background: #fff;
+    height: 100vh;
+    position: fixed;
+}
+
+#holded_orders_detail .top-content .title-page,
+#reports_area .top-content .title-page,
+#cashdrawer_area .top-content .title-page,
+#holded_orders_section .top-content .title-page{
+    padding: 10px 0px;
+    float: left;
+    width: 100%;
+    height: 44.5px;
+}
+#holded_orders_detail .top-content .title-page h2,
+#reports_area .top-content .title-page h2,
+#cashdrawer_area .top-content .title-page h2,
+#holded_orders_section .top-content .title-page h2{
+    font-size: 15px;
+    color: #fff;
+    margin: 0;
+    text-align: center;
+}
+
+#holded_orders_section .content .item{
+    width: 23.8%;
+    float: left;
+    margin: 5px;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    padding: 10px;
+    height: 120px;
+    position: relative;
+}
+#holded_orders_section .content .item:hover{
+    box-shadow: 3px 3px 3px #999;
+}
+#holded_orders_section .content .item .buttons div{
+    cursor: pointer;
+}
+
+#holded_orders_section .content .item .customer_name{
+    border-bottom: 1px #ddd dotted;
+    min-height: 22px;
+}
+#holded_orders_section .content .item .short_description{
+    font-size: 0.8em;
+    font-style: italic;
+    height: 55px;
+    overflow: hidden;
+}
+#holded_orders_section .content .item .bt_reload_order{
+    width: 48%;
+    float: left;
+    text-align: center;
+    color:#fff;
+    border-radius:8px ;
+}
+#holded_orders_section .content .item .bt_reload_order:hover,
+#holded_orders_section .content .item .bt_delete_holded_order:hover{
+    opacity:0.8;
+}
+#holded_orders_section .content .item .bt_delete_holded_order{
+    width: 48%;
+    float: right;
+    text-align: center;
+    color:#fff;
+    border-radius:8px ;
+}
+
+#holded_orders_section .content .item .detail{
+    position: absolute;
+    background: #fff;
+    border: 1px #000 solid;
+    left: 102%;
+    width: 200%;
+    max-width: 270px;
+    top: 0px;
+    min-height: 120px;
+    z-index: 2;
+    box-shadow: 3px 5px 3px #777;
+    max-height: 45vh;
+    overflow: auto;
+}
+#holded_orders_section .content .item .detail .products ul{
+    padding: 5px !important;
+    margin: 0px;
+}
+#holded_orders_section .content .item .detail .products ul li{
+    border-bottom: 1px #ddd dotted;
+    padding: 5px 1px;
+    padding-left: 10px;
+}
+#holded_orders_section .content .item .detail .full_description{
+    font-size: 0.8em;
+    font-style: italic;
+    padding: 5px;
+}
+#bt_hold_order{
+    width: 28%;
+    text-align: center;
+    padding: 12px;
+    background: #FFA500;
+    color: #fff;
+    border-radius: 7px;
+    position: absolute;
+    left: 2%;
+    bottom: -100%;
+    text-transform: uppercase;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 16px;
+}
+#before_hold_popup{
+    width: 350px;
+    position: fixed;
+    border-color: rgba(42, 42, 42, 0);
+    outline: 0;
+    outline: thin dotted \9;
+    box-shadow: 0 6px 12px rgba(18, 12, 12, 0.84);
+    left: 50%;
+    bottom:120vh;
+    margin-left:-175px;
+    padding: 0;
+    margin-top: 20px;
+    border: 7px solid rgba(0, 0, 0, 0.61);
+    border-radius: 6px;
+    z-index: 51;
+    height: 200px;
+    background: #fff;
+}
+#before_hold_popup .comment .title{
+    font-weight: 600;
+    text-align: left;
+    font-size: 14px;
+    padding: 10px;
+}
+#before_hold_popup .comment textarea{
+    width: 97%;
+    min-height: 132px;
+    max-height: 145px;
+    margin:5px;
+}
+
+.pos_menu .menu_item .common.holded_orders {
+    background: url('../../../images/icon/holded_orderlist.png') no-repeat center center;
+    background-size: 66%;
+}
+
+#holded_orders_section #holded_orders_list_grid .form-row .holded_item_wrapper{
+    position:relative;
+}
+#holded_orders_section #holded_orders_list_grid .form-row .holded_item_wrapper .button_wrapper{
+    position: absolute;
+    right: 5px;
+    top: 5px;
+}
+#holded_orders_section #holded_orders_list_grid .form-row .holded_item_wrapper .bt_reload_order_online{
+    opacity: 0.8;
+}
+#holded_orders_section #holded_orders_list_grid .form-row .holded_item_wrapper .bt_cancel_order_online{
+    opacity: 0.8;
+}
+#holded_orders_section #holded_orders_list_grid .form-row .holded_item_wrapper:hover .bt_reload_order_online,
+#holded_orders_section #holded_orders_list_grid .form-row .holded_item_wrapper:hover .bt_cancel_order_online{
+    background: #fff !important;
+    color: #ec971f;
+}
+#holded_orders_section #holded_orders_list_grid .form-row .holded_item_wrapper .bt_reload_order_online:hover,
+#holded_orders_section #holded_orders_list_grid .form-row .holded_item_wrapper .bt_cancel_order_online:hover{
+    opacity: 1;
+}
+/* popup */
+.webpos_popup_area{
+    background: #fff;
+    position: fixed;
+    left: 50%;
+    z-index: 50;
+
+}
+.webpos_popup_area .top_content .popup_title{
+    padding: 10px 0px;
+    float: left;
+    width: 100%;
+    height: 44px;
+}
+.webpos_popup_area .top_content .popup_title h2{
+    font-size: 15px;
+    color: #fff;
+    margin: 0;
+    text-align: center;
+}
+.webpos_popup_area .popup_content ul{
+    padding: 0px;
+    margin: 0px;
+}
+
+.fixed_overlay{
+    background:#000;
+    opacity:0.8;
+    position:fixed;
+    z-index: 49;
+    width:100vw;
+    height:100vh;
+    display:none;
+}
+
+#till_area{
+    top:-100vh;
+    width:400px;
+    margin-left:-200px;
+    box-shadow: 0px 0px 0px 2px #999;
+}
+#till_area .popup_content ul li{
+    padding: 10px 10px 10px 30px;
+    font-weight: bold;
+    border-bottom: 1px dotted #999;
+    opacity: 0.7;
+    transition: 0.2s all;
+    -webkit-transition: 0.2s border-left,padding 0.2s;
+    -moz-transition: 0.2s border-left,padding 0.2s;
+    -o-transition: 0.2s border-left,padding 0.2s;
+    background: #eee;
+    border-left: #eee solid 5px;
+}
+#till_area .popup_content ul li:hover{
+    padding-left: 40px;
+    opacity: 1;
+    background: #fff;
+    cursor: pointer;
+    border-left: green solid 5px;
+}
+/* popup */
+
+/* S: till info */
+.bottom_button{
+    text-align: left;
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-size: 12px;
+    outline: 0;
+    background: green;
+    box-shadow: 0px 2px 1px rgba(0, 62, 14, 0.89);
+}
+
+#till_info{
+    float: left;
+    max-width: 70%;
+    padding: 1px 10px;
+    margin-top: 0px;
+    margin-left: 10px;
+    padding-bottom: 2px;
+    cursor:pointer;
+}
+#till_info:hover{
+    opacity:0.8;
+}
+.selected-till{
+    border-left: green solid 5px !important;
+}
+/* E: till info */
+
+/* S: Transaction area */
+#count_cash_area button,
+#reports_area button,
+#cashdrawer_area button{
+    padding-top: 0;
+    border: none;
+    border-radius: 4px;
+    color: #fff;
+    text-transform: uppercase;
+    height: 35px;
+}
+#reports_area #reports_control,
+#manual_transfer{
+    line-height: 45px;
+    padding: 0px 5px;
+}
+#reports_area p,
+#manual_transfer p{
+    float: left;
+    margin: 0px 5px 0px 0px;
+}
+#manual_transfer .cash-amount input,
+#manual_transfer .cash-type select{
+    width:100%;
+}
+
+#reports_area #reports_control select{
+    width:100%;
+}
+
+#manual_transfer .cash-amount{
+    width:20%;
+}
+#manual_transfer .cash-type{
+    width:10%;
+}
+#reports_area .report_type{
+    width:40%;
+}
+#reports_area p input,
+#manual_transfer p input,
+#reports_area p select,
+#manual_transfer p select{
+    height: 35px;
+    padding: 0px 10px;
+}
+#reports_area .label,
+#manual_transfer .label{
+    font-weight:bold;
+}
+#transaction_note_wapper{
+    padding:5px;
+    position: relative;
+}
+#transaction_note{
+    padding:5px;
+    width: 47.5%;
+    height:5em;
+    resize: none;
+}
+#transaction_note_clear{
+    position: absolute;
+    left: 48%;
+    top: 5%;
+}
+#current_balance_line{
+    position: absolute;
+    right: 5px;
+    font-weight: bold;
+    color: #fff;
+    border-radius: 10px;
+    height: 100px;
+    top: 50px;
+    padding: 0px 5px;
+}
+#current_balance_line .balance_wrapper{
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+#current_balance_line .balance_wrapper .current_balance{
+    position: absolute;
+    width: 100%;
+    text-align: center;
+    background: #fff;
+    color: #000;
+}
+#cashdrawer_area .tran-list{
+    position: absolute;
+    top: 170px;
+    width: 100%;
+}
+
+#cashdrawer_area .tran-list #transaction_grid{
+    overflow-y:auto;
+}
+.webpos_bordered_table{
+    width:99%;
+    margin:0px 5px;
+}
+.webpos_bordered_table tbody td{
+    padding: 5px;
+    background: #f9f9f9;
+    font-size: 12px;
+}
+.webpos_bordered_table thead th{
+    padding: 5px;
+    background: #dddddd;
+    font-size: 15px;
+    font-weight:bold;
+}
+
+#report_grid{
+    padding: 5px;
+    overflow-y:auto;
+}
+
+#reports_area .bottom_control,
+#cashdrawer_area .bottom_control{
+    padding:5px;
+}
+#reports_area .bottom_control button,
+#cashdrawer_area .bottom_control button{
+    float:right;
+}
+#reports_area .bottom_control a,
+#cashdrawer_area .bottom_control a{
+    float:right;
+    margin:5px;
+    padding: 5px;
+}
+#reports_area .bottom_control a:hover,
+#cashdrawer_area .bottom_control a:hover{
+    background: #ccc;
+}
+/* E: Transaction area */
+
+/* S: Report area */
+#report_till{
+    width:100%;
+}
+
+#report_till .webpos_bordered_table{
+    margin:0px;
+    width: 100%;
+}
+
+#count_cash_area button,
+.bottom_control button,
+#manual_transfer button,
+#reports_control button{
+    opacity: 0.8;
+}
+#report_grid button{
+    float:right;
+    opacity: 0.8;
+}
+#count_cash_area button:hover,
+.bottom_control button:hover,
+#manual_transfer button:hover,
+#reports_control button:hover,
+#report_grid button:hover{
+    opacity: 1;
+}
+
+#count_cash_area{
+    position: fixed;
+    z-index: 50;
+    top: -100vh;
+    background: #f9f9f9;
+    border: 1px #999 solid;
+    width: 26%;
+    left: 50%;
+    margin-left: -13%;
+    padding: 10px;
+}
+#count_cash_area .bottom{
+    text-align: center;
+    margin: 5px 0px 0px 0px;
+}
+/* E: Report area */
+
+/**/
+#bt_remove_tax{
+    color:#fff;
+    padding: 10px;
+    position: absolute;
+    right: 10px;
+    top: -100vh;
+    opacity:0.8;
+}
+#bt_remove_tax:hover{
+    opacity:1;
+}
+
+.pos_menu .sub_menu .log-item a{
+    width: 100%;
+}
+
+#product-left .top_bar .top_bar_right {
+    padding:0px;
+}
+#category_area{text-align: left;padding: 0px 5px;}
+#category_area button{width:100%;    border: 2px solid rgba(0, 0, 0, 0.1);}
+#category_area button:hover{    border: 2px solid rgba(0, 0, 0, 0.4);}
+#selectcategory{
+    position: relative;
+}
+#selectcategory .caret{
+    position: absolute;
+    left: 10px;
+    top:40%;
+    border-top: 8px solid;
+    border-right: 8px solid transparent;
+    border-left: 8px solid transparent;
+}
+
+#category_area button.active
+{
+    border: 2px solid rgba(0, 0, 0, 0.61) !important;
+    background: #fff !important;
+    color: #000 !important;
+}
+#category_area button.active a
+{
+    color: #000 !important;
+}
+
+#holded_orders_detail{
+    position: fixed;
+    right: -100vw;
+    top: 0px;
+    background: #fff;
+    height: 100vh;
+    width: 0px;
+    z-index:10;
+}
+#checkout-payment-method-load dt span.need_pay_amount{
+    font-size:1em;
+}
+@media screen and (max-width: 1024px){
+    #manual_transfer .label{
+        width: 100%;
+        font-size: 14px;
+        height: 30px;
+        line-height: 30px;
+    }
+    #transaction_note_wapper #transaction_note{
+        height:3em;
+    }
+    #manual_transfer .cash-amount{
+        width:30%;
+    }
+    #transaction_note_wapper #transaction_note{
+        width:41%;
+    }
+    #transaction_note_clear{
+        left:42%;
+    }
+}
+
+#custom_sale_tax_class_id{
+    padding: 7px;
+    margin: 5px 0px;
+    width: 100%;
+    float: right;
+}
+
+.webpos_bordered_table tbody .total td{
+    background:#ddd;
+    border-bottom: #ccc 1px solid;
+    border-right: #ccc 1px solid;
+}
+.webpos_bordered_table tbody td.align_right{
+    text-align: right;
+}
+.webpos_bordered_table tbody td.align_center{
+    text-align: center;
+}
+#holded_orders_detail_content{
+	overflow: auto;
+    height: 94vh;
+}
+#webpos_websites select,
+#select-language{
+	width:80%;
+}
+/**/
+

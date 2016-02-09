@@ -1,0 +1,212 @@
+#login-webpos {
+    display: block;
+    margin-top: 5%;
+}
+#login-webpos .modal-dialog{
+    width: 500px;
+}
+.login-webpos{
+    z-index: 2;
+    padding: 5%;
+}
+.login-webpos .form-login input[type="text"],
+.login-webpos .form-login input[type="password"]{
+    margin: 10px 0;
+    height: 45px;
+}
+.login-webpos button{
+    width: 100%;
+    padding: 9px 12px;
+    font-size: 16px;
+}
+.login-webpos .logo img{
+    max-height: 110px;
+}
+.fade-login {
+    float: left;
+    width: 100%;
+    height: 100%;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 50;
+    background: #efefef;
+    opacity: 0.85;
+    filter: alpha(opacity=85);
+}
+.login-webpos .validation-advice{
+    font-size: 12px;
+    color: red;
+    margin-left: 10px;
+}
+.login-webpos .form-login input[type="text"]::-webkit-input-placeholder,
+.login-webpos .form-login input[type="password"]::-webkit-input-placeholder{ 
+    color: #666;
+}
+.login-webpos .form-login input[type="text"]:-moz-placeholder,
+.login-webpos .form-login input[type="password"]:-moz-placeholder{ 
+    color: #666; 
+}
+.login-webpos .form-login input[type="text"]::-moz-placeholder,
+.login-webpos .form-login input[type="password"]::-moz-placeholder{ 
+    color: #666; 
+}
+.login-webpos .form-login input[type="text"]:-ms-input-placeholder,
+.login-webpos .form-login input[type="password"]:-ms-input-placeholder{
+    color: #666;
+}
+/*/Setting/*/
+.setting-left,.setting-right,
+#settings_area .top-content .title-page{
+    padding: 0;
+}
+.setting-right{
+    border-left: 1px solid #BEBEB7;
+    background-color: #f8f8f8;
+    height: 100%;
+}
+#settings_area .top-content{
+    background: #ffa500;
+    padding: 10px 0px;
+    float: left;
+    width: 100%;
+    height: 45px;
+}
+#settings_area .top-content img{
+    margin-top: -4px;
+}
+#settings_area .top-content .title-general{
+    width:100%;
+}
+#settings_area .top-content h2{
+    font-size: 15px;
+    color: #fff;
+    margin: 0;
+    text-align: center;
+}
+#settings_area .top-content button{
+    padding: 4px 12px;
+    background: #EF5917;
+    border: 1px solid #DC4806;
+    float: right;
+    color: #FFF;
+    font-size: 13px;
+    box-shadow: 0px 2px 1px rgba(183, 33, 0, 0.57);
+    outline: 0;
+}
+#settings_area .content{
+    float: left;
+    width: 100%;
+}
+#settings_area .content ul{
+    padding: 0
+}
+#settings_area .content ul li{
+    padding: 15px;
+    border-bottom: 1px solid #BEBEB7;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+}
+.setting-right .content-general,
+.setting-right .content-myaccount{
+    float: left;
+    width: 100%;
+    padding: 0 15%;
+    font-size: 13px;
+}
+.setting-right h2.title,
+.account-information h2.title{
+    font-size: 14px;
+    margin: 0px;
+    padding: 15px 0;  
+    float: left;
+    width: 100%;
+
+}
+.setting-right label{
+    margin: 0;
+    padding: 4px 0;
+}
+.setting-right .content-general .check{
+    padding: 10px 15px;
+    border-bottom: 1px solid #BEBEB7;
+}
+.setting-right .content-general .check .glyphicon{
+    float: right;
+}
+.setting-right .content-general .check5{
+    border-bottom-left-radius: 10px;
+    border-bottom-right-radius: 10px;
+}
+.setting-right .content-general .box1,
+.setting-right .content-myaccount .change-password,
+.setting-right .content-myaccount .account-information{
+    border: 1px solid #BEBEB7;
+    border-bottom: none;
+    border-radius: 10px; 
+    float: left;
+    width: 100%;
+    background-color: #fff;
+}
+.setting-right input{
+    height: 42px;
+}
+.setting-right .content-myaccount .change-password .box,
+.setting-right .content-myaccount .account-information .box{
+    border-bottom: 1px solid #BEBEB7;
+    float: left;
+    width: 100%;
+    padding: 0 15px;
+}
+.setting-right .content-myaccount .change-password .last,
+.setting-right .content-myaccount .account-information .last{
+    border-bottom-left-radius: 10px;
+    border-bottom-right-radius: 10px;    
+}
+.setting-right .content-myaccount .change-password label,
+.setting-right .content-myaccount .account-information label{
+    width: 30%;
+    float: left;
+    margin-top: 9px;
+}
+.setting-right .content-myaccount .change-password input,
+.setting-right .content-myaccount .account-information input{
+    width: 70%;
+    float: left;
+    border: none;
+    box-shadow: none;
+    outline: 0;
+}
+#settings_area .content ul li.active{
+    background: #2883FC;
+    color: #fff;
+}
+.permission-information .box-permission label{
+    padding: 9px 10px;
+    height: 40px;
+    cursor: pointer;
+    border-bottom-right-radius: 0;
+    border-bottom-left-radius: 0;
+}
+.permission-information .box-permission label#box-permission span{
+    font-size: 13px;
+    color: #000;
+}
+#list-permission {
+    margin: 0px;
+    clear: both;
+    width: 100%;
+    float: left;
+    padding: 10px 30px;
+    display: block;
+    background-color: rgb(255, 255, 255);
+    line-height: 23px;
+    border-bottom-right-radius: 5px;
+    border-bottom-left-radius: 5px;
+    border: 1px solid #ccc;
+    border-top:none;
+    max-height: 150px;
+    overflow: auto;
+}
+#permissionInfo p{padding: 0; margin: 0}

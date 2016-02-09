@@ -1,0 +1,128 @@
+<?php
+$requestData = Mage::helper('adminhtml')->prepareFilterString($this->getRequest()->getParam('top_filter'));
+$warehouseId = $supplierId = $datefrom = $dateto = '';
+if (isset($requestData['warehouse_select']))
+    $warehouseId = $requestData['warehouse_select'];
+if (isset($requestData['supplier_select']))
+    $supplierId = $requestData['supplier_select'];
+if (isset($requestData['date_from']))
+    $datefrom = $requestData['date_from'];
+if (isset($requestData['date_to']))
+    $dateto = $requestData['date_to'];
+?>
+<div class="content-header">
+    <table cellspacing="0">
+        <tr>
+            <td style="<?php echo $this->getHeaderWidth() ?>"><?php echo $this->getHeaderHtml() ?></td>
+            <td class="form-buttons"><?php echo $this->getButtonsHtml() ?></td>
+        </tr>
+    </table>
+</div>
+
+<form method="POST" id="salesrate_form_submit" action="<?php echo Mage::helper("adminhtml")->getUrl('adminhtml/inw_salesrate/index', array('_current' => true)) ?>"
+    <div class="entry-edit">
+        <div class="entry-edit-head">
+            <h4 class="icon-head head-edit-form fieldset-legend"><?php echo $this->__('Select criteria to calculate sales rate') ?></h4>
+        </div>
+        <div id="date_picker_form" class="fieldset ">
+            <div  class="input-box">
+                <table cellspacing="0">
+                    <tr>
+                        <td><label><?php echo $this->__('From:') ?></label>
+                            &nbsp; &nbsp;
+                            <input name="date_from" id="date_from" type="text" size="30" value="<?php echo $datefrom; ?>">
+                            <img title="Date from" id="btn-date-from" src="<?php echo Mage::getBaseUrl(Mage_Core_Model_Store::URL_TYPE_SKIN) . 'adminhtml/default/default/images/grid-cal.gif'; ?>" class="v-middle">
+                            &nbsp; &nbsp;
+                        </td>
+                        <td><label><?php echo $this->__('To:') ?></label>
+                            &nbsp; &nbsp;
+                            <input name="date_to" id="date_to" type="text" size="30" value="<?php echo $dateto; ?>">
+                            <img title="Date to" id="btn-date-to" src="<?php echo Mage::getBaseUrl(Mage_Core_Model_Store::URL_TYPE_SKIN) . 'adminhtml/default/default/images/grid-cal.gif'; ?>" class="v-middle">
+                            &nbsp; &nbsp;
+                        </td>
+                        <td>&nbsp;<label style="font-size:13px"><?php echo $this->__('Warehouse') ?></label></td>
+                        <td>&nbsp;<label style="font-size:13px"><?php echo $this->__('') ?></label>&nbsp;</td>
+                        <td>
+                            <select name="warehouse_select" id="warehouse_select" style="width: 120px" onchange="filterForm();return false;">
+                                <option value=""><?php $this->__('All') ?></option>
+                                <?php
+                                $warehouses = Mage::helper('inventorypurchasing/purchaseorder')->getWarehouseOption();
+                                if($warehouses)
+                                    foreach ($warehouses as $warehouse) {
+                                        if ($warehouse['value'] == $warehouseId):
+                                            ?>
+                                            <option selected value="<?php echo $warehouse['value'] ?>"><?php echo $warehouse['label']; ?></option>
+                                        <?php else: ?>
+                                            <option value="<?php echo $warehouse['value'] ?>"><?php echo $warehouse['label']; ?></option>   
+                                        <?php endif; ?>
+                                    <?php } ?>
+
+                            </select>
+                            &nbsp; &nbsp;
+                        </td>
+
+                        <td>
+                            <input type="hidden" name="product_list" id="product_list" value="" />
+                            <button onclick="filterForm();return false;" ><?php echo $this->__('Calculate'); ?></button>
+                            <input id="form_key" name="form_key" type="hidden" value="<?php echo Mage::getSingleton('core/session')->getFormKey(); ?>">
+                        </td>
+
+                    </tr>
+                </table>
+            </div>
+        </div>
+        
+    </div>
+</form>
+
+<div>
+    <?php echo $this->getGridHtml() ?>
+</div>
+
+<script type="text/javascript">
+    //<![CDATA[
+Calendar.setup({
+    inputField : 'date_to',
+    ifFormat : "%d-%m-%Y",
+    daFormat : "%d-%m-%Y",
+    button : 'btn-date-to',
+    align : 'Bl',
+    singleClick : true,
+});
+
+Calendar.setup({
+    inputField : 'date_from',
+    ifFormat : "%d-%m-%Y",
+    daFormat : "%d-%m-%Y",
+    button : 'btn-date-from',
+    align : 'Bl',
+    singleClick : true,
+});
+
+function filterForm() {
+    var filters = new Array();
+    filters[1] = $('date_to');
+    filters[2] = $('date_from');
+    filters[3] = $('warehouse_select');
+    var elements = [];
+    for(var i in filters){
+        if(filters[i].value && filters[i].value.length && !filters[i].disabled) elements.push(filters[i]);
+    }
+    var validator  = new Validation('salesrate_form_submit');
+    if (validator.validate()) {
+        window.location.href = '<?php echo $this->getUrl('adminhtml/inw_salesrate/index'); ?>top_filter/'+encode_base64(Form.serializeElements(elements))+'/';
+    }
+    return;
+}
+    
+function exportCsv(){
+    url = $('supplyneeds_form_submit').action+'export/1';
+    $('supplyneeds_form_submit').action = url;
+    supplyNeedsGrid.storeLogInTargetInput();
+    if($('product_list').value){
+        $('supplyneeds_form_submit').submit();
+    }else{
+        alert('<?php echo $this->__('Please enter QTY for 1 product at least!') ?>');
+    }       
+}
+</script>

@@ -1,0 +1,140 @@
+<style>
+    .highcharts-container {
+        width: 100% !important;
+    }  
+</style>
+<div class="entry-edit" id="test">
+    <div class="entry-edit-head">
+        <h4 class="icon-head head-edit-form fieldset-legend"><?php echo $this->__('Chart Report') ?></h4>
+    </div>
+    <!DOCTYPE HTML>
+    <div>
+        <div style="width: 100%; float: left;">
+            <?php $days = Mage::helper('inventorydashboard')->getDateRangeByDay(10); ?>
+            <?php $from = $days['from'] ?>
+            <?php $to = $days['to'] ?>
+            <?php
+            $timezoneLocal = Mage::app()->getStore()->getConfig(Mage_Core_Model_Locale::XML_PATH_DEFAULT_TIMEZONE);
+            $from->setTimezone($timezoneLocal);
+            $to->setTimezone($timezoneLocal);
+            $dates = array();
+            $datas = array();
+            while($from->compare($to) < 0){
+                $d = $from->toString('yyyy-MM-dd');
+                $from->addDay(1);
+                $dates[] = $d;
+            }
+            $categories = '[';
+            $series['total']['name'] = $this->__('Grand Total %s',Mage::app()->getLocale()->currency(Mage::app()->getStore()->getCurrentCurrencyCode())->getSymbol());
+            $series['total']['data'] = '[';    
+            $series['item']['name'] = $this->__('Qty');
+            $series['item']['data'] = '[';    
+            $i = 0;
+            $resource = Mage::getSingleton('core/resource');        
+            $readConnection = $resource->getConnection('core_read');
+            foreach($dates as $date){
+                $start = $date.' 00:00:00';
+                $end = $date.' 23:59:59';
+                $results = '';
+                $sql = 'SELECT `grand_total`,`total_item_count` from '.$resource->getTableName('sales/order').' WHERE 
+                                                    (`created_at` >= \''.$start.'\')
+                                                and (`created_at` <= \''.$end.'\')
+                                                and (`status` != "closed")
+                                                and (`status` != "canceled")'; 
+                $results = $readConnection->query($sql);
+                $grandTotal = 0;
+                $items = 0;
+                if($results){
+                    foreach($results as $result){
+                        $grandTotal += $result['grand_total'];
+                        $items += $result['total_item_count'];
+                    }
+                }
+                if($i != 0){
+                    $categories .= ',';
+                    $series['total']['data'] .= ',';
+                    $series['item']['data'] .= ',';
+                }
+        //        $categories .= '\''.Mage::helper('core')->formatDate($date, 'MM dd', false).'\'';
+                $categories .= '\''.date('M d',  strtotime($date)).'\'';
+                $series['total']['data'] .= $grandTotal;     
+                $series['item']['data'] .= $items;     
+                $i++;        
+            }
+            $categories .= ']';
+            $series['total']['data'] .= ']';
+            $series['item']['data'] .= ']';
+            $baseCurrency = '$';
+            ?>
+            <script type="text/javascript">
+                $(function () {
+                    $_('#container').highcharts({
+                        chart: {
+                            type: 'column'
+                        },
+                        title: {
+                            text: '<?php echo $this->__('Last orders in 10 days') ?>'
+                        },
+                        subtitle: {
+                            text: ''
+                        },
+                        xAxis: {
+                            categories: <?php echo $categories ?>
+                        },
+                        yAxis: {
+                            min: 0,
+                            title: {
+                                text: ''
+                            }
+                        },
+                        tooltip: {
+                            headerFormat: '<span style="font-size:10px">{point.key}</span><table>',
+                            pointFormat: '<tr><td style="color:{series.color};padding:0">{series.name}: </td>' +
+                                '<td style="padding:0"><b>{point.y:.0f} </b></td></tr>',
+                            footerFormat: '</table>',
+                            shared: true,
+                            useHTML: true
+                        },
+                        plotOptions: {
+                            column: {
+                                pointPadding: 0.2,
+                                borderWidth: 0
+                            }
+                        },
+                        series: [
+<?php $count = 0; ?>
+    
+<?php foreach ($series as $serie): ?>
+    <?php if (!$count == 0) echo ','; ?>
+    <?php $count++; ?>    
+                            {
+                                name: '<?php echo $serie['name']; ?>',
+                                data: <?php echo $serie['data']; ?>
+                            }
+<?php endforeach; ?>
+                ]
+            });
+        });
+            </script>
+
+
+            <div id="container" style="min-width: 310px; height: 400px; margin: 0 auto"></div>
+        </div>
+       
+    </div>
+</div>
+<script type="text/javascript" src="<?php echo $this->getJsUrl() ?>magestore/adminhtml/inventory/dashboard/lib/_JSSettings.js"></script>
+<script src="<?php echo $this->getJsUrl() ?>magestore/adminhtml/inventory/dashboard/lib/js_002"></script>
+<script src="<?php echo $this->getJsUrl() ?>magestore/adminhtml/inventory/dashboard/lib/dashboards"></script>
+
+<script type="text/javascript">
+    var saveViewPositions = '<?php echo $this->getUrl('adminhtml/ind_dashboard/saveviewposition') ?>';
+    var saveTabPositions = '<?php echo $this->getUrl('adminhtml/ind_dashboard/savetabposition') ?>';
+    var form_key_dashboard = '<?php echo $this->getFormKey() ?>';
+</script>
+<script type="text/javascript">
+    var $sd = new InventoryDashboard.Views.Dashboards();
+    $sd.isShare = false;
+    $sd.backgroundColour = '#808080';
+    $sd.init();
+</script>

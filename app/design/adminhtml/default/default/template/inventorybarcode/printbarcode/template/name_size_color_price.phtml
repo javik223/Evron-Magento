@@ -1,0 +1,21 @@
+<?php $product = Mage::getModel('catalog/product')->load($barcode->getProductEntityId());?>
+<?php for($i=0;$i<intval($numberCopies);$i++): ?>
+<div style="margin:5px; padding:5px; text-align: center; float:left; width: <?php echo $width ?>px; height: <?php echo $height ?>px; overflow: hidden;vertical-align: middle;<?php if($displayBorder=='1'): ?> border: 1px solid gray; <?php endif ?>">
+  <span style="font-size: 10px; float: left; text-align: center; width: 100%;"><?php echo $barcode->getBarcode()?></span>
+	<img width="<?php echo $width*0.9 ?>" height="<?php echo $height*0.6 ?>" src="<?php echo $this->getUrl('adminhtml/inb_printbarcode/general',array('barcode_id'=>$barcode->getId())) ?>"/>
+  <div style="width: 50%; float: left; text-align: left;">
+    <ul style="float: left; list-style: outside none none; margin: 0px 0px 0px 14px; font-size: 12px;">
+      <li><?php echo $product->getName()?></li>
+      <li><?php echo $this->__('Size: ')?>
+          <?php if($product->getResource()->getAttribute('shirt_size')->getFrontend()->getValue($product) && $product->getResource()->getAttribute('shirt_size')->getFrontend()->getValue($product)!='No'){echo $product->getResource()->getAttribute('shirt_size')->getFrontend()->getValue($product);}?>
+          <?php if($product->getResource()->getAttribute('shoe_size')->getFrontend()->getValue($product) && $product->getResource()->getAttribute('shoe_size')->getFrontend()->getValue($product)!='No'){echo $product->getResource()->getAttribute('shoe_size')->getFrontend()->getValue($product);}?>
+          <?php if($product->getResource()->getAttribute('ram_size')->getFrontend()->getValue($product) && $product->getResource()->getAttribute('ram_size')->getFrontend()->getValue($product)!='No'){echo $product->getResource()->getAttribute('ram_size')->getFrontend()->getValue($product);}?>
+      </li>
+      <li><?php echo $this->__('Color: ')?><?php echo $product->getResource()->getAttribute('color')->getFrontend()->getValue($product)?></li>
+    </ul>
+  </div>
+<div style="width: 50%; float: left; text-align: left;">
+  <span style="text-align: right; float: right; font-size: 20px; margin-right: 13px; margin-top: 11px;"><?php echo Mage::helper('core')->currency($product->getPrice())?></span>
+</div>
+</div>
+<?php endfor; ?>

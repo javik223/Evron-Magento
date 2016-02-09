@@ -1,0 +1,174 @@
+<?php
+/**
+ * Magestore
+ * 
+ * NOTICE OF LICENSE
+ * 
+ * This source file is subject to the Magestore.com license that is
+ * available through the world-wide-web at this URL:
+ * http://www.magestore.com/license-agreement.html
+ * 
+ * DISCLAIMER
+ * 
+ * Do not edit or add to this file if you wish to upgrade this extension to newer
+ * version in the future.
+ * 
+ * @category    Magestore
+ * @package     Magestore_Inventorysupplyneeds
+ * @copyright   Copyright (c) 2012 Magestore (http://www.magestore.com/)
+ * @license     http://www.magestore.com/license-agreement.html
+ */
+/**
+ * Inventoryreports Helper
+ * 
+ * @category    Magestore
+ * @package     Magestore_Inventoryreports
+ * @author      Magestore Developer
+ */
+?>
+<?php
+$type = $this->getTypeId();
+$filterData = new Varien_Object();
+$requestData = Mage::helper('adminhtml')->prepareFilterString($this->getRequest()->getParam('top_filter'));
+$reportCode = isset($requestData['report_radio_select']) ? $requestData['report_radio_select'] : null;
+$display = Mage::helper('inventoryreports')->checkDisplay($reportCode);
+?>
+<!-- Filter by order status of sales reports -->
+<?php if ($type == 'sales'): ?>
+    <tr class="input-box">
+        <td class="label">
+            <label for="order_status">
+                <strong><?php echo $this->__('Order Statuses: ') ?>&nbsp;&nbsp;</strong>
+            </label>
+        </td>
+        <td class="value">
+            <select multiple="multiple" name="order_status" id="order_status" size="8">
+                <?php foreach ($this->getOrderStatuses() as $status => $statusLabel): ?>
+                    <option value="<?php echo $status ?>" <?php if (in_array($status, $this->getOrderStatus())) echo 'selected="selected"' ?>>
+                        <?php echo $statusLabel ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
+        </td>
+    </tr>                
+<?php endif ?>
+<!-- End of filter by order status of sales reports -->
+
+<?php if ($type == 'warehouse' || $type == 'stockmovement' || $type == 'product' || $type == 'stockonhand'): ?>
+    <?php $warehouse_collection = Mage::getModel('inventoryplus/warehouse')->getCollection(); ?>
+    <tr class="input-box">
+        <td class="label">
+            <label for="warehouse">
+                <strong><?php echo $this->__('Warehouse: ') ?>&nbsp;&nbsp;</strong>
+            </label>
+        </td>
+        <td class="value">
+            <select name="warehouse_select" id="warehouse_select">
+                <option value="0" <?php
+                if ($display == 2) {
+                    echo "style='display: none'";
+                }
+                ?>><?php echo $this->__('All Warehouses'); ?></option>
+                        <?php // }?>
+                        <?php foreach ($warehouse_collection as $warehouse_value) { ?>
+                    <option <?php
+                    if (isset($requestData['warehouse_select']) && $requestData['warehouse_select'] == $warehouse_value->getWarehouseId()) {
+                        echo 'selected';
+                    }
+                    ?> value="<?php echo $warehouse_value->getWarehouseId(); ?>"><?php echo $warehouse_value->getWarehouseName(); ?></option>
+                    <?php } ?>
+            </select>
+        </td>
+    </tr>
+    <?php if ($type == 'stockonhand'): ?>
+        <?php $supplier_collection = Mage::getModel('inventorypurchasing/supplier')->getCollection(); ?>
+        <tr class="input-box">
+            <td class="label">
+                <label for="supplier">
+                    <strong><?php echo $this->__('Supplier: ') ?>&nbsp;&nbsp;</strong>
+                </label>
+            </td>
+            <td class="value">
+                <select name="supplier_select" id="supplier_select">
+                    <option value="0"><?php echo $this->__('All Suppliers'); ?></option>
+                    <?php foreach ($supplier_collection as $supplier_value) { ?>
+                        <option <?php
+                        if (isset($requestData['supplier_select']) && $requestData['supplier_select'] == $supplier_value->getSupplierId()) {
+                            echo 'selected';
+                        }
+                        ?> value="<?php echo $supplier_value->getSupplierId(); ?>"><?php echo $supplier_value->getSupplierName(); ?></option>
+                        <?php } ?>
+                </select>
+            </td>
+        </tr>
+    <?php endif; ?>
+<?php elseif ($type == 'supplier'): ?>
+    <?php $supplier_collection = Mage::getModel('inventorypurchasing/supplier')->getCollection(); ?>
+    <tr  class="input-box">
+        <td class="label">
+            <label for="supplier">
+                <strong><?php echo $this->__('Supplier: ') ?>&nbsp;&nbsp;</strong>
+            </label>
+        </td>
+        <td class="value">
+            <select name="supplier_select" id="supplier_select">
+                <option value="0"><?php echo $this->__('All Suppliers'); ?></option>
+                <?php foreach ($supplier_collection as $supplier_value) { ?>
+                    <option <?php
+                    if (isset($requestData['supplier_select']) && $requestData['supplier_select'] == $supplier_value->getSupplierId()) {
+                        echo 'selected';
+                    }
+                    ?> value="<?php echo $supplier_value->getSupplierId(); ?>"><?php echo $supplier_value->getSupplierName(); ?></option>
+                    <?php } ?>
+            </select>
+        </td>
+    </tr>
+<?php endif; ?>
+<?php if ($type == 'sales' && Mage::helper('core')->isModuleEnabled('Magestore_Webpos') && 0): ?>
+    <?php
+    $sourceData = Mage::getStoreConfig('webpos/survey/survey_values');
+    $sourceData = unserialize($sourceData);
+    ?>
+    <tr class="input-box">
+        <td class="label">
+            <label for="source_select">
+                <strong><?php echo $this->__('Source: ') ?>&nbsp;&nbsp;</strong>
+            </label>
+        </td>
+        <td class="value">
+            <select name="source_select" id="source_select">
+                <option value="0"><?php echo $this->__('All Source'); ?></option>
+                <?php
+                foreach ($sourceData as $value => $label):
+                    $selected = (isset($requestData['source_select']) && $requestData['source_select'] == $value) ? ' selected' : '';
+                    ?>
+                    <option value="<?php echo $value ?>" <?php echo $selected; ?>><?php echo $label['value'] ?></option>
+                <?php endforeach; ?>
+            </select>
+        </td>
+    </tr>
+<?php endif; ?>
+<?php if ($reportCode == 'best_seller' && 0): ?>
+    <?php
+    $shipping_methods = $this->getAllShippingMethods();
+    ?>
+    <tr class="input-box">
+        <td class="label">
+            <label for="shipping">
+                <strong><?php echo $this->__('Shipping: ') ?>&nbsp;&nbsp;</strong>
+            </label>
+        </td>
+        <td class="value">
+            <select name="shipping_select" id="shipping_select">
+                <?php foreach ($shipping_methods as $shipping) { ?>
+                    <option <?php
+                    if (isset($requestData['shipping_select']) && $requestData['shipping_select'] == $shipping['value']) {
+                        echo 'selected';
+                    }
+                    ?> value="<?php echo $shipping['value']; ?>"><?php echo $shipping['label'] ?></option>
+
+                <?php } ?>
+            </select>
+        </td>
+    </tr>
+<?php endif; ?>

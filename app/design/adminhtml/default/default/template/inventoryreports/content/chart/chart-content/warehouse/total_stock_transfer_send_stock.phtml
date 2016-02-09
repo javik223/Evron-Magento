@@ -1,0 +1,210 @@
+<?php
+    $series = array();
+    $requestData = Mage::helper('adminhtml')->prepareFilterString($this->getRequest()->getParam('top_filter'));
+    if(empty($requestData)){$requestData = Mage::Helper('inventoryreports')->getDefaultOptionsWarehouse();}
+    $gettime = Mage::Helper('inventoryreports')->getTimeSelected($requestData);
+    $name = 'All Warehouses';
+    if($requestData['warehouse_select'] > 0){
+        $name = Mage::helper('inventoryreports')->getWarehouseName($requestData['warehouse_select']);
+    }
+    $warehouse = Mage::helper('inventoryreports')->getWarehouseName($requestData['warehouse_select']);
+    $warehouse_name = array();
+    $total_send = array();
+    $resource = Mage::getSingleton('core/resource');
+    $readConnection = $resource->getConnection('core_read');
+    $installer = Mage::getModel('core/resource');
+    $is_warehouse = 0;
+    if(isset($requestData['warehouse_select']) && $requestData['warehouse_select'] > 0){
+        $is_warehouse = 1;
+        $warehouse_collection = Mage::getModel('inventoryplus/warehouse')->load($requestData['warehouse_select']);
+        $sql = 'SELECT s.warehouse_id_from, s.warehouse_name_from, s.warehouse_name_to, p.product_id, p.product_name, SUM(p.qty) AS total_send, s.created_at
+                FROM '.$installer->getTableName("erp_inventory_warehouse_sendstock s").'
+                INNER JOIN '.$installer->getTableName("erp_inventory_warehouse_sendstock_product p").'
+                ON s.warehouse_sendstock_id = p.warehouse_sendstock_id
+                WHERE s.status = 1 AND s.created_at BETWEEN "'.$gettime['date_from'].'" AND "'.$gettime['date_to'].'" AND s.warehouse_name_from = "'.$warehouse_collection->getWarehouseName().'" 
+                GROUP BY p.product_id
+                ORDER BY SUM(p.qty)';
+    }
+    else{
+        $is_warehouse = 0;
+        $sql = 'SELECT warehouse_name_from, SUM(total_products) AS total_send 
+                FROM '.$installer->getTableName("erp_inventory_warehouse_sendstock").'
+                WHERE status = 1 AND created_at BETWEEN "'.$gettime['date_from'].'" AND "'.$gettime['date_to'].'"
+                GROUP BY warehouse_id_from
+                ORDER BY SUM(total_products)';
+    }
+    $results = $readConnection->fetchAll($sql);
+    if(isset($requestData['warehouse_select']) && $requestData['warehouse_select'] > 0){
+        $checkResult = 0;
+        foreach($results as $result){
+            if($checkResult > 10){
+                $limit = 10;
+                break;
+            }
+            if($result['total_send'] == NULL){
+                $limit = $checkResult;
+                continue;
+            }
+            $checkResult++;
+        } 
+        if(isset($limit)){
+            $sql .= 'LIMIT '.$limit.'';
+            $results = $readConnection->fetchAll($sql);
+        }
+    }
+    if($is_warehouse == '1'){
+        foreach ($results as $result) {
+        $warehouse_name[]   =   $result['product_name'];
+        $total_send[]     =   ((int)$result['total_send']*(-1));
+        }
+    }
+    else{
+    foreach ($results as $result) {
+        $warehouse_name[]   =   $result['warehouse_name_from'];
+        $total_send[]     =   ((int)$result['total_send']*(-1));
+    }
+    }
+    $i = 0;
+    $categories = '[';
+    foreach ($warehouse_name as $name_value) {
+            if ($i != 0) {
+                $categories .= ',';
+            }
+            $categories .= '"' . $name_value . '"';
+            $i++;
+        }
+    $categories .= ']';    
+//            Zend_debug::dump($categories);
+    $j=0;
+    $series['inventory_warehouse']['data'] = '[';    
+    foreach($total_send as $number_value){
+            if ($j != 0) {
+                $series['inventory_warehouse']['data'] .= ',';
+            }
+            $series['inventory_warehouse']['data'] .= $number_value;
+            $j++;
+    }
+    $series['inventory_warehouse']['data'] .= ']'; 
+//            Zend_debug::dump($series);
+?>
+<?php if (count($results) > 0): ?>
+    <div class="entry-edit" id="test">
+        <div class="entry-edit-head">
+            <h4 class="icon-head head-edit-form fieldset-legend"><?php echo $this->__('Chart Report') ?></h4>
+        </div>
+        <!DOCTYPE HTML>
+        <div>
+            <div style="width: 99%; float: left;">
+
+                    <script type="text/javascript">
+                        $(function () {
+                            $_('#inventorybywarehouse_column').highcharts({
+                                chart: {
+                                    type: 'column',
+                                    margin: 70,
+                                    options3d: {
+                                        enabled: true,
+                                        alpha: 20,
+                                        beta: 1,
+                                        depth: 50
+                                    }
+                                },
+                                legend: {
+                                    enabled:false,
+                                },
+                                title: {
+                                    text: '<?php echo $this->__('Total Qty Sent by Warehouse:: "'.$name.'"') ?>'
+                                },
+                                plotOptions: {
+                                    column: {
+                                        depth: 30
+                                    }
+                                },
+                                xAxis: {
+                                    categories: <?php echo $categories ?>
+                                },
+                                yAxis: {
+                                    opposite: true
+                                },
+                                series: [
+                                        <?php $count = 0; ?>
+                            <?php foreach ($series as $serie): ?>
+                                <?php if (!$count == 0) echo ','; ?>
+                                <?php $count++; ?>
+                                                        {
+                                                        name: '<?php echo $serie['name']; ?>',
+                                                                data: <?php echo $serie['data']; ?>
+                                                        }
+                            <?php endforeach; ?>
+                                ]
+                            });
+                        });
+                            </script>
+                <div id="inventorybywarehouse_column" style="min-width: 900px; height: 450px; margin: 0 auto"></div>
+            </div>
+
+
+            <!-- report by warehouse pie -->
+            <div style="width: 99%; float: left;">
+                <?php
+                $series = '';
+                $i = 0;
+                foreach ($results as $result) {
+                    if ($i != 0)
+                        $series .= ',';
+                    if($is_warehouse == '1'){
+                        $series .= '[\'' . $result['product_name'] . '(' . ((int)$result['total_send']*(-1)) . ' items sent)\',' . ((int)$result['total_send']*(-1)) . ']';
+                    }
+                    else{
+                        $series .= '[\'' . $result['warehouse_name_from'] . '(' . ((int)$result['total_send']*(-1)) . ' items sent)\',' . ((int)$result['total_send']*(-1)) . ']';
+                    }
+                    $i++;
+                }
+                ?>
+
+                <script type="text/javascript">
+                    $(function () {
+                    $_('#inventorybywarehouse_pie').highcharts({
+                    chart: {
+                        type: 'pie',
+                        options3d: {
+                            enabled: true,
+                            alpha: 50
+                        }
+                    },
+                    title: {
+                        text: '<?php echo $this->__('Total Qty Sent by Warehouse:: "'.$name.'"') ?>',
+                    },
+                    plotOptions: {
+                        pie: {
+                            depth: 30
+                        }
+                    },
+                    series: [{
+                        name: 'Send Stock',
+                        data: [
+                            <?php echo $series;?>
+                        ]
+                    }]
+                    });
+                    });
+                </script>
+                <div id="inventorybywarehouse_pie" style="min-width: 900px; max-height: 450px; margin: 0 auto"></div>
+            </div>
+        </div>          
+    </div>
+<?php endif; ?>
+<script type="text/javascript" src="<?php echo $this->getJsUrl() ?>magestore/adminhtml/inventory/dashboard/lib/_JSSettings.js"></script>
+<script src="<?php echo $this->getJsUrl() ?>magestore/adminhtml/inventory/dashboard/lib/js_002"></script>
+<script src="<?php echo $this->getJsUrl() ?>magestore/adminhtml/inventory/dashboard/lib/dashboards"></script>
+
+<script type="text/javascript">
+                        var saveViewPositions = '<?php echo $this->getUrl('adminhtml/ind_dashboard/saveviewposition') ?>';
+                        var saveTabPositions = '<?php echo $this->getUrl('adminhtml/ind_dashboard/savetabposition') ?>';
+                        var form_key_dashboard = '<?php echo $this->getFormKey() ?>';</script>
+<script type="text/javascript">
+            var $sd = new InventoryDashboard.Views.Dashboards();
+            $sd.isShare = false;
+            $sd.backgroundColour = '#808080';
+            $sd.init();
+</script>

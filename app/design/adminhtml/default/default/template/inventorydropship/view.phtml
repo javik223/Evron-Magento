@@ -1,0 +1,411 @@
+<?php $dropshipId = $this->getRequest()->getParam('id') ?>
+<?php $dropship = Mage::getModel('inventorydropship/inventorydropship')->load($dropshipId) ?>
+<?php $dropshipStatus = Mage::helper('inventorydropship')->getDropshipStatus() ?>
+<?php $orderId = $dropship->getOrderId() ?>
+<?php $_order = Mage::getModel('sales/order')->load($orderId) ?>
+<?php $status = $dropship->getStatus() ?>
+<?php 
+    $supplierNeedToConfirmProvide = false;
+    if(Mage::getStoreConfig('inventoryplus/dropship/supplier_confirm_provide'))
+        $supplierNeedToConfirmProvide = true;
+    $adminNeedToApprove = false;
+    if(Mage::getStoreConfig('inventoryplus/dropship/admin_approve'))
+        $adminNeedToApprove = true;
+    $supplierNeedToConfirmShipped = false;
+    if(Mage::getStoreConfig('inventoryplus/dropship/supplier_confirm_shipped'))
+        $supplierNeedToConfirmShipped = true;
+
+    if(in_array($status,array(1,2,5,6)))
+        $supplierNeedToConfirmShipped = true;
+?>
+<?php
+    $orderAdminDate = $this->formatDate($_order->getCreatedAtDate(), 'medium', true);
+    $orderStoreDate = $this->formatDate($_order->getCreatedAtStoreDate(), 'medium', true);
+    $action = '';
+    if($status == '2')
+        $action = $this->getUrl('adminhtml/indr_inventorydropship/approvedropship');
+    if(!$supplierNeedToConfirmShipped)
+        $action = $this->getUrl('adminhtml/indr_inventorydropship/submitshipment');
+?>
+<form enctype="multipart/form-data" method="post" action="<?php echo $action ?>" id="edit_form">
+    <input name="form_key" type="hidden" value="<?php echo $this->getFormKey() ?>" id="form_key"/>
+    <input name="dropship_id" type="hidden" value="<?php echo $dropshipId ?>" id="dropship_id"/>
+    <div class="content-header">
+        <h3 class="icon-head head-sales-order-shipment"><?php echo $this->__('Drop shipment #%s for Order #%s',$dropshipId,$_order->getIncrementId()).' - '.$dropshipStatus[$dropship->getStatus()] ?></h3>
+        <div class="content-buttons-placeholder">
+            <p class="content-buttons form-buttons">
+                <button style="" onclick="setLocation('<?php echo $this->getUrl('adminhtml/sales_order/view',array('order_id'=>$orderId))?>')" class="scalable back" type="button" title="<?php echo $this->__('Back') ?>" >
+                    <span>                        
+                        <?php echo $this->__('Back') ?>
+                    </span>
+                </button>
+            </p>
+        </div>
+    </div>
+
+    <div class="box-left">
+        <!--Order Information-->
+        <div class="entry-edit">
+            <?php if ($_order->getEmailSent()):
+                $_email = Mage::helper('sales')->__('the order confirmation email was sent');
+            else:
+                $_email = Mage::helper('sales')->__('the order confirmation email is not sent');
+            endif; ?>
+            <div class="entry-edit-head">
+            <?php if ($this->getNoUseOrderLink()): ?>
+                <h4 class="icon-head head-account"><?php echo Mage::helper('sales')->__('Order # %s', $_order->getRealOrderId()) ?> (<?php echo $_email ?>)</h4>
+            <?php else: ?>
+                <a href="<?php echo $this->getViewUrl($_order->getId()) ?>"><?php echo Mage::helper('sales')->__('Order # %s', $_order->getRealOrderId()) ?></a>
+                <strong>(<?php echo $_email ?>)</strong>
+            <?php endif; ?>
+            </div>
+            <div class="fieldset">
+                <table cellspacing="0" class="form-list">
+                <tr>
+                    <td class="label"><label><?php echo Mage::helper('sales')->__('Order Date') ?></label></td>
+                    <td class="value"><strong><?php echo $orderAdminDate ?></strong></td>
+                </tr>
+                <?php if ($orderAdminDate != $orderStoreDate):?>
+                <tr>
+                    <td class="label"><label><?php echo Mage::helper('sales')->__('Order Date (%s)', $_order->getCreatedAtStoreDate()->getTimezone()) ?></label></td>
+                    <td class="value"><strong><?php echo $orderStoreDate ?></strong></td>
+                </tr>
+                <?php endif;?>
+                <tr>
+                    <td class="label"><label><?php echo Mage::helper('sales')->__('Order Status') ?></label></td>
+                    <td class="value"><strong><span id="order_status"><?php echo $_order->getStatusLabel() ?></span></strong></td>
+                </tr>
+                <?php if($_order->getRelationChildId()): ?>
+                <tr>
+                    <td class="label"><label><?php echo Mage::helper('sales')->__('Link to the New Order') ?></label></td>
+                    <td class="value"><a href="<?php echo $this->getViewUrl($_order->getRelationChildId()) ?>">
+                        <?php echo $_order->getRelationChildRealId() ?>
+                    </a></td>
+                </tr>
+                <?php endif; ?>
+                <?php if($_order->getRelationParentId()): ?>
+                <tr>
+                    <td class="label"><label><?php echo Mage::helper('sales')->__('Link to the Previous Order') ?></label></td>
+                    <td class="value"><a href="<?php echo $this->getViewUrl($_order->getRelationParentId()) ?>">
+                        <?php echo $_order->getRelationParentRealId() ?>
+                    </a></td>
+                </tr>
+                <?php endif; ?>               
+                <?php if($_order->getGlobalCurrencyCode() != $_order->getBaseCurrencyCode()): ?>
+                <tr>
+                    <td class="label"><label><?php echo Mage::helper('sales')->__('%s / %s rate:', $_order->getGlobalCurrencyCode(), $_order->getBaseCurrencyCode()) ?></label></td>
+                    <td class="value"><strong><?php echo $_order->getBaseToGlobalRate() ?></strong></td>
+                </tr>
+                <?php endif; ?>
+                <?php if($_order->getBaseCurrencyCode() != $_order->getOrderCurrencyCode()): ?>
+                <tr>
+                    <td class="label"><label><?php echo Mage::helper('sales')->__('%s / %s rate:', $_order->getOrderCurrencyCode(), $_order->getBaseCurrencyCode()) ?></label></td>
+                    <td class="value"><strong><?php echo $_order->getBaseToOrderRate() ?></strong></td>
+                </tr>
+                <?php endif; ?>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="box-right">
+        <!--Account Information-->
+        <div class="entry-edit">
+            <div class="entry-edit-head">
+                <h4 class="icon-head head-account"><?php echo Mage::helper('sales')->__('Account Information') ?></h4>
+                <div class="tools"><?php echo $this->getAccountEditLink()?></div>
+            </div>
+            <div class="fieldset">
+                <div class="hor-scroll">
+                    <table cellspacing="0" class="form-list">
+                    <tr>
+                        <td class="label"><label><?php echo Mage::helper('sales')->__('Customer Name') ?></label></td>
+                        <td class="value">                        
+                        <?php if ($_customerUrl=$_order->getCustomerViewUrl()) : ?>
+                            <a href="<?php echo $_customerUrl ?>" target="_blank"><strong><?php echo $this->htmlEscape($_order->getCustomerName()) ?></strong></a>
+                        <?php else: ?>
+                            <strong><?php echo $this->htmlEscape($_order->getCustomerName()) ?></strong>
+                        <?php endif; ?>                         
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="label"><label><?php echo Mage::helper('sales')->__('Email') ?></label></td>
+                        <td class="value"><a href="mailto:<?php echo $_order->getCustomerEmail() ?>"><strong><?php echo $_order->getCustomerEmail() ?></strong></a></td>
+                    </tr>                
+                    <?php if ($_groupName = $_order->getCustomerGroupName()) : ?>
+                    <tr>
+                        <td class="label"><label><?php echo Mage::helper('sales')->__('Customer Group') ?></label></td>
+                        <td class="value"><strong><?php echo $_groupName ?></strong></td>
+                    </tr>
+                    <?php endif; ?>
+            
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="clear"></div>
+
+    <div class="box-left">
+        <!--Billing Address-->
+        <div class="entry-edit">
+            <div class="entry-edit-head">
+                <h4 class="icon-head head-billing-address"><?php echo Mage::helper('sales')->__('Billing Address') ?></h4>
+                <div class="tools"><?php echo $this->getAddressEditLink($_order->getBillingAddress())?></div>
+            </div>
+            <fieldset>
+                <address><?php echo $_order->getBillingAddress()->getFormated(true) ?></address>
+            </fieldset>
+        </div>
+    </div>
+
+    <?php if (!$_order->getIsVirtual()): ?>
+    <div class="box-right">
+        <!--Shipping Address-->
+        <div class="entry-edit">
+            <div class="entry-edit-head">
+                <h4 class="icon-head head-shipping-address"><?php echo Mage::helper('sales')->__('Shipping Address') ?></h4>
+                <div class="tools"><?php echo $this->getAddressEditLink($_order->getShippingAddress())?></div>
+            </div>
+            <fieldset>
+                <address><?php echo $_order->getShippingAddress()->getFormated(true) ?></address>
+            </fieldset>
+        </div>
+    </div>
+    <div class="clear"></div>
+    <?php endif; ?>
+
+    <div class="clear"></div>
+    <div class="box-left">
+        <!--Supplier Information-->
+        <div class="entry-edit">
+            <div class="entry-edit-head">
+                <h4 class="icon-head head-billing-address"><?php echo Mage::helper('sales')->__('Supplier Information') ?></h4>            
+            </div>
+            <fieldset>
+                <address><?php echo $this->getSupplierInformation($dropshipId) ?></address>
+            </fieldset>
+        </div>
+    </div>
+
+    <div class="clear"></div>
+
+    <div class="entry-edit">
+        <div class="entry-edit-head">
+            <h4 class="icon-head head-products"><?php echo Mage::helper('inventorydropship')->__('Items to Drop Ship') ?></h4>
+        </div>
+    </div>    
+    <div id="ship_items_container">
+        <div class="grid np">
+            <div class="hor-scroll">
+              <table cellspacing="0" class="data order-tables">
+                  <col />
+                  <col width="2" />
+                  <col width="1" />
+                  <col width="1" />
+                  <?php if($supplierNeedToConfirmProvide): ?>
+                    <col width="1" />
+                  <?php endif ?>
+                  <col width="1" />        
+                  <?php if(!$supplierNeedToConfirmShipped): ?>
+                    <col width="1" />
+                  <?php endif ?>
+                  <thead>
+                      <tr class="headings">
+                          <th><?php echo $this->helper('inventorydropship')->__('Product') ?></th>
+                          <th><span class="nobr"><?php echo $this->helper('inventorydropship')->__('Sku') ?></span></th>
+                          <th><span class="nobr"><?php echo $this->helper('inventorydropship')->__('Qty Requested') ?></span></th>
+                          <?php if($supplierNeedToConfirmProvide): ?>
+                            <th><span class="nobr"><?php echo $this->helper('inventorydropship')->__('Qty Confirmed') ?></span></th>                      
+                          <?php endif ?>
+                          <th><span class="nobr"><?php echo $this->helper('inventorydropship')->__('Qty Approved') ?></span></th>                      
+                          <th class="<?php if($supplierNeedToConfirmShipped): ?>last<?php endif ?>"><span class="nobr"><?php echo $this->helper('inventorydropship')->__('Qty Shipped') ?></span></th>
+                          <?php if(!$supplierNeedToConfirmShipped): ?>
+                            <th class="last"><span class="nobr"><?php echo $this->helper('inventorydropship')->__('Last ship') ?></span></th>
+                          <?php endif ?>
+                      </tr>
+                  </thead>
+                  <?php $_items = $this->getItemsInDropship($dropshipId) ?>
+                  <?php $i=0;foreach ($_items as $_item):?>                              
+                      <tbody class="<?php echo $i%2?'even':'odd' ?>">     
+                          <tr <?php if($i == count($_items)-1): ?> class="border"<?php endif; ?>>
+                                <td>
+                                    <b><?php echo $_item->getProductName() ?></b>
+                                    <div style="margin-left:20px">
+                                        <?php $orderItem = Mage::getModel('sales/order_item')->load($_item->getItemId()) ?>     
+                                        <?php 
+                                            $result = array();
+                                                if ($options = $orderItem->getProductOptions()) {
+                                                    if (isset($options['options'])) {
+                                                        $result = array_merge($result, $options['options']);
+                                                    }
+                                                    if (isset($options['additional_options'])) {
+                                                        $result = array_merge($result, $options['additional_options']);
+                                                    }
+                                                    if (isset($options['attributes_info'])) {
+                                                        $result = array_merge($result, $options['attributes_info']);
+                                                    }
+                                                }
+                                                $_options = $result;
+                                        ?>
+                                        <?php if(($_options) && ($orderItem->getProductType() != 'bundle')): ?>                                        
+                                            <dl class="item-options">
+                                                <?php $defaultBlock = Mage::getBlockSingleton('adminhtml/sales_items_renderer_default') ?>
+                                                <?php foreach ($_options as $_option) : ?>                                                      
+                                                    <?php $_formatedOptionValue = $defaultBlock->getFormatedOptionValue($_option) ?>                                                                                                 
+                                                    <dt><div class="option-label"><?php echo $_option['label'] ?></div></dt>
+                                                    <dd><div class="option-value"><?php echo $_option['value'] ?></div></dd>                                                 
+                                                <?php endforeach; ?>
+                                            </dl>                                                
+                                        <?php endif ?>
+                                        <?php if($orderItem->getProductType()=='bundle'): ?>
+                                            <?php $_prevOptionId = '' ?>
+                                            <?php $childrens = Mage::getModel('sales/order_item')->getCollection()->addFieldToFilter('parent_item_id',$orderItem->getId()); ?>
+                                            <?php $bundle = Mage::getBlockSingleton('bundle/adminhtml_sales_order_view_items_renderer'); ?>
+                                            <?php foreach($childrens as $children): ?>
+                                                <br />
+                                                <?php $attributes = $bundle->getSelectionAttributes($children) ?>
+                                                <?php if ($_prevOptionId != $attributes['option_id']): ?>                                    
+                                                    <div class="option-label"><?php echo $attributes['option_label'] ?></div>                                                                                        
+                                                    <div class="option-value"><?php echo $bundle->getValueHtml($children)?></div>
+                                                <?php endif; ?>
+                                            <?php endforeach ?>
+                                        <?php endif ?>
+                                        <?php if($orderItem->getProductType()=='configurable'): ?>
+                                        <?php endif ?>
+                                    </div>
+                                </td>
+                                <td><?php echo $_item->getProductSku() ?></td>
+                                <td class="a-center"><?php echo $_item->getQtyRequest() ?></td>
+                                <?php if($supplierNeedToConfirmProvide): ?>
+                                    <?php if($status == '1'): ?>
+                                        <td class="a-center"><?php echo Mage::helper('inventorydropship')->__('Waiting') ?></td>
+                                    <?php else: ?>
+                                        <td class="a-center"><?php echo $_item->getQtyOffer() ?></td>
+                                    <?php endif ?>
+                                <?php endif ?>
+                                <?php if($status == '2'): ?>                                    
+                                    <td class="a-center">
+                                        <?php $maxQtyApprove = $_item->getQtyOffer() ?>
+                                        <?php 
+                                            if(Mage::getStoreConfig('inventoryplus/dropship/enable')){
+                                                $allDropships = Mage::getModel('inventorydropship/inventorydropship')
+                                                                                    ->getCollection()
+                                                                                    ->addFieldToFilter('order_id',$_order->getId())
+                                                                                    ->addFieldToFilter('status',array('in'=>array('3','4','6')));                                                
+                                                $allDropshipIds = array();
+                                                foreach($allDropships as $dropship)
+                                                    $allDropshipIds[] = $dropship->getId();                                                
+                                                $dropshipProductNumber = 0;
+                                                $dropshipProducts = Mage::getModel('inventorydropship/inventorydropship_product') 
+                                                                                    ->getCollection()
+                                                                                    ->addFieldToFilter('dropship_id',array('in'=>$allDropshipIds))
+                                                                                    ->addFieldToFilter('item_id',$_item->getItemId());                                                
+                                                $itemOrder = Mage::getModel('sales/order_item')->load($_item->getItemId());
+                                                $qtyCanShip = $itemOrder->getQtyOrdered() - $itemOrder->getQtyShipped(); 
+                                                foreach($dropshipProducts as $dropshipProduct)
+                                                    $dropshipProductNumber += $dropshipProduct->getQtyApprove() - $dropshipProduct->getQtyShipped();
+                                                $maxQtyCanShip = $qtyCanShip - $dropshipProductNumber;       
+                                                if($maxQtyCanShip < $maxQtyApprove)
+                                                    $maxQtyApprove = $maxQtyCanShip;
+//                                                if($maxQtyApprove > 0){
+//                                                    $orderItemShipped = Mage::getModel('sales/order_item')->load($_item->getItemId());
+//                                                    $qtyShipped = $orderItemShipped->getQtyShipped();
+//                                                    $maxQtyApprove -= $qtyShipped;
+//                                                }
+                                            }
+                                        ?>
+                                        <input type="hidden" id="item[maxapprove][<?php echo $_item->getItemId() ?>]" value="<?php echo $maxQtyApprove ?>" />
+                                        <input type="text" onkeyup="recheckqty(<?php echo $_item->getItemId() ?>);" id="item[approve][<?php echo $_item->getItemId() ?>]" name="item[approve][<?php echo $_item->getItemId() ?>]" value ="<?php echo $_item->getQtyApprove() ?>" style="width:50px;" />
+                                        <strong><?php echo $this->__('Maximum: %s',$maxQtyApprove) ?></strong>
+                                    </td>
+                                <?php else: ?>
+                                    <td class="a-center"><?php echo $_item->getQtyApprove() ?></td>
+                                <?php endif ?>
+                                <td class="a-center"><?php echo $_item->getQtyShipped() ?></td>
+                                <?php if(!$supplierNeedToConfirmShipped): ?>
+                                    <?php $maxQtyLastship = $_item->getQtyApprove() - $_item->getQtyShipped() ?>
+                                        <td class="a-center">
+                                            <?php if($maxQtyLastship > 0): ?>
+                                                <input type="text" onkeyup="recheckqtylastship(<?php echo $_item->getItemId() ?>);" id="item[lastship][<?php echo $_item->getItemId() ?>]" name="item[lastship][<?php echo $_item->getItemId() ?>]" value ="<?php echo $maxQtyLastship ?>" style="width:50px;" />
+                                                <input type="hidden" id="item[maxlastship][<?php echo $_item->getItemId() ?>]" value="<?php echo $maxQtyLastship ?>" />                                        
+                                                <strong><?php echo $this->__('Maximum: %s',$maxQtyLastship) ?></strong>
+                                            <?php endif ?>                                            
+                                        </td>
+                                <?php endif ?>
+                          </tr>
+                      </tbody>
+                      <?php $i++ ?>
+                  <?php endforeach; ?>
+              </table>
+            </div>
+        </div>
+        <br />
+    </div>
+
+    <div class="clear"></div>
+    <div class="entry-edit" style="<?php if(in_array($status,array(3,4,5,6)) && $supplierNeedToConfirmShipped) echo 'display:none;'; ?>">
+        <div class="">
+            <div class="order-totals-bottom">      
+                <div class="a-right">
+                    <!--Cancel Button -->
+                    <?php if(in_array($status,array(1,2))): ?>
+                        <button style="" type="button" onclick="deleteConfirm('<?php echo $this->__('Are you sure you want to cancel this drop shipment?') ?>', '<?php echo $this->getUrl('adminhtml/indr_inventorydropship/canceldropship',array('dropship_id'=>$this->getRequest()->getParam('id'))); ?>')" class="scalable submit-button">
+                            <span>
+                                <span>
+                                    <span>
+                                        <?php echo $this->__('Cancel Drop Shipment') ?>
+                                    </span>
+                                </span>
+                            </span>
+                        </button>          
+                    <?php endif ?>
+                    
+                    <!--Approve Button -->
+                    <?php if(in_array($status,array(2))): ?>                
+                        <button style="margin-left:10px;" type="submit" class="scalable submit-button">
+                            <span>
+                                <span>
+                                    <span>
+                                        <?php echo $this->__('Approve') ?>
+                                    </span>
+                                </span>
+                            </span>
+                        </button>                          
+                    <?php endif ?>
+                    
+                    <!--Submit shipment Button -->
+                    <?php if(!$supplierNeedToConfirmShipped): ?>                
+                        <button style="margin-left:10px;" type="submit" class="scalable submit-button">
+                            <span>
+                                <span>
+                                    <span>
+                                        <?php echo $this->__('Submit shipment') ?>
+                                    </span>
+                                </span>
+                            </span>
+                        </button>                          
+                    <?php endif ?>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script type="text/javascript">
+        function recheckqty(id){
+            var id = id;
+            if($('item[approve]['+id+']') && $('item[maxapprove]['+id+']'))
+                if(parseInt($('item[approve]['+id+']').value) <0 || isNaN($('item[approve]['+id+']').value))
+                    $('item[approve]['+id+']').value = 0;
+                if(parseInt($('item[approve]['+id+']').value) >  parseInt($('item[maxapprove]['+id+']').value))
+                    $('item[approve]['+id+']').value = $('item[maxapprove]['+id+']').value;
+        }      
+        
+        function recheckqtylastship(id){
+            var id = id;
+            if($('item[lastship]['+id+']') && $('item[maxlastship]['+id+']'))
+                if(parseInt($('item[lastship]['+id+']').value) <0 || isNaN($('item[lastship]['+id+']').value))
+                    $('item[lastship]['+id+']').value = 0;
+                if(parseInt($('item[lastship]['+id+']').value) >  parseInt($('item[maxlastship]['+id+']').value))
+                    $('item[lastship]['+id+']').value = $('item[maxlastship]['+id+']').value;
+        }                       
+    </script>
+</form>

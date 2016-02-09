@@ -1,0 +1,10 @@
+<?xml version="1.0" ?>
+
+<config>
+	<modules>
+		<HetNieuweWeb_CustomerNavigation>
+			<active>true</active>
+			<codePool>community</codePool>
+		</HetNieuweWeb_CustomerNavigation>
+	</modules>
+</config>

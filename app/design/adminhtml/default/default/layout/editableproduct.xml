@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<layout version="0.1.0">
+    <default>
+        <reference name="head">
+        <action method="addJs"><script>editableproduct/jquery1.8.3.min.js</script></action>
+        <action method="addJs"><script>editableproduct/jqueryNoConflict.js</script></action>
+        <action method="addCss"><script>editableproduct/editableproduct.css</script></action>
+        </reference>
+    </default>
+</layout>

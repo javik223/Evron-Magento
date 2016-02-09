@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+<?php echo $this->getChildHtml('head') ?>
+</head>
+<body<?php echo $this->getBodyClass()?' class="'.$this->getBodyClass().'"':'' ?>>
+<?php echo $this->getChildHtml('after_body_start') ?>
+
+<!-- Global Notices -->
+<div class="container">
+	<?php echo $this->getChildHtml('global_notices'); ?>
+</div>
+
+<!-- Header -->
+<?php echo $this->getChildHtml('header') ?>
+
+<!-- Global Messages -->
+<?php echo $this->getChildHtml('global_messages') ?>
+
+
+<!-- Main Content -->
+<div class="container">
+	<div class="row-main">
+		<?php $this->getChildHtml('global_messages'); ?>
+		<?php echo $this->getChildHtml('content'); ?>
+	</div>
+</div>
+
+<!-- Footer -->
+<?php echo $this->getChildHtml('footer_before'); ?>
+<?php echo $this->getChildHtml('footer'); ?>
+<?php echo $this->getChildHtml('global_cookie_notice'); ?>
+<?php echo $this->getChildHtml('before_body_end'); ?>
+<?php echo $this->getAbsoluteFooter(); ?>
+</body>
+</html>

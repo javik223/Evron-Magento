@@ -1,0 +1,168 @@
+<?php
+$series = array();
+$product_name = array();
+$total_remain = array();
+$requestData = Mage::helper('adminhtml')->prepareFilterString($this->getRequest()->getParam('top_filter'));
+$gettime = Mage::Helper('inventoryreports')->getTimeSelected($requestData);
+$resource = Mage::getSingleton('core/resource');
+$readConnection = $resource->getConnection('core_read');
+$installer = Mage::getModel('core/resource');
+$prodNameAttrId = Mage::getResourceModel('eav/entity_attribute')->getIdByCode('catalog_product','name');
+
+$sql = 'SELECT f.value as name, SUM(w.total_qty) AS total_remain
+    FROM ' . $installer->getTableName("erp_inventory_warehouse_product") . ' w
+    INNER JOIN ' . $installer->getTableName("catalog_product_entity_varchar f") . '
+    ON w.product_id = f.entity_id AND f.attribute_id=' . $prodNameAttrId . '
+    GROUP BY w.product_id
+    ORDER BY total_remain DESC
+    LIMIT 7
+    ';
+
+$results = $readConnection->fetchAll($sql);
+?>
+<?php if (count($results) > 0): ?>
+    <div class="entry-edit" id="test">
+        <div class="entry-edit-head">
+            <h4 class="icon-head head-edit-form fieldset-legend"><?php echo $this->__('Chart Report') ?></h4>
+        </div>
+        <!DOCTYPE HTML>
+        <div>
+            <!-- report by product pie -->
+            <?php if (count($results) > 0): ?>
+                <div style="width: 99%; float: left;">
+                    <?php
+                    $pieSeries = '';
+                    $i = 0;
+                    foreach ($results as $result) {
+                        if ($i != 0)
+                            $pieSeries .= ',';
+                        $pieSeries .= '[\'' . $result['name'] . ' (' . (int) $result['total_remain'] . ' items)\',' . (int) $result['total_remain'] . ']';
+                        $i++;
+                    }
+                    ?>
+                    <script type="text/javascript">
+                        $(function () {
+                        $_('#inventorybyproduct_pie').highcharts({
+                        chart: {
+                        type: 'pie',
+                                options3d: {
+                                enabled: true,
+                                        alpha: 50
+                                }
+                        },
+                                title: {
+                                text: '<?php echo $this->__('Qty. Remaining by Product') ?>'
+                                },
+                                plotOptions: {
+                                pie: {
+                                        depth: 30
+                                }
+                                },
+                                series: [{
+                                name: 'Total Stock Remain',
+                                        data: [
+        <?php echo $pieSeries; ?>
+                                        ]
+                                }]
+                        });
+                        });            </script>
+
+                    <div id="inventorybyproduct_pie" style="min-width: 900px; max-height: 450px; margin: 0 auto"></div>
+                </div>
+
+
+                <?php
+                foreach ($results as $result) {
+                    $product_name[] = $result['name'];
+                    $total_remain[] = ((int) $result['total_remain']);
+                }
+                $i = 0;
+                $categories = '[';
+                foreach ($product_name as $name_value) {
+                    if ($i != 0) {
+                        $categories .= ',';
+                    }
+                    $categories .= '"' . $name_value . '"';
+                    $i++;
+                }
+                $categories .= ']';
+                $j = 0;
+                $columnSeries['inventory_product']['data'] = '[';
+                foreach ($total_remain as $number_value) {
+                    if ($j != 0) {
+                        $columnSeries['inventory_product']['data'] .= ',';
+                    }
+                    $columnSeries['inventory_product']['data'] .= $number_value;
+                    $j++;
+                }
+                $columnSeries['inventory_product']['data'] .= ']';
+                ?>
+                <div style="width: 99%; float: left;">
+                    <script type="text/javascript">
+                                $(function () {
+                                $_('#inventorybyproduct_column').highcharts({
+                                chart: {
+                                type: 'column',
+                                        margin: 70,
+                                        options3d: {
+                                        enabled: true,
+                                                alpha: 20,
+                                                beta: 1,
+                                                depth: 50
+                                        }
+                                },
+                                        title: {
+                                        text: '<?php echo $this->__('Qty. Remaining by Product') ?>'
+                                        },
+                                        legend: {
+                                        enabled:false,
+                                        },
+                                        plotOptions: {
+                                        column: {
+                                        depth: 30
+                                        }
+                                        },
+                                        xAxis: {
+                                        categories: <?php echo $categories ?>
+                                        },
+                                        yAxis: {
+                                        opposite: true
+                                        },
+                                        series: [
+        <?php $count = 0; ?>
+        <?php foreach ($columnSeries as $serie): ?>
+            <?php if (!$count == 0) echo ','; ?>
+            <?php $count++; ?>
+                                            {
+                                            name: '<?php echo $serie['name']; ?>',
+                                                    data: <?php echo $serie['data']; ?>
+                                            }
+        <?php endforeach; ?>
+                                        ]
+                                }
+                                );
+                                });            </script>
+                    <div id="inventorybyproduct_column" style="min-width: 900px; height: 450px; margin: 0 auto;"></div>
+                </div>
+    <?php endif; ?>
+        </div>          
+    </div>
+<?php endif; ?>
+
+
+
+
+<script type="text/javascript" src="<?php echo $this->getJsUrl() ?>magestore/adminhtml/inventory/dashboard/lib/_JSSettings.js"></script>
+<script src="<?php echo $this->getJsUrl() ?>magestore/adminhtml/inventory/dashboard/lib/js_002"></script>
+<script src="<?php echo $this->getJsUrl() ?>magestore/adminhtml/inventory/dashboard/lib/dashboards"></script>
+
+<script type="text/javascript">
+                        var saveViewPositions = '<?php echo $this->getUrl('adminhtml/ind_dashboard/saveviewposition') ?>';
+                        var saveTabPositions = '<?php echo $this->getUrl('adminhtml/ind_dashboard/savetabposition') ?>';
+                        var form_key_dashboard = '<?php echo $this->getFormKey() ?>';</script>
+<script type="text/javascript">
+            var $sd = new InventoryDashboard.Views.Dashboards();
+            $sd.isShare = false;
+            $sd.backgroundColour = '#808080';
+            $sd.init();
+</script>

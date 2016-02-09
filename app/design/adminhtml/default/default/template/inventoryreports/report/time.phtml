@@ -1,0 +1,252 @@
+<!--<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>-->
+<script>
+    function onChange(obj, show) {
+        var el = document.getElementById("otherOpt");
+        var el1 = document.getElementById("otherOpt1");
+        if (obj.checked == show) {
+            el.style.display = '';
+            el1.style.display = 'none';
+        } // Show Options
+        else {
+            el.style.display = 'none';
+            el1.style.display = '';
+        }
+    }
+</script>
+
+<!--<div class="entry-edit">
+    <div id="date_picker_form" class="fieldset ">
+        <div  class="input-box">
+<b>Show Time Type:</b> <br>
+<input type="radio" name="accessprotect" value="0" checked onchange="onChange(this,false)"/> Default&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;
+<input type="radio" name="accessprotect" value="1" onchange="onChange(this,true)"/> Custom
+<div id="otherOpt1">Public Option</div> 
+<div id="otherOpt" style="display: none">Private Option</div> 
+        </div>
+    </div>
+</div>-->
+
+
+
+
+
+
+<?php
+$filterData = new Varien_Object();
+$requestData = Mage::helper('adminhtml')->prepareFilterString($this->getRequest()->getParam('top_filter'));
+foreach ($requestData as $key => $value)
+    if (!empty($value))
+        $filterData->setData($key, $value);
+$time_id = $this->getRequest()->getParam('time_id');
+$type = $this->getRequest()->getParam('type');
+?>
+<div class="entry-edit">
+    <div id="otherOpt1" >
+        <div id="date_picker_form" class="fieldset ">
+            <div class="input-box">              
+                <div>
+                    <label for="warehouse">
+                        <strong><?php echo $this->__('Select Time: ') ?>&nbsp;&nbsp;</strong>
+                    </label>
+                    <select name="select_warehouse" id="select_warehouse" onchange="return switchTime(this);">                            
+                        <!--<option value=""><?php // echo $this->__('Please select')   ?></option>-->
+                        <option value="1" <?php
+                        if ($time_id == 1) {
+                            echo "selected='selected'";
+                        }
+                        ?>><?php echo $this->__('Last 7 days') ?></option>
+                        <option value="2" <?php
+                        if ($time_id == 2) {
+                            echo "selected='selected'";
+                        }
+                        ?>><?php echo $this->__('Last 30 days') ?></option>
+                        <option value="3" <?php
+                        if ($time_id == 3) {
+                            echo "selected='selected'";
+                        }
+                        ?>><?php echo $this->__('This Week') ?></option>
+                        <option value="4" <?php
+                        if ($time_id == 4) {
+                            echo "selected='selected'";
+                        }
+                        ?>><?php echo $this->__('This Month') ?></option>
+                        <option value="5" <?php
+                        if ($time_id == 5) {
+                            echo "selected='selected'";
+                        }
+                        ?>><?php echo $this->__('Custom Time') ?></option>
+                    </select>
+                </div>
+                <script type="text/javascript">
+                    function switchTime(obj) {
+                        var url = '<?php echo $this->getUrl('*/*/*', array('top_filter' => $this->getRequest()->getParam('top_filter', null))) ?>';
+                        if (obj.value != '') {
+                            var warehouseParam = obj.value ? 'time_id/' + obj.value + '/type/' + '<?php echo $type ?>' : '';
+                            url += warehouseParam;
+                            setLocation(url);
+                        }
+                    }
+                </script>
+            </div>
+        </div>
+        <?php // if($time_id){echo $time_id;}  ?>    
+        <?php if ($time_id == 5) { ?>
+            <div id="date_picker_form" class="fieldset ">
+                <div  class="input-box">
+                    <label><?php echo $this->__('From:'); ?> </label>
+                    &nbsp; &nbsp;
+                    <input name="date_from" id="date_from" type="text" size="20" value="<?php echo $filterData->getDateFrom(); ?>" />
+                    <img title="Select date" id="btn-date-picker-from" src="<?php echo Mage::getBaseUrl(Mage_Core_Model_Store::URL_TYPE_SKIN) . 'adminhtml/default/default/images/grid-cal.gif'; ?>" class="v-middle" />
+                    <label><?php echo $this->__('To:'); ?> </label>
+                    &nbsp; &nbsp;
+                    <input name="date_to" id="date_to" type="text" size="20" value="<?php echo $filterData->getDateTo(); ?>" />
+                    <img title="Select date" id="btn-date-picker-to" src="<?php echo Mage::getBaseUrl(Mage_Core_Model_Store::URL_TYPE_SKIN) . 'adminhtml/default/default/images/grid-cal.gif'; ?>" class="v-middle" />          
+                    <label><?php echo $this->__('Period Filter:'); ?></label>
+                    &nbsp; &nbsp;
+                    <select name="period_type" id="period_type" style="width: 120px">                    
+                        <?php
+                        $periods = Mage::helper('inventoryreports')->getPeriodOptions();
+                        foreach ($periods as $id => $period) {
+                            if ($id == $filterData->getPeriodType()):
+                                ?>  
+                                <option selected value="<?php echo $id ?>"><?php echo $period; ?></option>
+                            <?php else: ?>
+                                <option value="<?php echo $id ?>"><?php echo $period; ?></option>
+                            <?php endif; ?>
+                        <?php } ?>
+
+                    </select>
+                    <button onclick="filterFormSubmit();
+                            return false;" ><?php echo $this->__('Show Report'); ?></button>
+                </div>
+            </div><?php } ?>    
+
+        <div id="date_picker_form" class="fieldset ">
+            <div class="input-box">              
+                <div>
+                    <ul class="options-list">
+                        <label for="type">
+                            <strong><?php
+                                if ($type == 'order') {
+                                    echo $this->__('Show Report For Order: ');
+                                }if ($type == 'warehouse') {
+                                    echo $this->__('Show Report For Warehouse: ');
+                                }if ($type == 'product') {
+                                    echo $this->__('Show Report For Product: ');
+                                }if ($type == 'supplier') {
+                                    echo $this->__('Show Report For Supplier: ');
+                                }
+                                ?>&nbsp;&nbsp;</strong>
+                        </label>
+                        <?php $type_collection = Mage::getModel('inventoryreports/reporttype')->getCollection(); ?>
+                        <?php
+                        if ($type) {
+                            $type_collection->addFieldToFilter('report', $type);
+                        }
+                        ?>
+    <!--                    <select name="select_warehouse" id="select_warehouse" onchange="return switchType(this);">                            
+                            <option value=""><?php // echo $this->__('Please select')    ?></option>
+                        <?php foreach ($type_collection as $type_value): ?>
+                                        <option value="<?php echo $type_value->getId(); ?>"><?php echo $type_value->getReportType(); ?> </option>
+                            -->                     <li>
+                                <div style="display:block;cursor: pointer;">
+                                    <input type="radio" class="radio" id="<?php echo $type_value->getId() ?>" name="order_report_type_option" value="<?php echo $type_value->getId(); ?>"/>
+                                    <label for="<?php echo $type_value->getId() ?>"><?php echo $type_value->getReportType(); ?></label>
+                                </div>
+                            </li><!--
+                        <?php endforeach; ?>
+            </select>-->
+
+                    </ul>
+                </div>
+                <script type="text/javascript">
+                    function switchType(obj) {
+                        var url = '<?php echo $this->getUrl('*/*/*', array('top_filter' => $this->getRequest()->getParam('top_filter', null))) ?>';
+                        if (obj.value != '') {
+                            var warehouseParam = obj.value ? 'time_id/' + obj.value + '/type/' + '<?php echo $type ?>' : '';
+                            url += warehouseParam;
+                            setLocation(url);
+                        }
+                    }
+                </script>
+            </div>
+        </div>    
+    </div>
+
+    <div id="otherOpt" style="display:none" >
+        <div id="date_picker_form" class="fieldset ">
+            <div  class="input-box">
+                <label><?php echo $this->__('From:'); ?> </label>
+                &nbsp; &nbsp;
+                <input name="date_from" id="date_from" type="text" size="20" value="<?php echo $filterData->getDateFrom(); ?>" />
+                <img title="Select date" id="btn-date-picker-from" src="<?php echo Mage::getBaseUrl(Mage_Core_Model_Store::URL_TYPE_SKIN) . 'adminhtml/default/default/images/grid-cal.gif'; ?>" class="v-middle" />
+                <label><?php echo $this->__('To:'); ?> </label>
+                &nbsp; &nbsp;
+                <input name="date_to" id="date_to" type="text" size="20" value="<?php echo $filterData->getDateTo(); ?>" />
+                <img title="Select date" id="btn-date-picker-to" src="<?php echo Mage::getBaseUrl(Mage_Core_Model_Store::URL_TYPE_SKIN) . 'adminhtml/default/default/images/grid-cal.gif'; ?>" class="v-middle" />          
+                <label><?php echo $this->__('Period Filter:'); ?></label>
+                &nbsp; &nbsp;
+                <select name="period_type" id="period_type" style="width: 120px">                    
+                    <?php
+                    $periods = Mage::helper('inventoryreports')->getPeriodOptions();
+                    foreach ($periods as $id => $period) {
+                        if ($id == $filterData->getPeriodType()):
+                            ?>  
+                            <option selected value="<?php echo $id ?>"><?php echo $period; ?></option>
+                        <?php else: ?>
+                            <option value="<?php echo $id ?>"><?php echo $period; ?></option>
+                        <?php endif; ?>
+                    <?php } ?>
+
+                </select>
+                <button onclick="filterFormSubmit();
+                        return false;" ><?php echo $this->__('Show Report'); ?></button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    //<![CDATA[
+    Calendar.setup({
+        inputField: 'date_from',
+        ifFormat: "%Y-%m-%d",
+        daFormat: "%Y-%m-%d",
+        button: 'btn-date-picker-from',
+        align: 'Bl',
+        singleClick: true
+    });
+    Calendar.setup({
+        inputField: 'date_to',
+        ifFormat: "%Y-%m-%d",
+        daFormat: "%Y-%m-%d",
+        button: 'btn-date-picker-to',
+        align: 'Bl',
+        singleClick: true
+    });
+
+    function filterFormSubmit()
+    {
+        if (!$('date_from') || !$('date_from').value || $('date_from').value == '' || $('date_from').value == null) {
+            alert('<?php echo $this->__('Please fill Date From!'); ?>');
+            return false;
+        } else if (!$('date_to') || !$('date_to').value || $('date_to').value == '' || $('date_to').value == null) {
+            alert('<?php echo $this->__('Please fill Date To!'); ?>');
+            return false;
+        }
+
+        var filters = new Array();
+        filters[0] = $('date_from');
+        filters[1] = $('date_to');
+        filters[2] = $('period_type');
+        var elements = [];
+        for (var i in filters) {
+            if (filters[i].value && filters[i].value.length && !filters[i].disabled)
+                elements.push(filters[i]);
+        }
+        window.location.href = '<?php echo $url = $this->getUrl('adminhtml/inr_sales/history', array('warehouse_id' => $this->getRequest()->getParam('warehouse_id'), 'key' => $this->getRequest()->getParam('key'))); ?>top_filter/' + encode_base64(Form.serializeElements(elements)) + '/';
+        return;
+    }
+
+    //]]>
+</script>

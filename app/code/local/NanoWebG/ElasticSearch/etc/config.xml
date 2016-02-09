@@ -1,0 +1,167 @@
+<?xml version="1.0"?>
+<config>
+    <modules>
+        <NanoWebG_ElasticSearch>
+            <version>1.0.3</version>
+        </NanoWebG_ElasticSearch>
+    </modules>
+    <global>
+        <models>
+            <nanowebg_elasticsearch>
+                <class>NanoWebG_ElasticSearch_Model</class>
+                <resourceModel>nanowebg_elasticsearch_resource</resourceModel>
+            </nanowebg_elasticsearch>
+            <nanowebg_elasticsearch_resource>
+                <class>NanoWebG_ElasticSearch_Model_Resource</class>
+            </nanowebg_elasticsearch_resource>
+        </models>
+        <helpers>
+            <nanowebg_elasticsearch>
+                <class>NanoWebG_ElasticSearch_Helper</class>
+            </nanowebg_elasticsearch>
+        </helpers>
+        <blocks>
+            <nanowebg_elasticsearch>
+                <class>NanoWebG_ElasticSearch_Block</class>
+            </nanowebg_elasticsearch>
+        
+            <catalog>
+                <rewrite>
+                    <layer_view>NanoWebG_ElasticSearch_Block_Catalog_Layer_View</layer_view>
+                </rewrite>
+            </catalog>
+        
+            <catalogsearch>
+                <rewrite>
+                    <layer>NanoWebG_ElasticSearch_Block_Catalogsearch_Layer</layer>
+                </rewrite>
+            </catalogsearch>
+        </blocks>
+        
+        <index>
+                    <indexer>
+                            <nanowebg_elasticsearch_indexer>
+                                    <model>NanoWebG_ElasticSearch_Model_Indexer</model>
+                            </nanowebg_elasticsearch_indexer>
+              
+                    </indexer>
+        </index>
+    </global>
+    <frontend>
+        <layout>
+            <updates>
+                <nanowebg_attachments>
+                    <file>elasticsearchsuggest.xml</file>
+                </nanowebg_attachments>
+            </updates>
+        </layout>
+        <!--
+        <translate>
+            <modules>
+                <NanoWebG_ElasticSearch>
+                    <files>
+                        <default>NanoWebG_ElasticSearch.csv</default>
+                    </files>
+                </NanoWebG_ElasticSearch>
+            </modules>
+        </translate>
+        -->
+    </frontend>
+    <admin>
+        <routers>
+            <adminhtml>
+                <args>
+                    <modules>
+                        <nanowebg_elasticsearch before="Mage_Adminhtml">NanoWebG_ElasticSearch_Adminhtml</nanowebg_elasticsearch>
+                    </modules>
+                </args>
+            </adminhtml>
+        </routers>
+    </admin>
+    <adminhtml>
+        
+        <events>
+            <catalog_entity_attribute_save_after>
+                <observers>
+                    <nanowebg_elasticsearch>
+                        <class>nanowebg_elasticsearch/observer</class>
+                        <method>requireElasticSearchReindex</method>
+                    </nanowebg_elasticsearch>
+                </observers>
+            </catalog_entity_attribute_save_after>
+            <catalogsearch_index_process_start>
+                <observers>
+                    <nanowebg_elasticsearch>
+                        <class>nanowebg_elasticsearch/observer</class>
+                        <method>checkProcess</method>
+                    </nanowebg_elasticsearch>
+                </observers>
+            </catalogsearch_index_process_start>
+
+        </events>
+        
+        <!--
+        <translate>
+            <modules>
+                <NanoWebG_ElasticSearch>
+                    <files>
+                        <default>NanoWebG_ElasticSearch.csv</default>
+                    </files>
+                </NanoWebG_ElasticSearch>
+            </modules>
+        </translate>
+        -->
+       <acl>
+         <resources>
+            <all>
+               <title>Allow Everything</title>
+            </all>
+            <admin>
+               <children>
+                  <system>
+                            <children>
+                                <config>
+                                    <children>
+                                        <elasticsearch translate="title" module="nanowebg_elasticsearch">
+                                            <title>Elastic Search</title>
+                                        </elasticsearch>
+                                    </children>
+                                </config>
+                            </children>
+                        </system>
+                  
+               </children>
+            </admin>
+         </resources>
+      </acl>
+      
+    </adminhtml>
+    
+    <default>
+        <elasticsearch>
+            <settings>
+                <elasticsearch_servers></elasticsearch_servers>
+                <elasticsearch_index>magento</elasticsearch_index>
+                <elasticsearch_enable_suggest>1</elasticsearch_enable_suggest>
+                
+            </settings>
+            <advanced>
+                <elasticsearch_timeout>30</elasticsearch_timeout>
+                <elasticsearch_phptimeout>30</elasticsearch_phptimeout>
+                <elasticsearch_phpmemory>512</elasticsearch_phpmemory>
+                <elasticsearch_number_of_shards>1</elasticsearch_number_of_shards>
+                <elasticsearch_number_of_replicas>0</elasticsearch_number_of_replicas>
+                <elasticsearch_query_operator>AND</elasticsearch_query_operator>
+                <elasticsearch_facets_max_size>50</elasticsearch_facets_max_size>
+                <elasticsearch_enable_icu_folding>0</elasticsearch_enable_icu_folding>
+                <elasticsearch_category_boost>1.1</elasticsearch_category_boost>
+                <elasticsearch_enable_fuzzy_query>1</elasticsearch_enable_fuzzy_query>
+                <elasticsearch_fuzzy_min_similarity>0.7</elasticsearch_fuzzy_min_similarity>
+                <elasticsearch_fuzzy_prefix_length>0</elasticsearch_fuzzy_prefix_length>
+                <elasticsearch_fuzzy_max_query_terms>10</elasticsearch_fuzzy_max_query_terms>
+                <elasticsearch_fuzzy_query_boost>1.0</elasticsearch_fuzzy_query_boost>
+            </advanced>
+        </elasticsearch>
+    </default>
+
+</config>

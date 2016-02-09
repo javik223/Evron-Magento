@@ -1,0 +1,48 @@
+<?php
+$_item = $this->getItem();
+$sku = $this->escapeHtml(Mage::helper('core/string')->splitInjection($this->getSku()));
+?>
+<div class='description'>
+    <div class='name'>
+        <?php
+        $qty = 1;
+        if ($_item->getQtyOrdered() > 0) {
+            $qty = $_item->getQtyOrdered() * 1;
+        }
+        echo $this->escapeHtml($qty . ' x ' . $_item->getName());
+        ?>
+    </div>
+    <?php if ($_options = $this->getItemOptions()): ?>
+        <div class="item-options">
+            <?php
+            $options = array();
+            foreach ($_options as $_option) {
+                $options[] = nl2br($this->escapeHtml((isset($_option['print_value']) ? $_option['print_value'] : $_option['value'])));
+            };
+            if (count($options) > 0) {
+                echo $sku . ': ' . implode(', ', $options);
+            } else {
+                echo $sku;
+            }
+            ?>
+        </div>
+    <?php endif; ?>
+
+<?php if ($this->helper('giftmessage/message')->getIsMessagesAvailable('order_item', $_item) && $_item->getGiftMessageId()): ?>
+        <div class='gift_message'>        
+            <a href="#" id="order-item-gift-message-link-<?php echo $_item->getId() ?>" class="gift-message-link" onclick="return giftMessageToogle('<?php echo $_item->getId() ?>')"><?php echo $this->__('Gift Message') ?></a>
+        </div>   
+<?php endif; ?>
+</div>
+<div class='unit_price'>
+    <?php
+    $_incl = $this->helper('checkout')->getPriceInclTax($this->getItem());
+    echo $this->getOrder()->formatPrice($_incl);
+    ?>
+</div>
+<div class='row_total'>
+    <?php
+    echo $this->getOrder()->formatPrice($this->helper('checkout')->getSubtotalInclTax($_item));
+    ?>
+</div>
+<div class='clear'></div>

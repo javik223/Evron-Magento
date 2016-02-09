@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<config>
+    <modules>
+        <Evron_Newsletter>
+            <active>true</active>
+            <codePool>local</codePool>
+        </Evron_Newsletter>
+    </modules>
+</config>

@@ -1,0 +1,54 @@
+<?xml version="1.0" ?>
+
+<config>
+	<modules>
+		<HetNieuweWeb_CustomerNavigation>
+			<version>0.2.0</version>
+		</HetNieuweWeb_CustomerNavigation>
+	</modules>
+	
+	<global>
+		<helpers>
+			<customerNavigation>
+				<class>HetNieuweWeb_CustomerNavigation_Helper</class>
+			</customerNavigation>
+		</helpers>
+		
+		<blocks>
+			<customer>
+				<rewrite>
+					<account_navigation>HetNieuweWeb_CustomerNavigation_Block_Customer_Account_Navigation</account_navigation>
+				</rewrite>
+			</customer>
+		</blocks>
+	</global>
+	
+	<frontend>
+		<layout>
+			<updates>
+				<HetNieuweWeb_CustomerNavigation>
+					<file>hetnieuweweb_customernavigation.xml</file>
+				</HetNieuweWeb_CustomerNavigation>
+			</updates>
+		</layout>
+	</frontend>
+	
+	<default>
+		<customer_navigation>
+			<display>
+				<account>1</account>
+				<account_edit>1</account_edit>
+				<address_book>1</address_book>
+				<orders>1</orders>
+				<billing_agreements>1</billing_agreements>
+				<recurring_profiles>1</recurring_profiles>
+				<reviews>1</reviews>
+				<tags>1</tags>
+				<wishlist>1</wishlist>
+				<oauth_customer_tokens>1</oauth_customer_tokens>
+				<newsletter>1</newsletter>
+				<downloadable_products>1</downloadable_products>
+			</display>
+		</customer_navigation>
+	</default>
+</config>

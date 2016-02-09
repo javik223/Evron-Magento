@@ -1,0 +1,113 @@
+<?php
+/**
+ * Magestore
+ * 
+ * NOTICE OF LICENSE
+ * 
+ * This source file is subject to the Magestore.com license that is
+ * available through the world-wide-web at this URL:
+ * http://www.magestore.com/license-agreement.html
+ * 
+ * DISCLAIMER
+ * 
+ * Do not edit or add to this file if you wish to upgrade this extension to newer
+ * version in the future.
+ * 
+ * @category    Magestore
+ * @package     Magestore_Inventorysupplyneeds
+ * @copyright   Copyright (c) 2012 Magestore (http://www.magestore.com/)
+ * @license     http://www.magestore.com/license-agreement.html
+ */
+/**
+ * Inventorysupplyneeds Adminhtml Controller
+ * 
+ * @category    Magestore
+ * @package     Magestore_Inventorysupplyneeds
+ * @author      Magestore Developer
+ */
+?>
+<script type="text/javascript">
+    var impSerializerController = Class.create();
+    impSerializerController.prototype = {
+        initialize: function (gridId, autoUpdateClass, updateUrl) {
+            this.gridId = gridId;
+            this.autoUpdateClass = autoUpdateClass;
+            this.updateUrl = updateUrl;
+            this.changedElement = null;
+            this.setObserver();
+        },
+        setObserver: function () {
+            var elements = $$('#' + this.gridId + ' .' + this.autoUpdateClass);
+            for (var i = 0; i < elements.length; i++) {
+                Event.observe(elements[i], 'change', this.inputChange.bind(this));
+            }
+        },
+        inputChange: function (event) {
+            var element = Event.element(event);
+            var url = this.updateUrl + 'field/' + element.name + '/value/' + element.value;
+            new Ajax.Request(url, {
+                onCreate: function (request) {
+                    Ajax.Responders.unregister(varienLoaderHandler.handler);
+                },
+                onSuccess: function (response) {
+                    if (element.hasClassName('warehouse-qty')) {
+                        var productId = element.readAttribute('product_id');
+                        var responseData = JSON.parse(response.responseText);
+                        if (responseData.purchase_more != null) {
+                            $('purchase_more[' + productId + ']').value = responseData.purchase_more;
+                        }
+                    }
+                },
+                onComplete: function (response) {
+                    Ajax.Responders.register(varienLoaderHandler.handler);
+                }
+            });
+        }
+    }
+
+    var drafPOClass = Class.create();
+    drafPOClass.prototype = {
+        initialize: function (elementId, addProductUrl) {
+            this.productSKUInputId = elementId;
+            this.addProductUrl = addProductUrl;
+        },
+        addProductToDraftPO: function () {
+            var sku = $(this.productSKUInputId).value;
+            if (sku != '') {
+                var actionUrl = this.addProductUrl + 'sku/' + sku;
+                location.href = actionUrl;
+            } else {
+                $(this.productSKUInputId).style = 'border:1px solid #ff0000 !important; color:#ff0000;';
+                $(this.productSKUInputId).placeholder = '<?php echo $this->__('Require Product Sku') ?>';
+            }
+        }
+    }
+</script>
+
+<div class="content-header">
+    <h3 class="icon-head head-system-email-template"><?php echo $this->getHeaderText() ?></h3>
+    <p class="content-buttons form-buttons">
+        <?php echo $this->getBackButtonHtml(); ?>
+        <?php echo $this->getDeleteButtonHtml(); ?>
+        <?php echo $this->getCreateButtonHtml(); ?>
+    </p>
+</div>
+<form action="<?php echo $this->getSaveUrl() ?>" method="post" id="draff_purchase_order_edit_form">
+    <?php echo $this->getBlockHtml('formkey') ?>
+        <div class="mass-action left">
+            <a href="<?php echo $this->getMassChangeSupplierUrl(2) ?>"><?php echo $this->__('Mass choose last purchase Supplier') ?></a>&nbsp;&nbsp;&nbsp;
+            <a href="<?php echo $this->getMassChangeSupplierUrl(1) ?>"><?php echo $this->__('Mass choose lowest cost Supplier') ?></a>
+        </div>
+        <div class="product-search right">
+            <input type="text" class="input-text" size="30" name="po_product_sku" id="po_product_sku" placeholder="<?php echo $this->__('Product SKU') ?>"/>
+            <?php echo $this->getAddProductButtonHtml() ?>
+        </div>
+        <div class="clear fix"></div>
+        <?php $gridHtml = $this->getChildHtml('adminhtml_draftpo_grid'); ?>
+        <?php echo $gridHtml ?>
+    <?php echo $this->getChildHtml('related_grid_serializer') ?>
+</form>
+<script type="text/javascript">
+    var editForm = new varienForm('draff_purchase_order_edit_form', '');
+    var drafPOObject = new drafPOClass('po_product_sku', '<?php echo $this->getAddProductUrl() ?>');
+</script>

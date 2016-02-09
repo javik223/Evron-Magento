@@ -1,0 +1,50 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Magestore
+ * 
+ * NOTICE OF LICENSE
+ * 
+ * This source file is subject to the Magestore.com license that is
+ * available through the world-wide-web at this URL:
+ * http://www.magestore.com/license-agreement.html
+ * 
+ * DISCLAIMER
+ * 
+ * Do not edit or add to this file if you wish to upgrade this extension to newer
+ * version in the future.
+ * 
+ * @category    Magestore
+ * @package     Magestore_Inventory
+ * @copyright   Copyright (c) 2012 Magestore (http://www.magestore.com/)
+ * @license     http://www.magestore.com/license-agreement.html
+ */
+-->
+<layout version="0.1.0">
+    <adminhtml_inwe_warehouse_webpospermissions>
+        <block type="core/text_list" name="root">
+            <block type="inventorywebpos/adminhtml_warehouse_edit_tab_webpos_permission" name="warehouse.edit.tab.webpos.permission"/>
+            <block type="adminhtml/widget_grid_serializer" name="webpos_permission_grid_serializer">
+                <reference name="webpos_permission_grid_serializer">
+                    <action method="initSerializerBlock">
+                        <grid_block_name>warehouse.edit.tab.webpos.permission</grid_block_name>
+                        <data_callback>getSelectedWebposUsers</data_callback>
+                        <hidden_input_name>selected_user</hidden_input_name>
+                        <reload_param_name>selected_user</reload_param_name>
+                    </action>
+                    <!--
+                    <action method="addColumnInputName">
+                        <input_name>can_create_shipment</input_name>
+                    </action>
+                    -->
+                </reference>
+            </block>
+        </block>
+    </adminhtml_inwe_warehouse_webpospermissions>
+
+    <adminhtml_inwe_warehouse_webpospermissionsgrid>
+        <block type="core/text_list" name="root">
+            <block type="inventorywebpos/adminhtml_warehouse_edit_tab_webpos_permission" name="warehouse.edit.tab.webpos.permission"/>
+        </block>
+    </adminhtml_inwe_warehouse_webpospermissionsgrid>
+</layout>

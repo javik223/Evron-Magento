@@ -1,0 +1,3371 @@
+<?php
+$isSecure = Mage::app()->getStore()->isCurrentlySecure();
+
+$wpSession = Mage::getSingleton('webpos/session');
+$wpUser = $wpSession->getUser();
+if ($wpUser->getStatus() == 2) {
+    $wpSession->setId(null);
+    $wpUser->setId(null);
+    $wpSession->setErrorMessage(Mage::helper('webpos')->__('Your account was disabled.'));
+}
+$storeId = Mage::app()->getStore()->getStoreId();
+$rootCatId = Mage::app()->getStore()->getRootCategoryId();
+$showOutofstock = Mage::getStoreConfig('webpos/general/show_product_outofstock', $storeId);
+
+$productCollection = Mage::getModel('catalog/product')->getCollection();
+$productCollection->addAttributeToSelect('*');
+$productCollection->setStoreId($storeId);
+$productCollection->addStoreFilter($storeId);
+$productCollection->addFieldToFilter("status", 1);
+Mage::getSingleton('catalog/product_status')->addSaleableFilterToCollection($productCollection);
+Mage::getSingleton('catalog/product_visibility')->addVisibleInSiteFilterToCollection($productCollection);
+Mage::dispatchEvent('webpos_block_listproduct_event', array('pos_get_product_colection' => $productCollection));
+$totalsProduct = $productCollection->getSize();
+
+$customerCollection = Mage::getModel('customer/customer')->getCollection();
+$totalsCustomer = $customerCollection->getSize();
+$useIndexedDB = (($totalsProduct >= 800 && $totalsCustomer >= 1200) || $totalsProduct >= 1200 || $totalsCustomer >= 1200) ? 'true' : 'false';
+?>
+<script type='text/javascript'>
+    document.addEventListener("DOMContentLoaded", function (event) {
+        var productListHeight = $D(window).height() - 105;
+        $D('#content').css({height: productListHeight + 'px'});
+
+        Event.observe(window, 'resize', function () {
+            resizeArea();
+        });
+        $D(window).on("orientationchange", function (event) {
+            resizeArea();
+        });
+
+        if (localStorage.getItem('is_switch') == 'true') {
+            reloadListProduct('category', '<?php echo $rootCatId; ?>', 'All Categories');  //reload product after switch store   
+            localStorage.setItem('is_switch', 'false');
+        }
+        /*
+         if(typeof webposDB != 'undefined'){
+         webposDB.updateNumberSavedProduct();
+         webposDB.updateNumberSavedCustomer();
+         number_product_saved =  localGet('number_product_saved');
+         number_customer_saved =  localGet('number_customer_saved');
+         }*/
+
+        loadProductImage();
+        fillDataFromLocal();
+        isOffline();
+        localDelete('products_results');
+        localDelete('customers_results');
+        localDelete('maxKeyCustomer');
+        localSet('loading', 'false');
+        checkNetworkInterval();
+
+        if (useLocalSearch == true) {
+            updateTotalProduct();
+            if ($('productPager'))
+                $('productPager').hide();
+        }
+        if ($('number_order_pending'))
+            $('number_order_pending').innerHTML = parseInt(number_pending_order);
+        if ($D('#shipping_area .panel-heading')) {
+            if ($D('#shipping_area .panel-body'))
+                $D('#shipping_area .panel-body').hide();
+        }
+<?php
+if ($wpUser->getId()):
+    ?>
+            currentUserId = '<?php echo $wpUser->getId(); ?>';
+            if (localGet('productlist') == null)
+                reloadListProduct('firstTime', '<?php echo $rootCatId; ?>', "<?php echo $this->__('All Categories'); ?>");
+            else {
+                if ($('product_content')) {
+                    $('product_content').update(localGet('productlist'));
+                    loadProductImage();
+                }
+                if (typeof webposDB != 'undefined') {
+                    if ((localGet('number_product_saved') == null || localGet('number_customer_saved') == null) && (enableOffline == true && useLocalSearch == true)) {
+                        showStatus(0, 0, 'firstTime');
+                        checkStockFirstTime = false;
+                        loadProductToLocal();
+                    }
+                } else
+                if ((localGet('customersInfo') == null || localGet('productsInfo') == null) && (enableOffline == true && useLocalSearch == true)) {
+                    showStatus(0, 0, 'firstTime');
+                    checkStockFirstTime = false;
+                    loadProductToLocal();
+                }
+            }
+<?php endif; ?>
+
+        Event.observe(document, 'click', function (event) {
+            var element = Event.element(event).up('#popup-customer');
+            if (typeof element == "undefined" && event.target.getAttribute('id') != 'add-customer') {
+                $D('#popup-customer').animate({top: '-100vh', left: $D('#popup-customer').offset().left + 'px'}, 500);
+                $D('.add-customer').removeClass('active');
+            }
+        });
+
+        checkStockInterval();
+
+    });
+    var defaultCustomerConfig = {};
+<?php
+$price_includes_tax = Mage::getStoreConfig('tax/calculation/price_includes_tax');
+$offlineConfig = Mage::helper('webpos')->getOfflineConfig();
+$defaultCustomerConfig = Mage::helper('webpos/customer')->getAllDefaultCustomerInfo();
+if (count($defaultCustomerConfig) > 0)
+    foreach ($defaultCustomerConfig as $key => $value):
+        ?>
+            defaultCustomerConfig['<?php echo $key ?>'] = '<?php echo $value ?>';
+    <?php endforeach; ?>
+    var price_includes_tax = '<?php echo $price_includes_tax; ?>';
+    var show_outofstock = '<?php echo $showOutofstock; ?>';
+    var currentUserId = '<?php echo ($wpUser->getId()) ? $wpUser->getId() : ''; ?>';
+    var enableOffline = '<?php echo $offlineConfig['enable']; ?>';
+    var networkCheckInterval = '<?php echo $offlineConfig['network_check_interval']; ?>';
+    var dataLoadInterval = '<?php echo $offlineConfig['data_load_interval']; ?>';
+    var productPerRequest = '<?php echo $offlineConfig['product_per_request']; ?>';
+    var customerPerRequest = '<?php echo $offlineConfig['customer_per_request']; ?>';
+    var useLocalSearch = '<?php echo $offlineConfig['search_offline']; ?>';
+    var check_stock_interval = '<?php echo $offlineConfig['check_stock_interval']; ?>';
+    var checkingNetwork = false;
+    var checkingStock = false;
+    var offlineManual = false;
+    var hasAnotherRequest = false;
+    var reloading_data = false;
+    var finishLoad = true;
+    var checkStockFirstTime = true;
+    var number_product_saved = getNumberProductSaved();
+    var number_customer_saved = getNumberCustomerSaved();
+    var number_pending_order = getNumberPendingOrders();
+    var custom_options = [];
+<?php if ($useIndexedDB == 'true'): ?>
+        var webposDB = new DanielLocalDB.indexedDB();
+        webposDB.updateNumberSavedProduct();
+        webposDB.updateNumberSavedCustomer();
+        number_product_saved = (typeof localGet('number_product_saved') != 'undefined') ? localGet('number_product_saved') : 0;
+        number_customer_saved = (typeof localGet('number_customer_saved') != 'undefined') ? localGet('number_customer_saved') : 0;
+<?php endif; ?>
+
+    var reloadListProductUrl = '<?php echo $this->getUrl('*/product/reloadProductList', array('_forced_secure' => $this->getRequest()->isSecure())) ?>';
+    var savecartUrl = '<?php echo $this->getUrl('*/product/savecart', array('_forced_secure' => $this->getRequest()->isSecure())) ?>';
+    var deleteProductUrl = '<?php echo $this->getUrl('*/product/deleteProduct', array('_forced_secure' => $this->getRequest()->isSecure())) ?>';
+    var deleteItemUrl = '<?php echo $this->getUrl('*/product/deleteItem', array('_forced_secure' => $this->getRequest()->isSecure())) ?>';
+    var save_data_url = '<?php echo $this->getUrl('*/payment/saveData', array('_forced_secure' => $this->getRequest()->isSecure())) ?>';
+    var empty_cart_url = '<?php echo $this->getUrl('*/order/emptyCart', array('_forced_secure' => $this->getRequest()->isSecure())) ?>';
+    var place_order_url = '<?php echo $this->getUrl('*/order/saveOrder', array('_forced_secure' => $this->getRequest()->isSecure())) ?>';
+    var currencyCode = '<?php echo Mage::app()->getLocale()->currency(Mage::app()->getStore()->getCurrentCurrencyCode())->getSymbol(); ?>';
+    priceFormat = <?php echo json_encode(Mage::app()->getLocale()->getJsPriceFormat()); ?>;
+    var viewOrderUrl = '<?php echo $this->getUrl('webpos/order/viewOrder', array('_forced_secure' => $this->getRequest()->isSecure())) ?>';
+    var reloadOrderlistUrl = '<?php echo $this->getUrl('webpos/order/orderlistSearch', array('_forced_secure' => $this->getRequest()->isSecure())) ?>';
+    var printOrderUrl = '<?php echo $this->getUrl('webpos/order/print', array('_forced_secure' => $this->getRequest()->isSecure())); ?>';
+    var cancelOrderUrl = '<?php echo $this->getUrl('webpos/order/cancelOrder', array('_forced_secure' => $this->getRequest()->isSecure())); ?>';
+    var refundOrderUrl = '<?php echo $this->getUrl('webpos/order/refundOrder', array('_forced_secure' => $this->getRequest()->isSecure())); ?>';
+    var apply_order_options_url = '<?php echo $this->getUrl('webpos/order/saveDataAftersave', array('_forced_secure' => $this->getRequest()->isSecure())); ?>';
+    var load_products_url = '<?php echo $this->getUrl('webpos/product/load', array('_forced_secure' => $this->getRequest()->isSecure())); ?>';
+    var loginUrl = '<?php echo $this->getUrl('webpos/index/loginPost', array('_forced_secure' => $this->getRequest()->isSecure())); ?>';
+    var setDefaultUrl = '<?php echo $this->getUrl('webpos/order/setDefault', array('_forced_secure' => $this->getRequest()->isSecure())); ?>';
+    currency_symbol = '<?php echo Mage::app()->getLocale()->currency(Mage::app()->getStore()->getCurrentCurrencyCode())->getSymbol(); ?>';
+    var saveOrderCommentUrl = '<?php echo $this->getUrl('webpos/order/saveOrderViewComment', array('_forced_secure' => $this->getRequest()->isSecure())) ?>';
+    var checkNetworkUrl = '<?php echo $this->getUrl('webpos/payment/checkNetwork', array('_forced_secure' => $this->getRequest()->isSecure())) ?>';
+    var savePendingOrdersUrl = '<?php echo $this->getUrl('webpos/order/savePendingOrders', array('_forced_secure' => $this->getRequest()->isSecure())) ?>';
+    var checkStockUrl = '<?php echo $this->getUrl('webpos/product/checkStock', array('_forced_secure' => $this->getRequest()->isSecure())) ?>';
+    var upload_file_url = '<?php echo $this->getUrl('webpos/product/uploadFile', array('_forced_secure' => $this->getRequest()->isSecure())) ?>';
+
+    var loading_data_type = 'product';
+    var saved_tax_calculation = 'false';
+    function checkNetworkInterval() {
+        if (networkCheckInterval == null || networkCheckInterval == 0 || enableOffline == false)
+            return;
+        setTimeout(function () {
+            if (checkingNetwork == false && hasAnotherRequest == false)
+                checkNetwork("<?php echo $this->__('Your network connection is not available! You are on offline now.'); ?>", "<?php echo $this->__('Your network connection is now back in online, you can enable online mode and save the pending orders!'); ?>");
+            checkNetworkInterval();
+        }, 1000 * networkCheckInterval);
+    }
+
+    function checkStockInterval() {
+        if (checkStockFirstTime == true && useLocalSearch == true) {
+            checkStockFirstTime = false;
+            checkOutOfStock();
+            checkStockInterval();
+            return;
+        }
+        if (check_stock_interval == null || check_stock_interval == 0 || useLocalSearch == false)
+            return;
+        setTimeout(function () {
+            if (checkingStock == false && hasAnotherRequest == false && reloading_data == false && finishLoad == true)
+                checkOutOfStock();
+            checkStockInterval();
+        }, 1000 * check_stock_interval);
+    }
+
+    function changeOffline(el) {
+        if (el.value == 'off') {
+            /*if($('current_dis_wp')){
+             $('current_dis_wp').show();
+             var currentSubtotal = convertLongNumber(getStringPriceFromString($('webpos_subtotal_button').down('.price').innerHTML));
+             var currentDiscount = convertLongNumber(getStringPriceFromString($('all_discount_wp').down('.price').innerHTML));
+             $('webpos_subtotal_button').innerHTML = getPriceFormatedHtml(currentSubtotal + currentDiscount);
+             if($('grand_total_excl_webpos')){
+             var oldGrandEx = convertLongNumber(getStringPriceFromString($('grand_total_excl_webpos').down('.price').innerHTML));
+             $('grand_total_excl_webpos').innerHTML = getPriceFormatedHtml(oldGrandEx + currentDiscount);
+             }
+             if($('grand_total_incl_webpos')){
+             var oldGrandIncl = convertLongNumber(getStringPriceFromString($('grand_total_incl_webpos').down('.price').innerHTML));
+             $('grand_total_incl_webpos').innerHTML = getPriceFormatedHtml(oldGrandIncl + currentDiscount);
+             }
+             if($('grand_total_webpos')){
+             var oldGrandIncl = convertLongNumber(getStringPriceFromString($('grand_total_webpos').down('.price').innerHTML));
+             $('grand_total_webpos').innerHTML = getPriceFormatedHtml(oldGrandIncl + currentDiscount);
+             }
+             if($('bt_checkout'))
+             $('bt_checkout').addClassName('need-update');
+             }*/
+            offlineManual = false;
+            $('mode_status').addClassName('nowonline');
+            $('mode_status').removeClassName('nowoffline');
+            $('mode_status').value = 'on';
+            $('mode_status').innerHTML = "<?php echo $this->__('Online'); ?>";
+            if ($('productPager'))
+                $('productPager').show();
+            showToastMessage('info', 'Message', "<?php echo $this->__('You are now online'); ?>");
+            //remove recent and popular when offline
+            if ($D('.specialCate')) {
+                $D('.specialCate').removeClass('hide');
+            }
+        } else {
+            /*if($('current_dis_wp')){
+             $('current_dis_wp').hide();
+             var currentSubtotal = convertLongNumber(getStringPriceFromString($('webpos_subtotal_button').down('.price').innerHTML));
+             var currentDiscount = convertLongNumber(getStringPriceFromString($('all_discount_wp').down('.price').innerHTML));
+             $('webpos_subtotal_button').innerHTML = getPriceFormatedHtml(currentSubtotal - currentDiscount);
+             if($('grand_total_excl_webpos')){
+             var oldGrandEx = convertLongNumber(getStringPriceFromString($('grand_total_excl_webpos').down('.price').innerHTML));
+             $('grand_total_excl_webpos').innerHTML = getPriceFormatedHtml(oldGrandEx - currentDiscount);
+             }
+             if($('grand_total_incl_webpos')){
+             var oldGrandIncl = convertLongNumber(getStringPriceFromString($('grand_total_incl_webpos').down('.price').innerHTML));
+             $('grand_total_incl_webpos').innerHTML = getPriceFormatedHtml(oldGrandIncl - currentDiscount);
+             }
+             if($('grand_total_webpos')){
+             var oldGrandIncl = convertLongNumber(getStringPriceFromString($('grand_total_webpos').down('.price').innerHTML));
+             $('grand_total_webpos').innerHTML = getPriceFormatedHtml(oldGrandIncl - currentDiscount);
+             }
+             if($('bt_checkout'))
+             $('bt_checkout').addClassName('need-update');
+             }
+             */
+            if (enableOffline == false) {
+                showToastMessage('danger', 'Message', "<?php echo $this->__('Offline mode is not enabled'); ?>");
+                return;
+            }
+            offlineManual = true;
+            $('mode_status').addClassName('nowoffline');
+            $('mode_status').removeClassName('nowonline');
+            $('mode_status').value = 'off';
+            $('mode_status').innerHTML = "<?php echo $this->__('Offline'); ?>";
+            if (useLocalSearch == true)
+                searchProductByCategory(0);
+            if ($('productPager'))
+                $('productPager').hide();
+            showToastMessage('info', 'Message', "<?php echo $this->__('You are now offline'); ?>");
+            //remove recent and popular when offline
+            if ($D('.specialCate')) {
+                $D('.specialCate').addClass('hide');
+            }
+            showHoldButton();
+        }
+    }
+
+    function gotoOffline(errorMessage) {
+        hideOrderlistAjaxloader();
+        hideOrderDetailAjaxloader();
+        hideColrightAjaxloader();
+        hideCheckoutAjaxloader();
+        hideColleftAjaxloader();
+        showToastMessage('warning', 'Message', errorMessage);
+        $('mode_status').addClassName('nowoffline');
+        $('mode_status').removeClassName('nowonline');
+        $('mode_status').value = 'off';
+        $('mode_status').innerHTML = "<?php echo $this->__('Offline'); ?>";
+        searchProductByCategory(0);
+        if ($('productPager'))
+            $('productPager').hide();
+        showToastMessage('info', 'Message', "<?php echo $this->__('You are now offline'); ?>");
+    }
+
+    function gotoOnline() {
+        $('mode_status').addClassName('nowonline');
+        $('mode_status').removeClassName('nowoffline');
+        $('mode_status').value = 'on';
+        $('mode_status').innerHTML = "<?php echo $this->__('Online'); ?>";
+        if ($('productPager'))
+            $('productPager').show();
+        showToastMessage('info', 'Message', "<?php echo $this->__('You are now online'); ?>");
+    }
+
+    function reloadListProduct(type, categoryId, categoryName) {
+        $D('#category_area button').removeClass('active');
+        $('category_dropdown').setAttribute('selectedcategory', categoryId);
+        $('categories_list').addClassName('hide');
+        $('categories_list').removeClassName('show');
+        $('webpos_overlay').hide();
+        if (type != 'recent' && type != 'popular' && type != 'firstTime') {
+            if (isOffline() == true || useLocalSearch == true) {
+                if ($('productPager'))
+                    $('productPager').hide();
+                if ($('label_category'))
+                    $('label_category').innerHTML = categoryName;
+                searchProductByCategory(categoryId);
+                return;
+            } else {
+                if ($('productPager'))
+                    $('productPager').show();
+            }
+        }
+        var keyword = $('product_search_keyword').value;
+        var parameters = {type: type, keyword: keyword};
+        if (type == 'category') {
+            var parameters = {categoryId: categoryId, keyword: keyword};
+            if ($('label_category'))
+                $('label_category').innerHTML = categoryName;
+        }
+        if (type == 'recent' || type == 'popular') {
+            if ($('label_category'))
+                $('label_category').innerHTML = categoryName;
+        }
+
+        hasAnotherRequest = true;
+        showColleftAjaxloader();
+        /*add paramater*/
+        parameters["current_currency"] = "<?php echo Mage::app()->getStore()->getCurrentCurrencyCode(); ?>";
+        parameters["store_id"] = "<?php echo Mage::app()->getStore()->getId(); ?>";
+        var request = new Ajax.Request(reloadListProductUrl, {
+            method: 'get',
+            parameters: parameters,
+            onSuccess: function (transport) {
+                if (transport.status == 200) {
+                    var response = getResponseText(transport);
+                    if (response.productlist) {
+                        if ($('product_content')) {
+                            $('product_content').update(response.productlist);
+                            localSet('productlist', response.productlist);
+                            localSet('ccategoryId', categoryId);
+                        }
+                    }
+                    if (response.strNumberProduct) {
+                        if ($('numberProduct')) {
+                            $('numberProduct').update(response.strNumberProduct);
+                        }
+                    }
+                    if (response.numberProduct <= 16) {
+                        $D('#productPager .pager').fadeOut();
+                    } else {
+                        $D('#productPager .pager').fadeIn();
+                    }
+                    /*
+                     vietdq fix pagination
+                     */
+                    var numberProduct = response.numberProduct;
+                    var numberPage = Math.floor(numberProduct / 16) + 1;
+                    if (response.curPage == numberPage) {
+                        $D('#bt_next_product_page').fadeOut();
+                    } else {
+                        $D('#bt_next_product_page').fadeIn();
+                    }
+                    if (response.curPage == 1) {
+                        $D('#bt_previous_product_page').fadeOut();
+                    } else {
+                        $D('#bt_previous_product_page').fadeIn();
+                    }
+
+                    /*
+                     end viet dq
+                     */
+                }
+                hideColleftAjaxloader();
+                hasAnotherRequest = false;
+            },
+            onComplete: function () {
+                loadProductImage();
+                if (type == 'firstTime' && (enableOffline == true && useLocalSearch == true)) {
+                    showStatus(0, 0, 'firstTime');
+                    loadProductToLocal();
+                }
+            },
+            onFailure: function () {
+                hideColleftAjaxloader();
+                hasAnotherRequest = false;
+            }
+        });
+    }
+    ;
+
+
+
+    function addProductWidthOptions(productId, productPrice, imgPath) {
+        var itemId = '';
+        var cartitems = $$('#webpos_cart .product');
+        if (cartitems.length > 0) {
+            cartitems.each(function (el) {
+                if (el.getAttribute('prdid') == productId) {
+                    itemId = el.getAttribute('itemid');
+                    return false;
+                }
+            });
+        }
+        var isGrouped = isBundle = false;
+        var groupedData = bundleOptions = {};
+        var options = optionsValues = optionsLabels = '';
+        var error = false;
+        var editing = '';
+        var optionsIndex = 1;
+
+        var storeCreditOptions = $$('.storecredit_amount_' + productId);
+        if (storeCreditOptions.length > 0) {
+            storeCreditOptions.each(function (optionInput) {
+                var amount = optionInput.value;
+                if (itemId != '')
+                    saveStorecreditOption(itemId, amount);
+                else
+                    saveStorecreditOption(productId, amount);
+            });
+        }
+        var optionInputs = $$('.input_options_' + productId);
+        if (optionInputs.length > 0) {
+            optionInputs.each(function (optionInput) {
+                var optionId = optionInput.getAttribute('optionId');
+                var optionCode = optionInput.getAttribute('optionCode');
+                var optionLabel = optionInput.getAttribute('optionLabel');
+                if (optionInput.value != '') {
+                    options += (optionsIndex == optionInputs.length) ? optionId + '-' + optionInput.value : optionId + '-' + optionInput.value + '|';
+                    optionsValues += (optionsIndex == optionInputs.length) ? optionInput.value : optionInput.value + '_';
+                    optionsLabels += (optionsIndex == optionInputs.length) ? optionLabel : optionLabel + ', ';
+                    optionsIndex++;
+                    saveConfigurableOptions(productId, optionCode, optionInput.value, optionLabel);
+                } else {
+                    showProductOptions(productId, optionCode);
+                    error = true;
+                }
+            });
+            updateIdConfigurableOptions(productId, productId + '_' + optionsValues);
+        }
+        var customOptionInputs = $$('.' + productId + '_co_values');
+        if (customOptionInputs.length > 0) {
+            var bypassIds = [];
+            var checkboxChecked = [];
+            customOptionInputs.each(function (optionInput) {
+                var optionId = optionInput.getAttribute('optionid');
+                if (bypassIds.indexOf(optionId) < 0) {
+                    var type = optionInput.getAttribute('type');
+                    var required = (optionInput.hasClassName('option_required')) ? true : false;
+                    var type_date_time = (optionInput.hasClassName('type_date_time')) ? true : false;
+                    var type_date = (optionInput.hasClassName('type_date')) ? true : false;
+                    var type_time = (optionInput.hasClassName('type_time')) ? true : false;
+                    var type_file = (optionInput.hasClassName('file')) ? true : false;
+                    var optionValue = optionInput.value;
+                    if (optionInput.value != '') {
+                        if (type != '' && (type == 'checkbox' || type == 'radio')) {
+                            if (optionInput.checked) {
+                                var extraprice = optionInput.getAttribute('extraprice');
+                                if (extraprice != null && parseFloat(extraprice) > 0)
+                                    productPrice = parseFloat(productPrice) + parseFloat(extraprice);
+                                var valueSaved = getCustomOptionValue(productId, optionId);
+                                if (type == 'checkbox') {
+                                    var optionValueArr = [];
+                                    var savedValues = getCustomOptionValue(productId, optionId);
+                                    if (savedValues != null && savedValues != '') {
+                                        savedValues.push(optionValue);
+                                        optionValue = $D.unique(savedValues);
+                                    } else {
+                                        optionValueArr.push(optionValue);
+                                        optionValue = optionValueArr;
+                                    }
+                                    checkboxChecked.push(optionId);
+                                }
+                                if (itemId != '')
+                                    saveCustomOption(itemId, optionId, optionValue);
+                                saveCustomOption(productId, optionId, optionValue);
+                            } else if (required == true && type == 'radio' && checkboxChecked.indexOf(optionId) < 0) {
+                                customOptionInputs.each(function (rInput) {
+                                    var rOptionId = rInput.getAttribute('optionid');
+                                    var rtype = rInput.getAttribute('type');
+                                    var rvalue = rInput.value;
+                                    if (rtype == 'radio' && rInput.checked && rOptionId == optionId) {
+                                        checkboxChecked.push(rOptionId);
+                                        bypassIds.push(rOptionId);
+                                        if (itemId != '')
+                                            saveCustomOption(itemId, rOptionId, rvalue);
+                                        saveCustomOption(productId, optionId, rvalue);
+                                    }
+                                });
+                                if (checkboxChecked.indexOf(optionId) < 0) {
+                                    showProductOptions(productId, optionId);
+                                    error = true;
+                                }
+                            } else if (required == true && type == 'checkbox' && checkboxChecked.indexOf(optionId) < 0) {
+                                customOptionInputs.each(function (cbInput) {
+                                    var cbOptionId = cbInput.getAttribute('optionid');
+                                    var cbtype = cbInput.getAttribute('type');
+                                    var cbvalue = cbInput.value;
+                                    if (cbtype == 'checkbox' && cbInput.checked) {
+                                        checkboxChecked.push(cbOptionId);
+                                        bypassIds.push(cbOptionId);
+                                        var optionValueArr = [];
+                                        var savedValues = getCustomOptionValue(productId, cbOptionId);
+                                        if (savedValues != null && savedValues != '') {
+                                            savedValues.push(cbvalue);
+                                            cbvalue = $D.unique(savedValues);
+                                        } else {
+                                            optionValueArr.push(cbvalue);
+                                            cbvalue = optionValueArr;
+                                        }
+                                        if (itemId != '')
+                                            saveCustomOption(itemId, cbOptionId, cbvalue);
+                                        saveCustomOption(productId, optionId, cbvalue);
+                                    } else if (cbtype == 'checkbox' && cbInput.checked == false) {
+                                        var optionValueArr = [];
+                                        var savedValues = getCustomOptionValue(productId, cbOptionId);
+                                        if (savedValues != null && savedValues != '') {
+                                            savedValues.pop(cbvalue);
+                                            cbvalue = $D.unique(savedValues);
+                                            if (itemId != '')
+                                                saveCustomOption(itemId, cbOptionId, cbvalue);
+                                            saveCustomOption(productId, cbOptionId, cbvalue);
+                                        }
+                                    }
+                                });
+                                if (checkboxChecked.indexOf(optionId) < 0) {
+                                    showProductOptions(productId, optionId);
+                                    error = true;
+                                }
+                            }
+
+                        } else if (type_date_time) {
+                            var extraprice = optionInput.getAttribute('extraprice');
+                            if (extraprice != null && parseFloat(extraprice) > 0)
+                                productPrice = parseFloat(productPrice) + parseFloat(extraprice);
+
+                            bypassIds.push(optionId);
+                            var year = $(productId + '_co_' + optionId + '_value_year').value;
+                            var month = $(productId + '_co_' + optionId + '_value_month').value;
+                            var day = $(productId + '_co_' + optionId + '_value_day').value;
+                            var hour = $(productId + '_co_' + optionId + '_value_hour').value;
+                            var minute = $(productId + '_co_' + optionId + '_value_minute').value;
+                            var daypart = $(productId + '_co_' + optionId + '_value_day_part').value;
+                            optionValue = {};
+                            optionValue['year'] = year;
+                            optionValue['month'] = month;
+                            optionValue['day'] = day;
+                            optionValue['hour'] = hour;
+                            optionValue['minute'] = minute;
+                            optionValue['day_part'] = daypart;
+                            if (year != '' && month != '' && day != '' && hour != '' && minute != '') {
+                                if (itemId != '')
+                                    saveCustomOption(itemId, optionId, optionValue);
+                                saveCustomOption(productId, optionId, optionValue);
+                            }
+
+                        } else if (type_date) {
+                            var extraprice = optionInput.getAttribute('extraprice');
+                            if (extraprice != null && parseFloat(extraprice) > 0)
+                                productPrice = parseFloat(productPrice) + parseFloat(extraprice);
+
+                            bypassIds.push(optionId);
+                            var year = $(productId + '_co_' + optionId + '_value_year').value;
+                            var month = $(productId + '_co_' + optionId + '_value_month').value;
+                            var day = $(productId + '_co_' + optionId + '_value_day').value;
+                            optionValue = {};
+                            optionValue['year'] = year;
+                            optionValue['month'] = month;
+                            optionValue['day'] = day;
+                            if (year != '' && month != '' && day != '') {
+                                if (itemId != '')
+                                    saveCustomOption(itemId, optionId, optionValue);
+                                saveCustomOption(productId, optionId, optionValue);
+                            }
+                        } else if (type_time) {
+                            var extraprice = optionInput.getAttribute('extraprice');
+                            if (extraprice != null && parseFloat(extraprice) > 0)
+                                productPrice = parseFloat(productPrice) + parseFloat(extraprice);
+
+                            bypassIds.push(optionId);
+                            var hour = $(productId + '_co_' + optionId + '_value_hour').value;
+                            var minute = $(productId + '_co_' + optionId + '_value_minute').value;
+                            var daypart = $(productId + '_co_' + optionId + '_value_day_part').value;
+                            optionValue = {};
+                            optionValue['hour'] = hour;
+                            optionValue['minute'] = minute;
+                            optionValue['day_part'] = daypart;
+                            if (hour != '' && minute != '') {
+                                if (itemId != '')
+                                    saveCustomOption(itemId, optionId, optionValue);
+                                saveCustomOption(productId, optionId, optionValue);
+                            }
+
+                        } else if (optionInput.getAttribute('multiple') == 'multiple') {
+                            optionValue = [];
+                            for (var i = 0; i < optionInput.options.length; i++) {
+                                if (optionInput.options[i].selected == true) {
+                                    optionValue.push(optionInput.options[i].value);
+                                    var extraprice = optionInput.options[i].getAttribute('extraprice');
+                                    if (extraprice != null && parseFloat(extraprice) > 0)
+                                        productPrice = parseFloat(productPrice) + parseFloat(extraprice);
+
+                                }
+                            }
+                            if (itemId != '')
+                                saveCustomOption(itemId, optionId, optionValue);
+                            saveCustomOption(productId, optionId, optionValue);
+                        } else if (type_file) {
+                            var inputId = optionInput.getAttribute('id');
+                            var formId = inputId + '_form';
+                            var fileAction = 'save_new';
+                            var fileData = fileName = '';
+                            if ($(inputId + '_file_action'))
+                                fileAction = $(inputId + '_file_action').value;
+                            if ($D('#' + inputId))
+                                fileData = $D('#' + inputId).prop('files');
+                            if (fileData[0] != null) {
+                                fileName = fileData[0].name;
+                                uploadFile(formId);
+                            }
+                            optionValue = fileName;
+                            var extraprice = optionInput.getAttribute('extraprice');
+                            if (extraprice != null && parseFloat(extraprice) > 0)
+                                productPrice = parseFloat(productPrice) + parseFloat(extraprice);
+                            if (itemId != '')
+                                saveCustomOption(itemId, optionId, optionValue);
+                            saveCustomOption(productId, optionId, optionValue);
+                        } else {
+                            var extraprice = optionInput.getAttribute('extraprice');
+                            if (extraprice != null && parseFloat(extraprice) > 0)
+                                productPrice = parseFloat(productPrice) + parseFloat(extraprice);
+                            if (itemId != '')
+                                saveCustomOption(itemId, optionId, optionValue);
+                            saveCustomOption(productId, optionId, optionValue);
+                            if (optionInput.hasClassName('select')) {
+                                for (var i = 0; i < optionInput.options.length; i++) {
+                                    if (optionInput.options[i].selected == true) {
+                                        var extraprice = optionInput.options[i].getAttribute('extraprice');
+                                        if (extraprice != null && parseFloat(extraprice) > 0)
+                                            productPrice = parseFloat(productPrice) + parseFloat(extraprice);
+                                    }
+                                }
+                            }
+                        }
+
+                    } else if (required == true) {
+                        showProductOptions(productId, optionId);
+                        error = true;
+                    }
+                }
+            });
+        }
+        var groupedQty = $$('.' + productId + '_grouped_childs_qty');
+        if (groupedQty.length > 0) {
+            error = true;
+            isGrouped = true;
+            groupedQty.each(function (qtyInput) {
+                var childid = qtyInput.getAttribute('childid');
+                var qty = qtyInput.value;
+                if (qty != 0) {
+                    groupedData[childid] = qty;
+                    error = false
+                }
+            });
+            if (error)
+                showToastMessage('danger', 'Error', 'Please specify the quantity of product(s)');
+        }
+        var bundleValues = $$('.' + productId + '_bundle_values')
+        if (bundleValues.length > 0) {
+            isBundle = true;
+            bundleOptions = getBundleSelectedOptions(productId);
+            var bundleOptionsValue = bundleOptions.bundleOptions;
+            var bundleOptionsQty = bundleOptions.bundleOptionsQty;
+            bundleValues.each(function (el) {
+                var optionId = el.getAttribute('optionid');
+                if (bundleOptionsValue[optionId] != null) {
+                    saveBundleOption(productId, optionId, bundleOptionsValue[optionId])
+                    saveBundleOptionQty(productId, optionId, bundleOptionsQty[optionId])
+                } else {
+                    if (el.hasClassName('option_required')) {
+                        showProductOptions(productId, optionId);
+                        error = true;
+                    }
+                }
+            });
+
+        }
+        if (!error) {
+            if ($D('#' + productId + '_options_popup')) {
+                $D('#' + productId + '_options_popup').fadeOut();
+                $D('#' + productId + '_options_popup').addClass('hide');
+            }
+            if ($D('#' + productId + '_options_popup').hasClass('editing')) {
+                editing = 'yes';
+                var cart_item_id = $D('#' + productId + '_options_popup').getAttribute('cart_item');
+                var custom_option_index = $(cart_item_id).getAttribute('custom_option_index');
+                var savedCustomOptions = getCustomOption(productId);
+                saveWebposNewCustomOption(productId, savedCustomOptions, custom_option_index);
+            } else {
+                var savedCustomOptions = getCustomOption(productId);
+                saveWebposNewCustomOption(productId, savedCustomOptions, $$('.prd_' + productId).length + 1);
+                var index = $$('.prd_' + productId).length + 1;
+                optionsValues += '_index_' + index;
+            }
+            if ($D('#edit_cart_item_popup'))
+                $D('#edit_cart_item_popup').fadeOut();
+            if ($('webpos_overlay'))
+                $('webpos_overlay').hide();
+
+            var tax_amount = $('prd_' + productId).getAttribute('tax_amount');
+            if (tax_amount == null || tax_amount < 0 || tax_amount == '')
+                tax_amount = 0;
+            if (isGrouped == true)
+                addToCartByJs(groupedData, tax_amount, productPrice, imgPath, options, optionsValues, optionsLabels, editing);
+            else {
+                if ($('totals_price_' + productId))
+                    productPrice = convertLongNumber(getStringPriceFromString($('totals_price_' + productId).down('.price').innerHTML));
+                addToCartByJs(productId, tax_amount, productPrice, imgPath, options, optionsValues, optionsLabels, editing);
+            }
+        }
+    }
+    ;
+    /*Mr Jack*/
+    function numberWithCommas(price) {
+        price = price.toFixed(2).replace(/(\d)(?=(\d{3})+\.)/g, '$1,');
+        return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    }
+    /**/
+//var collectTotalJS = function () {
+//    var subTotal = 0;
+//    $D('.product .row_total .price').each(function () {
+//        var rowTotal = getPriceFromString(this.innerHTML);
+//        subTotal = subTotal + rowTotal;
+//    });
+//    $D('.product .row_total').each(function () {
+//        if ($D(this).children().length == 0) {
+//            var rowTotal = getPriceFromString(this.innerHTML);
+//            subTotal = subTotal + rowTotal;
+//        }
+//    });
+//    //
+//
+//    return subTotal.toFixed(2);
+//};
+//var collectGrandTotalJS = function () {
+//    var subTotal = 0;
+//    $D('.product .row_total .price').each(function () {
+//        var rowTotal = getPriceFromString(this.innerHTML);
+//        subTotal = subTotal + rowTotal;
+//    });
+//    $D('.product .row_total').each(function () {
+//        if ($D(this).children().length == 0) {
+//            var rowTotal = getPriceFromString(this.innerHTML);
+//            subTotal = subTotal + rowTotal;
+//        }
+//    });
+//    var discount = 0;
+//    if($('all_discount_wp'))
+//        discount = parseFloat($('all_discount_wp').down('.price').innerHTML);
+//    else
+//        discount = 0;
+//    subTotal=subTotal+discount;
+//    return subTotal.toFixed(2);
+//};
+    function addProduct(productId, productPrice, imgPath) {
+        var parameters = {productId: productId};
+        var hasOption = '0';
+        var tax_amount = '0';
+        if ($('prd_' + productId)) {
+            hasOption = $('prd_' + productId).getAttribute('hasoption');
+            tax_amount = $('prd_' + productId).getAttribute('tax_amount');
+        }
+        if (hasOption != '0') {
+            if ($('webpos_overlay'))
+                $('webpos_overlay').show();
+            if ($D('#prd_' + productId + ' .item'))
+                $D('#prd_' + productId + ' .item').addClass('activeitem');
+            var products = $$('.item');
+            if (products.length > 0) {
+                products.each(function (product) {
+                    var prdid = product.getAttribute('prdid');
+                    if (productId != prdid)
+                        product.removeClassName('activeitem');
+                });
+            }
+            if ($D('#' + productId + '_options_popup')) {
+                $D('#' + productId + '_options_popup').removeClass('hide');
+                $D('#' + productId + '_options_popup').fadeIn();
+                updateBundleTotalsPrice(productId);
+
+                /*Add by alan - customize show qty product*/
+
+                showAllProductQty(productId);
+
+                /*end Add by alan - customize show qty product*/
+            }
+            fillCustomData(productId);
+        } else {
+            addToCartByJs(productId, tax_amount, productPrice, imgPath, '', '', '', '');
+        }
+    }
+    ;
+
+    function saveCart() {
+        var needToUpdate = '';
+        var productElements = $$('#webpos_cart .needupdate');
+        var productInfo = [];
+        var offlineInfo = [];
+        var storecreditData = JSON.stringify(getAllStorecreditOption());
+        var options = JSON.stringify(getAllCustomOption());
+        var bundle_option = JSON.stringify(getAllBundleOption());
+        var bundle_option_qty = JSON.stringify(getAllBundleOptionQty());
+        var webposNewCustomOption = JSON.stringify(getWebposNewCustomOption());
+        var customPrice = [];
+        if (productElements.length > 0) {
+            productElements.each(function (productEl) {
+                var prd_options = productEl.getAttribute('options');
+                var prd_qty = productEl.getAttribute('qty');
+                var prd_id = productEl.getAttribute('prdId');
+                var itemid = productEl.getAttribute('itemid');
+                var custom_price = productEl.getAttribute('custom_price');
+                var discountAmount = productEl.getAttribute('discount-amount');
+                var discountType = productEl.getAttribute('discount-type');
+                var reduceType = productEl.getAttribute('reduce-type');
+                if (productEl.getAttribute('custom_option_index') != '' && productEl.getAttribute('custom_option_index') != null) {
+                    var index = productEl.getAttribute('custom_option_index');
+                    if (index != null) {
+                        prd_options += '_index_' + index.replace('prd_', '');
+                    }
+                }
+                if (!itemid) {
+                    if (custom_price)
+                        customPrice.push(prd_id + '|' + custom_price + '|' + discountAmount + '|' + reduceType + '|' + discountType);
+                }
+                if (itemid)
+                    productInfo.push(itemid + '$s$' + prd_qty + '$s$' + prd_options);
+                else
+                    productInfo.push(prd_id + '$s$' + prd_qty + '$s$' + prd_options);
+                offlineInfo.push(prd_id + '$s$' + prd_qty + '$s$' + prd_options);
+            });
+
+            var offlineCart = {
+                webposNewCustomOption: webposNewCustomOption,
+                storecreditData: storecreditData,
+                needtoUpdate: needToUpdate,
+                productInfo: offlineInfo.toString(),
+                options: options,
+                bundle_option: bundle_option,
+                bundle_option_qty: bundle_option_qty,
+                customPrice: customPrice.toString()
+            }
+            var parameters = {
+                webposNewCustomOption: webposNewCustomOption,
+                storecreditData: storecreditData,
+                needtoUpdate: needToUpdate,
+                productInfo: productInfo.toString(),
+                options: options,
+                bundle_option: bundle_option,
+                bundle_option_qty: bundle_option_qty,
+                customPrice: customPrice.toString()
+            };
+            localSet('webpos_cart_data', offlineCart);
+            if (isOffline() == true) {
+                applyShippingPrice();
+                if ($('webpos_subtotal_button')) {
+                    var grandTotal = $('webpos_subtotal_button').innerHTML;
+                    if ($('grand_total_webpos'))
+                        $('grand_total_webpos').innerHTML = grandTotal;
+                    $('cashin_fullamount').innerHTML = grandTotal;
+                    if ($('remain_value_label'))
+                        $('remain_value_label').innerHTML = grandTotal;
+                    if ($('remain_value'))
+                        $('remain_value').innerHTML = grandTotal;
+                }
+                grandTotalAmount = convertLongNumber(getStringPriceFromString(grandTotal));
+
+                var intCashIn = parseInt(grandTotalAmount);
+                var strCashIn = intCashIn.toString();
+                var cashin = grandTotalAmount;
+                var stepAmount = 5;
+                var len = strCashIn.length;
+
+                if (len == 1 || len == 2) {
+                    stepAmount = 5;
+                } else {
+                    for (i = 0; i < len - 2; i++) {
+                        stepAmount = stepAmount + '0';
+                    }
+                }
+                stepAmount = parseInt(stepAmount);
+
+                if (Math.ceil(cashin) <= 0) {
+                    upgrandtotal = downgrandtotal = 0;
+                } else {
+                    if (Math.ceil(cashin) == intCashIn) {
+                        if (cashin % stepAmount == 0) {
+                            upgrandtotal = ((Math.ceil(cashin / stepAmount) + 1) * stepAmount);
+                            downgrandtotal = ((Math.ceil(cashin / stepAmount) - 1) * stepAmount);
+                            // downgrandtotal = upgrandtotal = intCashIn;
+                        } else {
+                            upgrandtotal = (Math.ceil(cashin / stepAmount) * stepAmount);
+
+                            downgrandtotal = ((Math.ceil(cashin / stepAmount) - 1) * stepAmount);
+                        }
+                    } else {
+                        upgrandtotal = (Math.ceil(cashin / stepAmount) * stepAmount);
+
+                        downgrandtotal = ((Math.ceil(cashin / stepAmount) - 1) * stepAmount);
+                    }
+                }
+
+                upgrandtotal = getPriceFormatedHtml(upgrandtotal);
+                downgrandtotal = getPriceFormatedHtml(downgrandtotal);
+
+                $('round_down_cashin').innerHTML = downgrandtotal;
+                $('round_up_cashin').innerHTML = upgrandtotal;
+                if ($('payment_method')) {
+                    $('payment_method').update(getPaymentHtml());
+                }
+                if ($('shipping_method')) {
+                    $('shipping_method').update(getShippingHtml());
+                    var shipping_title = getShippingTitle();
+                    if ($('shipping_area')) {
+                        $('shipping_area').down('.panel-heading').innerHTML = 'Shipping:    ' + shipping_title;
+                    }
+                }
+                if (!$D('#add-discount').hasClass('no-hide-category') && !$D('#customer-sale-btn').hasClass('no-hide-category'))
+                    hideCategory();
+                if ($('main_container') && $('main_container').hasClassName('hideCategory')) {
+                    $D('#webpos_cart_area').addClass('opacity8');
+                    $D('#webpos_cart_overlay').removeClass('hide');
+                }
+                $D('#add-discount').removeClass('no-hide-category');
+                $D('#customer-sale-btn').removeClass('no-hide-category');
+                canPlaceOrder();
+                if ($('bt_checkout')) {
+                    $('bt_checkout').removeClassName('need-update');
+                }
+                return;
+            }
+            hasAnotherRequest = true;
+            showColrightAjaxloader();
+            var request = new Ajax.Request(savecartUrl, {
+                method: 'post',
+                parameters: parameters,
+                onSuccess: function (transport) {
+
+                    if (transport.status == 200) {
+                        var response = JSON.parse(transport.responseText);
+
+                        if (response.grandTotal) {
+                            $('cashin_fullamount').innerHTML = response.grandTotal;
+                            if ($('remain_value_label'))
+                                $('remain_value_label').innerHTML = response.grandTotal;
+                            if ($('remain_value'))
+                                $('remain_value').innerHTML = response.grandTotal;
+                        }
+                        if (response.downgrandtotal)
+                            $('round_down_cashin').innerHTML = response.downgrandtotal;
+                        if (response.upgrandtotal)
+                            $('round_up_cashin').innerHTML = response.upgrandtotal;
+                        if (response.grand_total)
+                            $('webpos_subtotal_button').innerHTML = response.grand_total;
+                        if (response.payment_method && $('payment_method'))
+                            $('payment_method').update(response.payment_method);
+                        if (response.shipping_method && $('shipping_method'))
+                            $('shipping_method').update(response.shipping_method);
+                        if (response.pos_items && $('webpos_cart'))
+                            $('webpos_cart').update(response.pos_items);
+                        if (response.totals && $('pos_totals'))
+                            $('pos_totals').update(response.totals);
+                        if (response.number_item && $('total_number_item'))
+                            $('total_number_item').update(response.number_item);
+                        if (response.errorMessage && response.errorMessage != '') {
+                            showToastMessage('danger', 'Error', response.errorMessage);
+                        } else {
+                            var hold_after_save_cart = localGet('hold_after_save_cart');
+                            if (
+                                    !$D('#add-discount').hasClass('no-hide-category')
+                                    && !$D('#customer-sale-btn').hasClass('no-hide-category')
+                                    && !response.hasError
+                                    && hold_after_save_cart != 'true'
+                                    && !$('bt_checkout').hasClassName('noneed_checkout')
+                                    )
+                                hideCategory();
+                            $('bt_checkout').removeClassName('noneed_checkout')
+                        }
+                        //vietdq get itemid and save local custom price
+                        if (response.customItem) {
+                            var customItem = response.customItem;
+                            for (var key in customPrice) {
+                                var stringPrice = customPrice[key];
+                                var stringArray = stringPrice.split("|");
+                                var productId = stringArray[0];
+                                var discountAmount = stringArray[2];
+                                var reduceType = stringArray[3];
+                                var discountType = stringArray[4];
+                                var itemId = customItem[productId];
+                                var object = '{' + '"editPrice" :"' + discountType + '","reduceType"  :"' + reduceType + '","discountAmount"  :"' + discountAmount + '"}';
+                                saveCustomInfo(itemId, JSON.parse(object));
+                            }
+                        }
+                        //end vietdq
+
+
+                        if (response.hasError) {
+                            if ($('bt_checkout'))
+                                $('bt_checkout').addClassName('hasError');
+                            if ($D('#webpos_quote_message'))
+                                $D('#webpos_quote_message').slideDown();
+                        } else {
+                            if ($('bt_checkout'))
+                                $('bt_checkout').removeClassName('hasError');
+                            if ($D('#webpos_quote_message'))
+                                $D('#webpos_quote_message').slideUp();
+                        }
+
+                    }
+                    hasAnotherRequest = false;
+                },
+                onComplete: function () {
+                    if ($('main_container') && $('main_container').hasClassName('hideCategory')) {
+                        $D('#webpos_cart_area').addClass('opacity8');
+                        $D('#webpos_cart_overlay').removeClass('hide');
+                        if ($('add-discount'))
+                            $('add-discount').hide();
+                    }
+                    hideColrightAjaxloader();
+                    $D('#add-discount').removeClass('no-hide-category');
+                    $D('#customer-sale-btn').removeClass('no-hide-category');
+                    canPlaceOrder();
+                    if (typeof holded_order_section == 'object')
+                        holded_order_section.hideArea();
+
+                    var hold_after_save_cart = localGet('hold_after_save_cart');
+                    if (hold_after_save_cart == 'true') {
+                        localDelete('hold_after_save_cart');
+                        showBeforeHoldPopup();
+                    }
+                    calculateRemain();
+					if($('btn-apply') && $('bt_checkout').hasClassName('need_apply_discount')){
+						$('btn-apply').click();
+					}
+                },
+                onFailure: function () {
+                    hideColrightAjaxloader();
+                    hasAnotherRequest = false;
+                }
+            });
+        } else {
+            if (isOffline() == true) {
+                var productElements = $$('#webpos_cart .product')
+                if (productElements.length > 0) {
+                    productElements.each(function (productEl) {
+                        var prd_options = productEl.getAttribute('options');
+                        var prd_qty = productEl.getAttribute('qty');
+                        var prd_id = productEl.getAttribute('prdId');
+                        offlineInfo.push(prd_id + '$s$' + prd_qty + '$s$' + prd_options);
+                    });
+
+                    var offlineCart = {
+                        needtoUpdate: needToUpdate,
+                        productInfo: offlineInfo.toString(),
+                        options: options,
+                        bundle_option: bundle_option,
+                        bundle_option_qty: bundle_option_qty
+                    }
+                    localSet('webpos_cart_data', offlineCart);
+                }
+                var online_totals = $$('.online_totals');
+                if (online_totals.length > 0) {
+                    online_totals.each(function (total) {
+                        total.remove();
+                    });
+                }
+
+                if ($('webpos_cart_subtotals')) {
+                    var oldSubtotals = getStringPriceFromString($('webpos_cart_subtotals').down('.price').innerHTML);
+                    oldSubtotals = parseFloat(convertLongNumber(oldSubtotals));
+                    if ($('webpos_cart_tax'))
+                        tax_amount = parseFloat(convertLongNumber(getStringPriceFromString($('webpos_cart_tax').down('.price').innerHTML)));
+                    else
+                        tax_amount = 0;
+                    var shipping_amount = getShippingPrice();
+                    shipping_amount = (shipping_amount > 0) ? shipping_amount : 0;
+                    var grandTotal = getPriceFormatedHtml(oldSubtotals + tax_amount + shipping_amount);
+                    $('webpos_subtotal_button').innerHTML = getPriceFormatedHtml(oldSubtotals + tax_amount);
+
+                    if ($('grand_total_webpos'))
+                        $('grand_total_webpos').innerHTML = grandTotal;
+                    $('cashin_fullamount').innerHTML = grandTotal;
+                    if ($('remain_value_label'))
+                        $('remain_value_label').innerHTML = grandTotal;
+                    if ($('remain_value'))
+                        $('remain_value').innerHTML = grandTotal;
+                }
+                applyShippingPrice();
+                grandTotalAmount = convertLongNumber(getStringPriceFromString(grandTotal));
+
+                var intCashIn = parseInt(grandTotalAmount);
+                var strCashIn = intCashIn.toString();
+                var cashin = grandTotalAmount;
+                var stepAmount = 5;
+                var len = strCashIn.length;
+
+                if (len == 1 || len == 2) {
+                    stepAmount = 5;
+                } else {
+                    for (i = 0; i < len - 2; i++) {
+                        stepAmount = stepAmount + '0';
+                    }
+                }
+                stepAmount = parseInt(stepAmount);
+
+                if (Math.ceil(cashin) <= 0) {
+                    upgrandtotal = downgrandtotal = 0;
+                } else {
+                    if (Math.ceil(cashin) == intCashIn) {
+                        if (cashin % stepAmount == 0) {
+                            upgrandtotal = ((Math.ceil(cashin / stepAmount) + 1) * stepAmount);
+                            downgrandtotal = ((Math.ceil(cashin / stepAmount) - 1) * stepAmount);
+                            // downgrandtotal = upgrandtotal = intCashIn;
+                        } else {
+                            upgrandtotal = (Math.ceil(cashin / stepAmount) * stepAmount);
+
+                            downgrandtotal = ((Math.ceil(cashin / stepAmount) - 1) * stepAmount);
+                        }
+                    } else {
+                        upgrandtotal = (Math.ceil(cashin / stepAmount) * stepAmount);
+
+                        downgrandtotal = ((Math.ceil(cashin / stepAmount) - 1) * stepAmount);
+                    }
+                }
+
+                upgrandtotal = getPriceFormatedHtml(upgrandtotal);
+                downgrandtotal = getPriceFormatedHtml(downgrandtotal);
+
+                $('round_down_cashin').innerHTML = downgrandtotal;
+                $('round_up_cashin').innerHTML = upgrandtotal;
+                if ($('payment_method')) {
+                    $('payment_method').update(getPaymentHtml());
+                }
+                if ($('shipping_method')) {
+                    $('shipping_method').update(getShippingHtml());
+                    var shipping_title = getShippingTitle();
+                    if ($('shipping_area')) {
+                        $('shipping_area').down('.panel-heading').innerHTML = 'Shipping:    ' + shipping_title;
+                    }
+                }
+                if ($('main_container') && $('main_container').hasClassName('hideCategory')) {
+                    $D('#webpos_cart_area').addClass('opacity8');
+                    $D('#webpos_cart_overlay').removeClass('hide');
+                }
+
+            }
+
+
+            if ($('bt_checkout') && $('bt_checkout').hasClassName('hasError')) {
+
+
+                if ($D('#webpos_quote_message'))
+                    $D('#webpos_quote_message').slideDown();
+                return;
+            }
+
+
+            canPlaceOrder();
+            hideCategory();
+        }
+    }
+    ;
+
+
+
+    function deleteProduct(id) {
+        if (isOffline() == false)
+            if ($('cart_prd_' + id) && $('cart_prd_' + id).getAttribute('itemid') != '') {
+                hasAnotherRequest = true;
+                showColrightAjaxloader();
+                var parameters = {itemid: id};
+                var request = new Ajax.Request(deleteProductUrl, {
+                    method: 'get',
+                    parameters: parameters,
+                    onFailure: function () {
+                        hideColrightAjaxloader();
+                        hasAnotherRequest = false;
+                    },
+                    onSuccess: function (transport) {
+                        if (transport.status == 200) {
+                            var response = JSON.parse(transport.responseText);
+                            if (response.payment_method && $('payment_method'))
+                                $('payment_method').update(response.payment_method);
+                            if (response.shipping_method && $('shipping_method'))
+                                $('shipping_method').update(response.shipping_method);
+                            if (response.totals && $('pos_totals'))
+                                $('pos_totals').update(response.totals);
+                            if (response.pos_items && $('webpos_cart'))
+                                $('webpos_cart').update(response.pos_items);
+                            if (response.number_item && $('total_number_item'))
+                                $('total_number_item').update(response.number_item);
+                            if (response.errorMessage && response.errorMessage != '') {
+                                showToastMessage('danger', 'Error', response.errorMessage);
+                            }
+                            if (response.grandTotal && $('cashin_fullamount')) {
+                                $('cashin_fullamount').innerHTML = response.grandTotal;
+                                if ($('remain_value_label'))
+                                    $('remain_value_label').innerHTML = response.grandTotal;
+                                if ($('remain_value'))
+                                    $('remain_value').innerHTML = response.grandTotal;
+                            }
+                            if (response.downgrandtotal && $('round_down_cashin'))
+                                $('round_down_cashin').innerHTML = response.downgrandtotal;
+                            if (response.upgrandtotal && $('round_up_cashin'))
+                                $('round_up_cashin').innerHTML = response.upgrandtotal;
+                            if (response.grandTotal && $('webpos_subtotal_button'))
+                                $('webpos_subtotal_button').innerHTML = response.grandTotal;
+                        }
+                        hasAnotherRequest = false;
+                    },
+                    onComplete: function () {
+                        var productElements = $$('#webpos_cart .needupdate');
+                        if (productElements.length > 0){
+                            $('bt_checkout').addClassName('noneed_checkout');
+                            saveCart();
+                        }else{
+                            reloadAllBlock();
+                        }
+                    }
+                });
+            }
+        deleteProductByJs(id);
+        if ($$('#webpos_cart .product').length == 0)
+            disableCheckout();
+    }
+    ;
+    /*Mr Jack delete item after refresh page*/
+    function deleteItem(itemId) {
+        deleteProductByJs(itemId);
+        if (isOffline() == false) {
+            hasAnotherRequest = true;
+            showColrightAjaxloader();
+            var parameters = {itemId: itemId};
+            var request = new Ajax.Request(deleteItemUrl, {
+                method: 'get',
+                parameters: parameters,
+                onFailure: function () {
+                    hasAnotherRequest = false;
+                },
+                onSuccess: function (transport) {
+                    if (transport.status == 200) {
+                        var response = JSON.parse(transport.responseText);
+                        if (response.payment_method && $('payment_method'))
+                            $('payment_method').update(response.payment_method);
+                        if (response.shipping_method && $('shipping_method'))
+                            $('shipping_method').update(response.shipping_method);
+                        if (response.errorMessage && response.errorMessage != '') {
+                            showToastMessage('danger', 'Error', response.errorMessage);
+                        }
+                        if (response.grand_total)
+                            $D('#webpos_subtotal_button').html(response.grand_total);
+                        if (response.subtotal_html)
+                            $('total_wp').update(response.subtotal_html);
+                    }
+                    hasAnotherRequest = false;
+                },
+                onComplete: function () {
+                    hideColrightAjaxloader();
+                }
+            });
+        }
+        if ($$('#webpos_cart .product').length == 0)
+            disableCheckout();
+    }
+    ;
+    /**/
+    function emptyCart(empty_cart_url) {
+        disableCheckout();
+        deleteDataFromLocal();
+        emptyCartDataByJS();
+        buttonUnholdToHold();
+        if (isOffline())
+            return;
+        hasAnotherRequest = true;
+        showColrightAjaxloader();
+        var parameters = {};
+        var request = new Ajax.Request(empty_cart_url, {
+            method: 'get',
+            parameters: parameters,
+            onFailure: function () {
+                hideColrightAjaxloader();
+                hasAnotherRequest = false;
+            },
+            onSuccess: function (transport) {
+                if (transport.status == 200) {
+                    var response = JSON.parse(transport.responseText);
+                    if (response.totals && $('pos_totals'))
+                        $('pos_totals').update(response.totals);
+                    if (response.errorMessage && response.errorMessage != '') {
+                        showToastMessage('danger', 'Error', response.errorMessage);
+                    }
+                    if ($('bt_checkout'))
+                        $('bt_checkout').removeClassName('hasError');
+                }
+                hideColrightAjaxloader();
+                hasAnotherRequest = false;
+                deleteCustomerJs();
+                hideHoldButton();
+            }
+        });
+    }
+
+    function webposPlaceOrder(place_order_url) {
+        var validator = new Validation('webpos_payment_method_form');
+        if (validator.validate()) {
+        } else
+            return;
+
+        var comment = remain = cashin = symbol = '';
+        if ($('bt_place_order'))
+            $('bt_place_order').disabled = true;
+        if ($('order-comment-content')) {
+            comment = $('order-comment-content').value;
+        }
+        if ($('cashin_value') && $('remain_value')) {
+            symbol = $('cashin_value').getAttribute('currencysymbol');
+            cashin = $('cashin_value').value;
+            remain = $('remain_value').innerHTML;
+            cashin = parseFloat(cashin.replace(symbol, ''));
+            remain = parseFloat(remain.replace(symbol, ''));
+        }
+        var shipping_form = $('webpos_shipping_method_form');
+        var payment_form = $('webpos_payment_method_form');
+        var shipping_method = $RF(shipping_form, 'shipping_method');
+        var payment_method = $RF(payment_form, 'payment[method]');
+
+        var parameters = {
+            shipping_method: shipping_method,
+            payment_method: payment_method,
+            comment: comment,
+            cashin: convertLongNumber(getStringPriceFromString($('cashin_value').value))
+        };
+
+        var paymentSelectedIcons = $$('.paymentSelectedIcon');
+        if (paymentSelectedIcons.length > 0) {
+            paymentSelectedIcons.each(function (icon) {
+                if (icon.id == payment_method + '_selected_icon' || ($('cashin_value') && $('cashin_value').value != '' && icon.id == 'cashforpos_selected_icon')) {
+                    icon.removeClassName('hide');
+                } else {
+                    icon.addClassName('hide');
+                }
+            });
+        }
+        var cash_in = convertLongNumber(getStringPriceFromString($('cashin_value').value));
+        var amount = getPriceFromString($D('#remain_value .price')[0].innerHTML);
+        if (payment_method == 'cashforpos' && amount > 0 && cash_in > 0) {
+            showToastMessage('danger', 'Message', '<?php echo $this->__('Amount tendered should be higher or equal than the grand total!'); ?>');
+            $('bt_place_order').disabled = false;
+            return;
+        }
+        var items = $$('#payment_form_' + payment_method + ' input[name^=payment]', '#payment_form_' + payment_method + ' select[name^=payment]');
+        if (items.length > 0)
+            items.each(function (el) {
+                if (el.getAttribute('type') == 'radio' || el.getAttribute('type') == 'checkbox') {
+                    if (el.checked == true)
+                        parameters[el.name] = el.value;
+                } else
+                    parameters[el.name] = el.value;
+
+            });
+        var currencySymbol = '';
+        if ($('cashin_value')) {
+            currencySymbol = $('cashin_value').getAttribute('currencySymbol');
+            parameters['cashin'] = parseFloat(convertLongNumber(getStringPriceFromString($('cashin_value').value)));
+            if ($('remain_value') && parameters['cashin'] != null && parameters['cashin'] > 0)
+                parameters['remain'] = parseFloat(convertLongNumber(getStringPriceFromString($('remain_value').down('.price').innerHTML)));
+        }
+        if (enable_till == true) {
+            var till_data = localGet('webpos_till');
+            if (till_data != null && till_data.till_id) {
+                parameters['till_id'] = till_data.till_id;
+            }
+        }
+
+        if (isOffline() == true) {
+            placeOrderOffline(parameters, "<?php echo $this->__('Your order has been placed. You can save it when you are connected to the network again'); ?>");
+            /*Changed By Adam*/
+            if ($('cashin_value').value)
+                $('cashin_value').value = '';   // reset cash in after place order
+            if ($D('#bt_cashin').hasClass('active')) {                   // hidden cash in after place order
+                showCashIn();
+            }
+            countCashin = 0;
+            if (hisCustomCashin.length > 0)
+                hisCustomCashin = [""];
+            return;
+        }
+        localDelete('customInfo');
+        hasAnotherRequest = true;
+        showCheckoutAjaxloader();
+        var request = new Ajax.Request(place_order_url, {
+            method: 'post',
+            parameters: parameters,
+            onSuccess: function (transport) {
+                if (transport.status == 200) {
+                    if ($('bt_place_order'))
+                        $('bt_place_order').disabled = false;
+                    var response = JSON.parse(transport.responseText);
+                    if (response.error) {
+                        showToastMessage('danger', 'Error', response.error);
+                    } else {
+                        if (response.redirect) {
+                            window.location.href = response.redirect;
+                            return;
+                        }
+                        if (response.paymentRedirect) {
+                            window.location.href = response.paymentRedirect;
+                            return;
+                        }
+                        if (response.successMessage) {
+                            showToastMessage('success', 'Message', response.successMessage);
+                            if (response.isManage) {
+                                var needCreateInvoice = (response.paidFullAmount == true) ? false : true;
+                                var needCreateShipment = (response.shipped == true) ? false : true;
+                                if (response.isVirtual) {
+                                    $$('#options_after_place_order .option')[0].hide();
+                                    if (response.paidFullAmount == true)
+                                        $$('#options_after_place_order .option')[1].hide();
+                                    else
+                                        $$('#options_after_place_order .option')[1].show();
+                                    $('create_shipment').checked = false;
+                                    $D('#create_shipment').prop('checked', false).change();
+                                    if ($D('#create_invoice')) {
+
+                                        $('create_invoice').checked = needCreateInvoice;
+                                        $D('#create_invoice').prop('checked', needCreateInvoice).change();
+                                    }
+                                } else {
+                                    if (response.paidFullAmount == true) {
+                                        if (response.shipped == true)
+                                            $$('#options_after_place_order .option')[0].hide();
+                                        else
+                                            $$('#options_after_place_order .option')[0].show();
+                                        $$('#options_after_place_order .option')[1].hide();
+                                    } else {
+                                        if (response.shipped == true)
+                                            $$('#options_after_place_order .option')[0].hide();
+                                        else
+                                            $$('#options_after_place_order .option')[0].show();
+                                        $$('#options_after_place_order .option')[1].show();
+                                    }
+                                    if ($D('#create_shipment')) {
+                                        $('create_shipment').checked = needCreateShipment;
+                                        $D('#create_shipment').prop('checked', needCreateShipment).change();
+                                    }
+                                    if ($D('#create_invoice')) {
+                                        $('create_invoice').checked = needCreateInvoice;
+                                        $D('#create_invoice').prop('checked', needCreateInvoice).change();
+                                    }
+
+                                }
+                            } else {
+                                $$('#options_after_place_order .option')[0].hide();
+                                $$('#options_after_place_order .option')[1].hide();
+                                if ($D('#create_shipment')) {
+                                    $('create_shipment').checked = false;
+                                    $D('#create_shipment').prop('checked', false).change();
+                                }
+                                if ($D('#create_invoice')) {
+                                    $('create_invoice').checked = false;
+                                    $D('#create_invoice').prop('checked', false).change();
+                                }
+
+                            }
+                            var autoPrint = response.auto_print;
+                            if (response.auto_print) {
+                                printOrder(response.printLink);
+                                autoPrint = false;
+                            }
+                            showContentOptionsAfterPlace(response.orderId, response.orderIncrementId, response.printLink, response.customerEmail, response.grandTotal, autoPrint);
+
+                            if (response.holded_key) {
+                                localSet('canceled', 'true');
+                                var hold_order_object = new webposHoldOrder();
+                                hold_order_object.removeByKey(response.holded_key);
+                                if ($('holded_' + response.holded_key))
+                                    $('holded_' + response.holded_key).remove();
+                            }
+                            buttonUnholdToHold();
+                            hideHoldButton();
+
+                        }
+                    }
+                    if ($('cashin_value').value)
+                        $('cashin_value').value = '';
+                    if ($D('#bt_cashin').hasClass('active')) {
+                        showCashIn();
+
+                    } else {
+                        $('cashin_value_label').innerHTML = $('cashin_value').value;
+                        $('remain_value_label').innerHTML = $('remain_value').innerHTML;
+                        if ($('cashin_value').value != '')
+                            $('cash_remain').removeClassName('hide');
+                        else
+                            $('cash_remain').addClassName('hide');
+                        $D('#form-cashin').hide();
+                        $D('#webpos_payment_method_form').show();
+                        $D('#bt_cashin').removeClass('active');
+                        $('bt_cashin').innerHTML = 'Amount Tendered';
+                    }
+                    countCashin = 0;
+                    if (hisCustomCashin.length > 0)
+                        hisCustomCashin = [""];
+
+                }
+                hideCheckoutAjaxloader();
+                hasAnotherRequest = false;
+            },
+            onFailure: function (transport) {
+                if ($D('#bt_cashin').hasClass('active')) {
+                    showCashIn();
+                }
+                if ($('bt_place_order'))
+                    $('bt_place_order').disabled = false;
+                hideCheckoutAjaxloader();
+                hasAnotherRequest = false;
+            },
+            onException: function () {
+                showToastMessage('danger', 'Error', "<?php echo $this->__('There is an unexpected error occuring during placing the order'); ?>");
+                if ($('bt_place_order'))
+                    $('bt_place_order').disabled = false;
+                hideCheckoutAjaxloader();
+                hasAnotherRequest = false;
+            }
+        });
+    }
+
+    function resetAddCustomerForm(createForm) {
+        if ($('create-customer') && createForm) {
+            $('create-customer').innerHTML = createForm;
+            new RegionUpdater('billing:country_id', 'billing:region', 'billing:region_id', <?php echo $this->helper('directory')->getRegionJson() ?>);
+        }
+    }
+
+    function resetCustomerInfo() {
+        if ($('create-customer')) {
+            $D('#add-customer').attr('onclick', 'showCustomers()');
+            $D('#add-customer').removeClass('active');
+            $D('#remove-customer').hide();
+            if ($('add-customer'))
+                $('add-customer').innerHTML = "<?php echo $this->__('Add Customer'); ?>";
+        }
+    }
+
+
+    function showOrder(orderId, el) {
+        if (isRealOffline() == true) {
+            showOfflineMessage();
+            return;
+        }
+
+        if ($('orderlist_row_' + orderId)) {
+            $('orderlist_row_' + orderId).addClassName('active');
+            var orderListItems = $$('.info');
+            var canRefund = $('orderlist_row_' + orderId).getAttribute('canRefund');
+            if (orderListItems.length > 0) {
+                orderListItems.each(function (order_row) {
+                    if (order_row.id != 'orderlist_row_' + orderId) {
+                        order_row.removeClassName('active');
+                    }
+                });
+            }
+        }
+        if (el != 'false' && $('orderlist_row_' + orderId)) {
+            var orderIncrementId = $('orderlist_row_' + orderId).getAttribute('increment_id');
+            var grand_total = $('orderlist_row_' + orderId).getAttribute('grand_total');
+            var created_at = $('orderlist_row_' + orderId).getAttribute('created_at');
+            var status = $('orderlist_row_' + orderId).getAttribute('status');
+            var status_label = $('orderlist_row_' + orderId).getAttribute('status_label');
+            var total_due = $('orderlist_row_' + orderId).getAttribute('total_due');
+            var printLink = $('orderlist_row_' + orderId).getAttribute('printLink');
+            var canCancel = $('orderlist_row_' + orderId).getAttribute('canCancel');
+            var canShip = $('orderlist_row_' + orderId).getAttribute('canShip');
+            var invoiceId = $('orderlist_row_' + orderId).getAttribute('invoiceId');
+            var showLabel = $('orderlist_row_' + orderId).getAttribute('show_label');
+            if ($('order_detail_title'))
+                $('order_detail_title').update('Order: ' + orderIncrementId);
+            if ($('order_detail_grandtotal'))
+                $('order_detail_grandtotal').update(grand_total);
+            if ($('order_detail_orderdate'))
+                $('order_detail_orderdate').update(created_at);
+            if ($('order_detail_status'))
+                $('order_detail_status').update(status_label);
+            if ($('order_detail_totaldue'))
+                $('order_detail_totaldue').update(total_due);
+            if (invoiceId == 'null' && status != 'closed' && status != 'canceled')
+                $('bt_create_invoice').show();
+            else
+                $('bt_create_invoice').hide();
+            if (invoiceId != 'null') {
+                $('order_bt_cancel').setAttribute('onclick', "refundOrder('" + orderId + "','" + invoiceId + "')");
+                $('order_bt_cancel').innerHTML = 'Refund';
+                /*Mr.Jack disable Refund button when order can not refund*/
+                if (canRefund == 'false' && $('order_bt_cancel').innerHTML == 'Refund') {
+                    $('order_bt_cancel').disabled = true;
+                } else if (canCancel == 'true')
+                    $('order_bt_cancel').disabled = false;
+                /**/
+            } else {
+                $('order_bt_cancel').innerHTML = 'Cancel';
+                if (canCancel == 'true') {
+                    $('order_bt_cancel').setAttribute('onclick', "cancelOrder('" + orderId + "')");
+                } else {
+                    $('order_bt_cancel').disabled = true;
+                    /*
+                     $('order_bt_cancel').setAttribute('onclick',"showToastMessage('danger','Error','This order cannot be canceled!')");
+                     */
+                }
+            }
+            if (canShip == 'true') {
+                if ($('order_bt_ship')) {
+                    $('order_bt_ship').setAttribute('onclick', "shipOrder('" + orderId + "')");
+                    $('order_bt_ship').disabled = false;
+                }
+            } else {
+                if ($('order_bt_ship'))
+                    $('order_bt_ship').disabled = true;
+            }
+            if ($('order_bt_print'))
+                $('order_bt_print').setAttribute('onclick', "printOrder('" + printLink + "')");
+
+        }
+        hasAnotherRequest = true;
+        showOrderDetailAjaxloader();
+        var parameters = {order_id: orderId};
+        var request = new Ajax.Request(viewOrderUrl, {
+            method: 'get',
+            parameters: parameters,
+            onSuccess: function (transport) {
+                if (transport.status == 200) {
+                    if ($('order_detail_area'))
+                        $('order_detail_area').innerHTML = transport.responseText;
+                }
+                hideOrderDetailAjaxloader();
+                hasAnotherRequest = false;
+            },
+            onFailure: function (transport) {
+                hideOrderDetailAjaxloader();
+                hasAnotherRequest = false;
+            }
+        });
+        /*Mr.Jack disable Refund button when order can not refund*/
+        if (canRefund == 'false' && $('order_bt_cancel').innerHTML == 'Refund')
+            $('order_bt_cancel').disabled = true;
+        else if (canCancel == 'true')
+            $('order_bt_cancel').disabled = false;
+        /**/
+        if (showLabel == 'false') {
+            $('order_bt_cancel').disabled = true;
+            $('bt_create_invoice').disabled = true;
+            $('order_bt_ship').disabled = true;
+            $('comment_order').hide();
+        } else {
+            if (canCancel == 'true' || canRefund == 'true')
+                $('order_bt_cancel').disabled = false;
+            if (invoiceId == 'null' && status != 'closed' && status != 'canceled')
+                $('bt_create_invoice').disabled = false;
+            if (canShip == 'true') {
+                $('order_bt_ship').disabled = false;
+            }
+            $('comment_order').show();
+        }
+    }
+
+    function orderlistSearch(searching, orderId) {
+        if (isRealOffline() == true) {
+            showOfflineMessage();
+            return;
+        }
+        var order_id = $('order-id').value;
+        var name_email = $('customer-name-email').value;
+        var review = $('order_list_grid');
+        var parameters = {
+            order_id: order_id,
+            name_email: name_email
+        }
+        if (searching == false)
+            parameters = {};
+        review.hide();
+        hasAnotherRequest = true;
+        showOrderlistAjaxloader();
+        new Ajax.Request(reloadOrderlistUrl, {
+            method: 'post',
+            parameters: parameters,
+            onSuccess: function (transport) {
+                if (transport.status == 200) {
+                    var response = getResponseText(transport);
+                    review.update(response.review);
+                    review.show();
+                    if ((searching == false && response.lastOrderId)) {
+                        if (response.lastOrderIncrementid && $('order_detail_title'))
+                            $('order_detail_title').update('Order: #' + response.lastOrderIncrementid);
+                        if (response.lastOrderGrandtotal && $('order_detail_grandtotal'))
+                            $('order_detail_grandtotal').update(response.lastOrderGrandtotal);
+                        if (response.lastOrderCreatedDate && $('order_detail_orderdate'))
+                            $('order_detail_orderdate').update(response.lastOrderCreatedDate);
+                        if (response.lastOrderStatus && $('order_detail_status'))
+                            $('order_detail_status').update(response.lastOrderStatusLabel);
+                        if (response.lastOrderTotalDue && $('order_detail_totaldue'))
+                            $('order_detail_totaldue').update(response.lastOrderTotalDue);
+                        if (response.printLink && $('order_bt_print'))
+                            $('order_bt_print').setAttribute('onclick', "printOrder('" + response.printLink + "')");
+                        if (response.canShip && response.canShip == 'true') {
+                            $('order_bt_ship').setAttribute('onclick', "shipOrder('" + response.lastOrderId + "')");
+                            $('order_bt_ship').disabled = false;
+                        } else {
+                            $('order_bt_ship').disabled = true;
+                        }
+                        if (response.invoiceId != 'null') {
+                            $('bt_create_invoice').hide();
+                            $('order_bt_cancel').setAttribute('onclick', "refundOrder('" + response.lastOrderId + "','" + response.invoiceId + "')");
+                            $('order_bt_cancel').innerHTML = 'Refund';
+                        } else {
+                            if (response.lastOrderStatus != 'closed' && response.lastOrderStatus != 'canceled')
+                                $('bt_create_invoice').show();
+                            $('order_bt_cancel').innerHTML = 'Cancel';
+                            if (response.canCancel && $('order_bt_cancel')) {
+                                if (response.canCancel == 'true')
+                                    $('order_bt_cancel').setAttribute('onclick', "cancelOrder('" + response.lastOrderId + "')");
+                                else {
+                                    $('order_bt_cancel').setAttribute('onclick', "showToastMessage('danger','Error','This order cannot be cancelled!')");
+                                    //vietdq fix
+                                    $('order_bt_cancel').disabled = true;
+                                }
+                            }
+                        }
+
+                        showOrder(response.lastOrderId, 'false');
+                    } else {
+                        if (orderId != '')
+                            showOrder(orderId, 'true');
+                        if (response.lastOrderId == '0')
+                            $('bt_create_invoice').hide();
+                    }
+                }
+                hideOrderlistAjaxloader();
+                //vietdq
+                if (!response.canManage) {
+
+                    $('order_bt_cancel').disabled = true;
+                    $('bt_create_invoice').disabled = true;
+                    $('order_bt_ship').disabled = true;
+                    $('comment_order').hide();
+                }
+                //end
+                hasAnotherRequest = false;
+            },
+            onFailure: function (transport) {
+                hideOrderlistAjaxloader();
+                hasAnotherRequest = false;
+            }
+
+        });
+
+    }
+
+    function cancelOrder(orderId) {
+        var confirmCancel = confirm("<?php echo $this->__('Are you sure you want to cancel this order?'); ?>");
+        if (!confirmCancel)
+            return;
+        var parameters = {
+            order_id: orderId
+        }
+        hasAnotherRequest = true;
+        showOrderDetailAjaxloader();
+        new Ajax.Request(cancelOrderUrl, {
+            method: 'get',
+            parameters: parameters,
+            onSuccess: function (transport) {
+                if (transport.status == 200) {
+                    var response = getResponseText(transport);
+                    if (response.error) {
+                        showToastMessage('danger', 'Error', response.error);
+                    } else {
+                        if (response.message) {
+                            showToastMessage('danger', 'Error', response.message);
+                            hideOrderDetailAjaxloader();
+                        } else {
+                            if ($('orderlist_row_' + orderId)) {
+                                $('orderlist_row_' + orderId).setAttribute('cancancel', 'false');
+                                $('orderlist_row_' + orderId).setAttribute('canship', 'false');
+                                $('orderlist_row_' + orderId).setAttribute('caninvoice', 'false');
+                                $('orderlist_row_' + orderId).setAttribute('canrefund', 'false');
+                                $('orderlist_row_' + orderId).setAttribute('status', 'canceled');
+                                $('orderlist_row_' + orderId).setAttribute('status_label', 'Canceled');
+                                $('orderlist_row_' + orderId).addClassName('type2');
+                                $('orderlist_row_' + orderId).removeClassName('type1');
+                                $('orderlist_row_' + orderId).removeClassName('type3');
+                                $('orderlist_row_' + orderId).removeClassName('type4');
+                                $('orderlist_row_' + orderId).removeClassName('type5');
+                            }
+                            showOrder(orderId, 'true');
+                        }
+                    }
+                }
+                hasAnotherRequest = false;
+            },
+            onFailure: function () {
+                hideOrderDetailAjaxloader();
+                hasAnotherRequest = false;
+            }
+        });
+    }
+    function validateQty(event) {
+        var keyValue = String.fromCharCode(event.which);
+        var keyCode = event.which || event.keyCode;
+        if (keyCode != 8) {
+            if ((keyCode != 44 && keyCode != 46 && keyCode < 48) || keyCode > 57) {
+                event.preventDefault();
+            }
+        }
+    }
+    function refundOrder(orderId, invoiceId) {
+        if (isOffline() == true) {
+            showOfflineMessage();
+            return;
+        }
+        if ($('refund_offline_button'))
+            $('refund_offline_button').disabled = false;
+        $D('#webpos_loader').show();
+        $('refund_popup').removeClassName('hide');
+        $D('.bg-fade').show();
+        var parameters = {
+            order_id: orderId,
+            invoice_id: invoiceId
+        }
+        hasAnotherRequest = true;
+        var loadRefundPopupUrl = '<?php echo $this->getUrl('webpos/order/loadRefundPopup', array('_forced_secure' => $this->getRequest()->isSecure())) ?>'
+        new Ajax.Request(loadRefundPopupUrl, {
+            method: 'get',
+            parameters: parameters,
+            onSuccess: function (transport) {
+                if (transport.status == 200) {
+                    $('items_table').innerHTML = transport.responseText;
+                    $('order_id_wp').value = orderId;
+                    $('invoice_id_wp').value = invoiceId;
+                    $D('#webpos_loader').hide();
+                    /*validate qty*/
+                    if ($$('.qty_refund').length > 0) {
+                        $$('.qty_refund').each(function (element) {
+                            element.observe("keypress", function (event) {
+                                validateQty(event);
+                                /*disable Refund Offline button*/
+                                var total = 0;
+                                $$('.qty_refund').each(function (e) {
+                                    if (e.id != element.id && element.id != 'undefined') {
+                                        total += parseFloat(e.value);
+                                    }
+                                });
+                                if ($('refund_offline_button') && (total + parseFloat(String.fromCharCode(event.which))) == 0)
+                                    $('refund_offline_button').disabled = true;
+                                else {
+                                    if ($('refund_offline_button'))
+                                        $('refund_offline_button').disabled = false;
+                                }
+                            });
+                        });
+                    }
+                    if ($('ajust_refund')) {
+                        $('ajust_refund').observe("keypress", function (event) {
+                            validateQty(event);
+                        });
+                    }
+                    if ($('ajust_fee')) {
+                        $('ajust_fee').observe("keypress", function (event) {
+                            validateQty(event);
+                        });
+                    }
+                    /**/
+                }
+                hasAnotherRequest = false;
+            },
+            onFailure: function () {
+                hasAnotherRequest = false;
+            }
+
+        });
+    }
+    function processRefundOrder() {
+        var qtyRf = stockRf = '';
+        for (var i = 0; i < $$('.return_to_stock').length; i++) {
+            var splitStock = $$('.return_to_stock')[i].id.split('return_to_stock_');
+            var itemId = splitStock[1];
+            qtyRf += itemId + '/' + $('qty_refund_' + itemId).value + '$refund$';
+            stockRf += itemId + '/' + $('return_to_stock_' + itemId).checked + '$refund$';
+        }
+        if ($D('#order_refund_loader'))
+            $D('#order_refund_loader').show();
+        var parameters = {
+            order_id: $('order_id_wp').value,
+            invoice_id: $('invoice_id_wp').value,
+            comment: $('comment_refund').value,
+            ajust_fee: $('ajust_fee').value,
+            ajust_refund: $('ajust_refund').value,
+            qty: qtyRf,
+            stock: stockRf,
+        }
+        hasAnotherRequest = true;
+        new Ajax.Request(refundOrderUrl, {
+            method: 'get',
+            parameters: parameters,
+            onSuccess: function (transport) {
+                if (transport.status == 200) {
+                    var response = getResponseText(transport);
+
+                    if (response.error) {
+                        showToastMessage('danger', 'Error', response.error);
+                    } else if (response.success) {
+                        showToastMessage('success', 'Success', response.success);
+                        cancelRefundPopup();
+                    } else {
+                        if (response.message) {
+                            showToastMessage('danger', 'Error', response.message);
+                        }
+                    }
+                    if ($D('#order_refund_loader'))
+                        $D('#order_refund_loader').hide();
+                    /*reload order details*/
+                    if ($('order_detail_status'))
+                        $('order_detail_status').update(response.order_status_label);
+                    if ($('order_detail_totaldue'))
+                        $('order_detail_totaldue').update(response.total_due);
+                    $('orderlist_row_' + response.orderId).setAttribute('status', response.order_status);
+                    $('orderlist_row_' + response.orderId).setAttribute('status_label', response.order_status_label);
+                    $('orderlist_row_' + response.orderId).setAttribute('total_due', response.total_due);
+                    $('orderlist_row_' + response.orderId).setAttribute('invoiceId', response.invoiceId);
+                    $('orderlist_row_' + response.orderId).setAttribute('canRefund', response.can_refund);
+                    $('orderlist_row_' + response.orderId).setAttribute('canShip', response.can_ship);
+                    var statusOrderClass = "info col-lg-12 col-md-12 col-sm-12 col-xs-12 " + response.statusOrderClass;
+                    $('orderlist_row_' + response.orderId).setAttribute('class', statusOrderClass);
+                    /*disable refund button Mr.Jack*/
+                    if (response.can_refund == 'false' && $('order_bt_cancel').innerHTML == 'Refund') {
+                        $('order_bt_cancel').disabled = true;
+                    }
+                    if (response.can_ship == 'false')
+                        $('order_bt_ship').disabled = true;
+                    else
+                        $('order_bt_ship').disabled = false;
+                    /**/
+                    var parameters = {order_id: response.orderId};
+                    var request = new Ajax.Request(viewOrderUrl, {
+                        method: 'get',
+                        parameters: parameters,
+                        onSuccess: function (transport) {
+                            if (transport.status == 200) {
+                                if ($('order_detail_area'))
+                                    $('order_detail_area').innerHTML = transport.responseText;
+                            }
+                            hideOrderDetailAjaxloader();
+                        },
+                        onFailure: function (transport) {
+                            hideOrderDetailAjaxloader();
+                        }
+                    });
+                    /**/
+                }
+                hasAnotherRequest = false;
+            },
+            onFailure: function () {
+                hasAnotherRequest = false;
+            }
+
+        });
+    }
+
+    function printOrder(link) {
+        if (isOffline() == true) {
+
+            var storeName = '<?php echo addslashes(Mage::app()->getStore()->getName()); ?>';
+            var orderId = '#######';
+            var subtotal = localGet('lastorder_grandTotal');
+            var grand_total = localGet('lastorder_grandTotal');
+            var items_table = localGet('lastorder_items_table');
+            var order_created = localGet('lastOrderDate');
+
+            var store_information = '';
+<?php $storeId = Mage::app()->getStore()->getStoreId(); ?>
+            var storeId = '<?php echo $storeId; ?>';
+            var storePhone = '<?php echo Mage::getStoreConfig('general/store_information/phone', $storeId); ?>';
+            var storeAddress = "";
+            store_information += storeAddress + '<br/>' + '<?php echo $this->__('Phone'); ?>' + ':' + storePhone;
+            var orderComment = localGet('orderComment');
+            var cssUrl = '<?php echo Mage::getModel('core/design_package')->getSkinUrl() . "css/styles.css"; ?>';
+            var logoSrc = "<?php echo Mage::getModel('core/design_package')->getSkinUrl() . Mage::getStoreConfig('design/header/logo_src', $storeId) ?>";
+            my_window = window.open("", "print_offline", "status=1,width=500,height=700");
+            var html = '<head><link rel="stylesheet" type="text/css" href="' + cssUrl + '" media="all"></head>';
+            html += '<body class="page-print webpos-order-print"><div><div class="print-head">';
+            html += '<img src="' + logoSrc + '" class="logo">';
+            html += '</div>';
+            html += '<style type="text/css">';
+            html += '.col-1 h2, .col-background-color: #E8E8E8;border: 1px solid #D9DDE3;padding: 14px;}';
+            html += '.col2-set{border: 1px solid #BEBCB7;}';
+            html += 'body, button, input, select, table, textarea{color: #636363;font-size: 14px;line-height: 1.5;}';
+            html += '.col2-set .col-1, .col2-set .col-2{width: 50%;}';
+            html += '.col-1 address, .col-2 address{margin: 16px;}';
+            html += '.method-info{margin-left: 16px;}';
+            html += '.items-order-head{ background-color: #E8E8E8;border: 1px solid #D9DDE3;margin-bottom: -1px;padding: 14px;width: 97.7%;}';
+            html += '.data-table{border-top:1px solid #ededed;}';
+            html += '.data-table tfoot tr{background-color: #FFFFFF !important;font-size:14px;}';
+            html += '.data-table th{background : none !important;}';
+            html += '.data-table tfoot td{border-bottom: 0 none;border-right: 1px none;padding-bottom: 1px;padding-top: 1px;}.data-table thead th {background: none repeat scroll 0 0 transparent;background-color: #E8E8E8;}.data-table tbody.odd tr {background: none repeat scroll 0 0 #FFFFFF !important;}	.data-table tfoot tr.first td {background: none repeat scroll 0 0 transparent;border-top: 1px solid #D9DDE3;}.buttons-set{display:none;}.data-table tbody td, .data-table tfoot td,h2.product-name, h3.product-name, h4.product-name, h5.product-name, p.product-name,.price-box .price, .price, #print_layout h2{font-family : courier new !important;}';
+            html += '.orderComment{width:100%;margin:5px 0px;}';
+            html += '</style>';
+            html += '<div id="print_layout" style="font-family : courier new !important;">';
+            html += '<p id="store-name"><h2>' + storeName + '</h2></p>';
+            html += '<p id="store_information">' + store_information + '</p>';
+            html += '<div class="info-invoice"><span>Order #' + orderId + '&nbsp;' + order_created + '</span></div>';
+            html += '<table class="data-table" id="my-orders-table">';
+            html += '<thead>\
+                                        <tr class="first last">\
+                                                <th>Product Name</th>\
+                                                <th class="a-right">Price</th>\
+                                                <th class="a-center">Qty</th>\
+                                                <th class="a-right">Subtotal</th>\
+                                        </tr>\
+                                </thead>';
+            html += '<colgroup><col><col width="1"><col width="1"><col width="1"><col width="1"></colgroup>';
+            html += '<tfoot class="foot-totals"><tr class="subtotal first"><td colspan="4" class="a-right">Subtotal</td>';
+            html += '<td class="last a-right"><span class="price">' + subtotal + '</span></td></tr>';
+            html += '<tr class="grand_total"><td colspan ="4" class="a-right"><strong>Grand Total</strong></td>';
+            html += '<td class="last a-right"><strong><span class="price">' + grand_total + '</span></strong></td>';
+            html += '</tr>';
+            html += '<tbody class="odd">';
+            if (typeof items_table != 'undefined' && items_table != null)
+                for (var i = 0; i < items_table.length; i++) {
+                    html += '<tr class="border first last" id="order-item-row-' + i + '">';
+                    html += '<td><h3 class="product-name">' + items_table[i]["name"] + '</h3></td>';
+                    html += '<td data-rwd-label="SKU">' + items_table[i]["options"] + '</td';
+                    html += '<td class="a-right" data-rwd-label="Price"><span class="price-excl-tax"><span class="cart-price"><span class="price">' + items_table[i]["price"] + '</span></span></span><br></td>';
+                    html += '<td class="a-right" data-rwd-label="Qty"><span class="nobr">Ordered: <strong>' + items_table[i]['qty'] + '</strong><br></span></td>';
+                    html += '<td class="a-right last" data-rwd-label="Subtotal"><span class="price-excl-tax"><span class="cart-price"><span class="price">' + convertLongNumber(getStringPriceFromString(items_table[i]['price'])) * parseFloat(items_table[i]['qty']) + '</span></span></span><br></td>';
+                    html += '</tr></tfoot>';
+                }
+
+            html += '</tbody>';
+            html += '</table>';
+            if (orderComment != null && typeof orderComment != 'undefined' && orderComment != '')
+                html += '<div class="orderComment"><?php echo $this->__('Comment:'); ?>' + orderComment + '</div>';
+            html += '</div></div></body>';
+            my_window.document.write(html);
+            my_window.print();
+            print_popup = my_window;
+        } else
+            print_popup = window.open(link, "_blank", "scrollbars=yes, resizable=yes, width=500, height=700");
+    }
+
+    function shipOrder(orderId) {
+        if (isOffline() == true) {
+            showOfflineMessage();
+            return;
+        }
+
+        var url = '<?php echo $this->getUrl('webpos/order/ship', array('_forced_secure' => $this->getRequest()->isSecure())) ?>';
+
+        url = url + '?order_id=' + orderId;
+
+//    showOverlaySection('order_section_loader');
+        hasAnotherRequest = true;
+        showOrderDetailAjaxloader();
+        var request = new Ajax.Request(url, {
+            onSuccess: function (transport) {
+                if (transport.status == 200) {
+                    var response = getResponseText(transport);
+                    if (response.error) {
+                        showToastMessage('danger', 'Error: ', response.message);
+                    } else {
+                        if ($('order_detail_status'))
+                            $('order_detail_status').update(response.order_status_label);
+                        if ($('order_detail_totaldue'))
+                            $('order_detail_totaldue').update(response.total_due);
+                        $('orderlist_row_' + orderId).setAttribute('status', response.order_status);
+                        $('orderlist_row_' + orderId).setAttribute('status_label', response.order_status_label);
+                        $('orderlist_row_' + orderId).setAttribute('total_due', response.total_due);
+                        var statusOrderClass = "info col-lg-12 col-md-12 col-sm-12 col-xs-12 active " + response.statusOrderClass;
+                        $('orderlist_row_' + orderId).setAttribute('class', statusOrderClass);
+                        var parameters = {order_id: orderId};
+                        var request = new Ajax.Request(viewOrderUrl, {
+                            method: 'get',
+                            parameters: parameters,
+                            onSuccess: function (transport) {
+                                if (transport.status == 200) {
+                                    if ($('order_detail_area'))
+                                        $('order_detail_area').innerHTML = transport.responseText;
+                                }
+                                hideOrderDetailAjaxloader();
+                            },
+                            onFailure: function (transport) {
+                                hideOrderDetailAjaxloader();
+                            }
+                        });
+                        $('order_bt_ship').disabled = true;
+                        showToastMessage('success', 'Success: ', response.message);
+                    }
+                }
+                hideOrderDetailAjaxloader();
+                hasAnotherRequest = false;
+            },
+            onComplete: function () {
+
+            },
+            onFailure: function () {
+                hideOrderDetailAjaxloader();
+                hasAnotherRequest = false;
+            }
+        });
+
+    }
+
+    function showhideOrderCommnent(orderComment) {
+        if (isOffline() == true && orderComment == 'order-view-comment') {
+            showOfflineMessage();
+            return;
+        }
+        if ($D('#' + orderComment).hasClass('active')) {
+            $D('#' + orderComment).removeClass('active');
+            $D('#' + orderComment).attr('style', 'display:none');
+            $('webpos_overlay').hide();
+        } else {
+            $D('#' + orderComment).addClass('active');
+            $D('#' + orderComment).removeAttr('style');
+            $('webpos_overlay').show();
+        }
+
+    }
+
+
+// Call in file "app\design\frontend\base\default\template\webpos\webpos\order.phtml"
+    function saveOrderViewComment() {
+        var params = '';
+        var url = '<?php echo $this->getUrl('webpos/order/saveOrderViewComment', array('_forced_secure' => $this->getRequest()->isSecure())) ?>';
+
+        if ($('order_view_id')) {
+            orderId = $('order_view_id').value;
+            url = url + '?order_id=' + orderId;
+
+            if ($('order-view-comment-content')) {
+                orderComment = $('order-view-comment-content').value;
+                params = 'order_comment=' + orderComment;
+            }
+            showToastMessage('info', 'Message', 'Saving your comment, please wait...');
+            showhideOrderCommnent('order-view-comment');
+            hasAnotherRequest = true;
+            var request = new Ajax.Request(url, {
+                method: 'get',
+                parameters: params,
+                onSuccess: function (transport) {
+                    var response = getResponseText(transport);
+                    if (response.error == true) {
+                        showToastMessage('danger', 'Error', "Your don't have permission!");
+                    } else {
+                        showToastMessage('success', 'Success', 'Your comment has been saved');
+
+                        if (response.html) {
+                            $('order-comment-history').innerHTML = response.html;
+                        }
+                        showOrder(orderId, 'false');
+                    }
+                    hasAnotherRequest = false;
+                },
+                onComplete: function () {
+                },
+                onFailure: function () {
+                    showToastMessage('danger', 'Error', "Cannot save the comment!");
+                    hasAnotherRequest = false;
+                }
+            });
+        } else {
+            alert('Cannot get order');
+        }
+    }
+    function hideMenu() {
+        $D('#menu').addClass('menuHide');
+        $D('#orders_area').addClass('left0px');
+        $('main_container').removeClassName('marginLeft5vw');
+    }
+
+//Called in fiel "app\design\frontend\base\default\template\webpos\webpos\order.phtml"
+    function showSendEmailForm() {
+        if (isOffline() == true) {
+            showOfflineMessage();
+            return;
+        }
+        if ($D('.send-email').hasClass('hide')) {
+            hideMenu();
+            showOverlaySection('pos_order_container_sendemail_overlay');
+            $D('.send-email').removeClass('hide');
+            $D('order_section_loader').addClass('not_loader_section');
+        }
+    }
+
+    function cancelAddCustomer() {
+        if ($D('.send-email')) {
+            hideOverlaySection('pos_order_container_sendemail_overlay');
+            $D('.send-email').addClass('hide');
+            $D('order_section_loader').removeClass('not_loader_section');
+        }
+    }
+
+
+// Call in file "app\design\frontend\base\default\template\webpos\webpos\order.phtml"
+    function sendOrderEmailToCustomer() {
+        var form_validator = new Validation('send_order_email_form');
+        if (form_validator.validate()) {
+
+            var url = '<?php echo $this->getUrl('webpos/order/sendOrderEmailToCustomer', array('_forced_secure' => $this->getRequest()->isSecure())) ?>';
+            if ($('order_view_id')) {
+                orderId = $('order_view_id').value;
+                url = url + '?order_id=' + orderId;
+                var customer_email = $('order_customer_email').value;
+                if (customer_email)
+                    url = url + '&customer_email=' + customer_email;
+                showOverlaySection('order_section_loader');
+                hasAnotherRequest = true;
+                var request = new Ajax.Request(url, {
+                    onSuccess: function (transport) {
+                        var response = getResponseText(transport);
+
+                        if (!response.error) {
+                            cancelAddCustomer();
+
+                            showToastMessage('success', 'Success', response.html);
+                        } else {
+                            //                    cancelAddCustomer();
+
+                            showToastMessage('danger', 'Error: ', response.html);
+                        }
+                        hideOverlaySection('order_section_loader');
+                        hasAnotherRequest = false;
+                    },
+                    oncomplete: function () {
+
+                    },
+                    onFailure: function () {
+                        hideOverlaySection('order_section_loader');
+                        hasAnotherRequest = false;
+                    }
+                });
+            }
+        }
+    }
+
+    var sendingEmail = '';
+    function sendOrderToCustomerViaEmail() {
+        if (isOffline() == true) {
+            showToastMessage('danger', 'Message: ', "<?php echo $this->__('Cannot send email in offline mode'); ?>");
+            return;
+        }
+        if (sendingEmail == false) {
+            sendingEmail = true;
+            var url = '<?php echo $this->getUrl('webpos/order/sendOrderEmailToCustomer', array('_forced_secure' => $this->getRequest()->isSecure())) ?>';
+            if ($('success_order_id') && $('success_order_id').value != '') {
+                var orderId = $('success_order_id').value;
+                url = url + '?order_id=' + orderId;
+                var customer_email = '';
+                if ($D('#order-success .email'))
+                    customer_email = $D('#order-success .email')[0].value;
+                if (customer_email)
+                    url = url + '&customer_email=' + customer_email;
+                hasAnotherRequest = true;
+                var request = new Ajax.Request(url, {
+                    onSuccess: function (transport) {
+                        var response = getResponseText(transport);
+                        if (!response.error) {
+                            showToastMessage('success', 'Success', response.html);
+                        } else {
+                            showToastMessage('danger', 'Error: ', response.html);
+                        }
+                        sendingEmail = false;
+                        hasAnotherRequest = false;
+                    },
+                    oncomplete: function () {
+                        sendingEmail = false;
+                    },
+                    onFailure: function () {
+                        sendingEmail = false;
+                        hasAnotherRequest = false;
+                    }
+                });
+            }
+        }
+    }
+
+    function showOverlaySection(id) {
+        if ($(id)) {
+            $D('#' + id).attr('style', 'display:block');
+            $D('#' + id).addClass('loader_overlay_section');
+        }
+    }
+    function hideOverlaySection(id) {
+        if ($(id)) {
+            $D('#' + id).attr('style', 'display:none');
+            $D('#' + id).removeClass('loader_overlay_section');
+        }
+    }
+
+
+    function invoiceOrder() {
+        if (isOffline() == true) {
+            showOfflineMessage();
+            return;
+        }
+
+        var url = '<?php echo $this->getUrl('webpos/order/invoice', array('_forced_secure' => $this->getRequest()->isSecure())) ?>';
+        var orderId = '';
+        if ($('order_view_id')) {
+            orderId = $('order_view_id').value;
+            url = url + '?order_id=' + orderId;
+        }
+//    showOverlaySection('order_section_loader');
+        hasAnotherRequest = true;
+        showOrderDetailAjaxloader();
+        var request = new Ajax.Request(url, {
+            onSuccess: function (transport) {
+                if (transport.status == 200) {
+                    var response = getResponseText(transport);
+                    if (response.error) {
+                        showToastMessage('danger', 'Error: ', response.message);
+                    } else {
+                        if ($('order_detail_status'))
+                            $('order_detail_status').update(response.order_status_label);
+                        if ($('order_detail_totaldue'))
+                            $('order_detail_totaldue').update(response.total_due);
+                        $('orderlist_row_' + orderId).setAttribute('status', response.order_status);
+                        $('orderlist_row_' + orderId).setAttribute('status_label', response.order_status_label);
+                        $('orderlist_row_' + orderId).setAttribute('total_due', response.total_due);
+                        $('orderlist_row_' + orderId).setAttribute('invoiceId', response.invoiceId);
+                        var statusOrderClass = "info col-lg-12 col-md-12 col-sm-12 col-xs-12 active " + response.statusOrderClass;
+                        $('orderlist_row_' + orderId).setAttribute('class', statusOrderClass);
+                        $('order_bt_cancel').innerHTML = "Refund";
+                        $('order_bt_cancel').setAttribute('onclick', "refundOrder('" + response.orderId + "','" + response.invoiceId + "')");
+
+                        var parameters = {order_id: orderId};
+                        var request = new Ajax.Request(viewOrderUrl, {
+                            method: 'get',
+                            parameters: parameters,
+                            onSuccess: function (transport) {
+                                if (transport.status == 200) {
+                                    if ($('order_detail_area'))
+                                        $('order_detail_area').innerHTML = transport.responseText;
+                                }
+                                hideOrderDetailAjaxloader();
+                            },
+                            onFailure: function (transport) {
+                                hideOrderDetailAjaxloader();
+                            }
+                        });
+                        $('bt_create_invoice').hide();
+                        showToastMessage('success', 'Success: ', response.message);
+                    }
+                }
+                hideOrderDetailAjaxloader();
+                hasAnotherRequest = false;
+            },
+            onComplete: function () {
+
+            },
+            onFailure: function () {
+                hideOrderDetailAjaxloader();
+                hasAnotherRequest = false;
+            }
+        });
+    }
+
+    function applyOptionsAfterPlaceOrder() {
+        var orderId = $('success_order_id').value;
+        var create_shipment = ($('create_shipment').checked) ? 1 : 0;
+        var create_invoice = ($('create_invoice').checked) ? 1 : 0;
+        if (isOffline()) {
+            if ($('order-comment-content'))
+                $('order-comment-content').value = '';
+            localDelete('orderComment');
+            var last_pending_order_key = localGet('last_pending_order');
+            if (last_pending_order_key != null) {
+                var last_pending_order = getPendingOrder(last_pending_order_key);
+                if (last_pending_order != '') {
+                    last_pending_order['create_shipment'] = create_shipment;
+                    last_pending_order['create_invoice'] = create_invoice;
+                    savePendingOrder(last_pending_order_key, last_pending_order);
+                }
+            }
+            emptyCartDataByJS();
+            startNewOrder();
+            deleteDataFromLocal();
+            if ($('success_print').hasClassName('autoPrint')) {
+                $('success_print').click();
+                if (!print_popup || print_popup.outerHeight === 0) {
+                    alert(blocked_popup_message);
+                }
+                $('success_print').removeClassName('autoPrint');
+            }
+            return;
+        }
+        if (!create_shipment && !create_invoice) {
+
+            emptyCartDataByJS();
+            startNewOrder();
+            deleteDataFromLocal();
+            var parameters = {
+                order_id: orderId,
+                create_shipment: 0,
+                create_invoice: 0
+            }
+            hasAnotherRequest = true;
+            new Ajax.Request(apply_order_options_url, {
+                method: 'get',
+                parameters: parameters,
+                onSuccess: function (transport) {
+                    if (transport.status == 200) {
+                        var response = getResponseText(transport);
+                        if (response.error) {
+                        } else {
+                            if (response.createCustomerForm) {
+                                resetCustomerInfo();
+                                resetAddCustomerForm(response.createCustomerForm);
+                            }
+                            if (response.totals) {
+                                if (response.totals && $('pos_totals'))
+                                    $('pos_totals').update(response.totals);
+                            }
+                        }
+                        if ($('success_print').hasClassName('autoPrint')) {
+                            $('success_print').click();
+                            if (!print_popup || print_popup.outerHeight === 0) {
+                                alert(blocked_popup_message);
+                            }
+                            $('success_print').removeClassName('autoPrint');
+                        }
+                    }
+                    hasAnotherRequest = false;
+                },
+                onFailure: function () {
+                    hasAnotherRequest = false;
+                }
+
+            });
+
+        } else {
+
+            var parameters = {
+                order_id: orderId,
+                create_shipment: create_shipment,
+                create_invoice: create_invoice
+            }
+            hasAnotherRequest = true;
+            showCheckoutAjaxloader();
+            new Ajax.Request(apply_order_options_url, {
+                method: 'get',
+                parameters: parameters,
+                onSuccess: function (transport) {
+                    if (transport.status == 200) {
+                        var response = getResponseText(transport);
+                        if (response.error) {
+                            if (response.message) {
+                                showToastMessage('danger', 'Error: ', response.message);
+                            }
+                        } else {
+                            if ((response.create_invoice == 1) && (response.create_shipment == 1) && response.apply_message) {
+                                showToastMessage('success', 'Success: ', response.apply_message);
+                            } else {
+                                if (response.create_invoice == 1) {
+                                    if (response.invoice_error) {
+                                        showToastMessage('danger', 'Error: ', response.invoice_message);
+                                    } else {
+                                        showToastMessage('success', 'Seccess: ', response.invoice_message);
+                                    }
+                                }
+                                if (response.create_shipment == 1) {
+                                    if (response.shipment_error) {
+                                        showToastMessage('danger', 'Error: ', response.shipment_message);
+                                    } else {
+                                        showToastMessage('success', 'Seccess: ', response.shipment_message);
+                                    }
+                                }
+                            }
+                            if (response.createCustomerForm) {
+                                resetCustomerInfo();
+                                resetAddCustomerForm(response.createCustomerForm);
+                            }
+                            if (response.totals) {
+                                if (response.totals && $('pos_totals'))
+                                    $('pos_totals').update(response.totals);
+                            }
+                            emptyCartDataByJS();
+                            startNewOrder();
+                            deleteDataFromLocal();
+
+                        }
+                    }
+                    if ($('success_print').hasClassName('autoPrint')) {
+                        $('success_print').click();
+                        if (!print_popup || print_popup.outerHeight === 0) {
+                            alert(blocked_popup_message);
+                        }
+                        $('success_print').removeClassName('autoPrint');
+                    }
+                    hideCheckoutAjaxloader();
+                    hasAnotherRequest = false;
+                },
+                onFailure: function () {
+                    hideCheckoutAjaxloader();
+                    hasAnotherRequest = false;
+                }
+
+            });
+        }
+    }
+
+    function loadProductToLocal() {
+        var parameters = {
+            number_product_saved: number_product_saved,
+            number_customer_saved: number_customer_saved,
+            type: loading_data_type,
+            saved_tax_calculation: saved_tax_calculation
+        }
+        hasAnotherRequest = true;
+        reloading_data = true;
+        new Ajax.Request(load_products_url, {
+            method: 'get',
+            parameters: parameters,
+            onSuccess: function (transport) {
+                if (transport.status == 200) {
+                    var response = JSON.parse(transport.responseText);
+                    if (response.error) {
+                        showToastMessage('danger', 'Error', response.error);
+                        hideFirsttimeAjaxloader();
+                    } else {
+                        finishLoad = true;
+
+                        if (response.totalsProduct != '' && loading_data_type == 'product') {
+                            var productIds = response.productIds;
+                            if (typeof webposDB != 'undefined') {
+                                webposDB.saveProducts(productIds);
+                                number_product_saved += productIds.length;
+                                if (number_product_saved > response.totalsProduct)
+                                    number_product_saved = response.totalsProduct;
+
+                                localSet('number_product_saved', number_product_saved);
+                            } else {
+                                for (var key in productIds) {
+                                    saveProductsInfo(productIds[key].productId, productIds[key]);
+                                }
+                                number_product_saved = getNumberProductSaved();
+                                localSet('number_product_saved', number_product_saved);
+                            }
+                            showStatus(number_product_saved, response.totalsProduct, '');
+                            localSet('totalsProduct', response.totalsProduct);
+                            localSet('updated_time', response.updated_time);
+                            if (number_product_saved < response.totalsProduct) {
+                                finishLoad = false;
+
+                            } else {
+                                if (number_customer_saved < response.totalsCustomer) {
+                                    loading_data_type = 'customer';
+                                }
+                            }
+                        }
+                        if (response.totalsCustomer != '' && loading_data_type == 'customer') {
+                            var customerIds = response.customerIds;
+                            if (typeof webposDB != 'undefined') {
+                                webposDB.saveCustomers(customerIds);
+                                number_customer_saved += customerIds.length;
+                                if (number_customer_saved > response.totalsCustomer)
+                                    number_customer_saved = response.totalsCustomer;
+
+                                localSet('number_customer_saved', number_customer_saved);
+                            } else {
+                                for (var key in customerIds) {
+                                    saveCustomersInfo(customerIds[key].customerId, customerIds[key]);
+                                }
+                                number_customer_saved = getNumberCustomerSaved();
+                                localSet('number_customer_saved', number_customer_saved);
+                            }
+                            showStatus(number_customer_saved, response.totalsCustomer, 'customer');
+                            localSet('totalsCustomer', response.totalsCustomer);
+                            if (number_customer_saved < response.totalsCustomer) {
+                                finishLoad = false;
+                            }
+                        }
+                        if (response.taxCalculations != '') {
+                            var taxCalculations = response.taxCalculations;
+                            for (var calculationId in taxCalculations) {
+                                saveTaxCalculationInfo(calculationId, taxCalculations[calculationId]);
+                            }
+                            saved_tax_calculation = true;
+                        }
+                        if (finishLoad == false) {
+                            setTimeout(function () {
+                                loadProductToLocal();
+                            }, (dataLoadInterval * 1000));
+                        } else {
+                            reloadListProduct('category', '<?php echo $rootCatId; ?>', 'All Categories');
+                            reloading_data = false;
+                            loading_data_type = 'product';
+                        }
+                        if (response.message) {
+                            showToastMessage('danger', 'Error', response.message);
+                        }
+                    }
+                }
+                hasAnotherRequest = false;
+            },
+            onFailure: function () {
+                hideFirsttimeAjaxloader();
+                hasAnotherRequest = false;
+                reloading_data = false;
+            }
+
+        });
+    }
+
+    function showAddCustomer() {
+        if (!$('userid') || $('userid').value == '')
+            return;
+        if (!$D('#btn-create').hasClass('active')) {
+            $D('.bg-create-customer').show();
+            $D('#popup-customer').hide();
+            $D('#create-customer').show();
+            $D('#btn-create').addClass('active');
+            if (isOffline() == true) {
+                if ($('form-create-customer'))
+                    $('form-create-customer').down('.top-create').down('h2').innerHTML = "<?php echo $this->__('Edit Billing Address'); ?>";
+                new RegionUpdater('billing:country_id', 'billing:region', 'billing:region_id', <?php echo $this->helper('directory')->getRegionJson() ?>);
+                fillCustomerDataFromLocal('billingAddress');
+                return;
+            }
+            $D('#form-create-customer-loader').show();
+            hasAnotherRequest = true;
+            var url = "<?php echo $this->getUrl('webpos/index/showCustomerInformation', array('_forced_secure' => $this->getRequest()->isSecure())) ?>";
+            new Ajax.Request(url, {
+                method: 'get',
+                onSuccess: function (transport) {
+                    var response = JSON.parse(transport.responseText);
+                    $('create-customer').innerHTML = response;
+                    $D('#form-create-customer-loader').hide();
+                    hasAnotherRequest = false;
+                },
+                onComplete: function () {
+                    new RegionUpdater('billing:country_id', 'billing:region', 'billing:region_id', <?php echo $this->helper('directory')->getRegionJson() ?>);
+                    /* Daniel - updated - Customer address dropdown 20151118 */
+                    if ($('billing-address-select')) {
+                        $('billing-address-select').setAttribute('onchange', "changeBilling()");
+                    }
+                    /* Daniel - updated - Customer address dropdown 20151118 */
+                },
+                onFailure: function () {
+                    hasAnotherRequest = false;
+                }
+            });
+        }
+    }
+    function addCustomerToCart(customerId) {
+        if (!$('userid') || $('userid').value == '')
+            return;
+        if (isOffline() == true) {
+            if ($('customer_result_' + customerId)) {
+                var email = $('customer_result_' + customerId).getAttribute('email');
+                var firstname = $('customer_result_' + customerId).getAttribute('firstname');
+                var lastname = $('customer_result_' + customerId).getAttribute('lastname');
+                if (firstname == null)
+                    firstname = '';
+                if (lastname == null)
+                    lastname = '';
+                $('add-customer').innerHTML = '<p>' + firstname + " " + lastname + "</p><span>" + email + "</span>";
+                $D('#add-customer').attr('onclick', 'showAddCustomer()');
+                $D('#add-customer').addClass('active');
+                $D('#popup-customer').hide();
+                $D('.add-customer').removeClass('active');
+                $D('#remove-customer').show();
+                var customerInCart = getCustomerInfo(customerId);
+                customerInCart.customerid = customerId;
+                localSet('customerInCart', customerInCart);
+            }
+            return;
+        }
+        hasAnotherRequest = true;
+        var url = "<?php echo $this->getUrl('webpos/index/addCustomerToCart', array('_forced_secure' => $this->getRequest()->isSecure())) ?>";
+        showColrightAjaxloader();
+        new Ajax.Request(url, {
+            method: 'get',
+            parameters: {
+                customer_id: customerId
+            },
+            onSuccess: function (transport) {
+                var response = JSON.parse(transport.responseText);
+                if (!response.error) {
+                    /* S: Daniel - updated v2.5 */
+                    if (response.customerData) {
+                        saveCustomersInfo(response.customerData.customerId, response.customerData);
+                    }
+                    /* E: Daniel - updated v2.5*/
+                    if (response.payment_method && $('payment_method'))
+                        $('payment_method').update(response.payment_method);
+                    if (response.shipping_method && $('shipping_method'))
+                        $('shipping_method').update(response.shipping_method);
+
+                    var customer_id = response.customer_id;
+                    $('add-customer').innerHTML = '<p>' + response.customer_name + "</p><span>" + response.customer_email + "</span>";
+                    $D('#add-customer').attr('onclick', 'showAddCustomer()');
+                    $D('#add-customer').addClass('active');
+                    $D('#popup-customer').hide();
+                    $D('.add-customer').removeClass('active');
+                    $D('#remove-customer').show();
+                }
+                if (response.totals && $('pos_totals'))
+                    $('pos_totals').update(response.totals);
+                hideColrightAjaxloader();
+                hasAnotherRequest = false;
+
+            },
+            onComplete: function () {
+                /* S: Daniel - updated v2.5 */
+                var customerInCart = getCustomerInfo(customerId);
+                if (customerInCart != null) {
+                    customerInCart.customerid = customerId;
+                    localSet('customerInCart', customerInCart);
+                }
+                /* E: Daniel - updated v2.5*/
+                var productElements = $$('#webpos_cart .needupdate');
+                if (productElements.length > 0)
+                    saveCart();
+                else
+                    reloadAllBlock();
+            },
+            onFailure: function () {
+                hideColrightAjaxloader();
+                hasAnotherRequest = false;
+            }
+        });
+
+    }
+
+    function removeCustomer() {
+        if (!$('userid') || $('userid').value == '')
+            return;
+        if (isOffline() == true) {
+            $('add-customer').innerHTML = "<?php echo $this->__('Add Customer'); ?>";
+            $D('#add-customer').removeClass('active');
+            $D('#add-customer').attr('onclick', 'showCustomers()');
+            $D('#remove-customer').hide();
+            localDelete('customerInCart');
+            updateTaxTotals(0, '');
+            return;
+        }
+        localDelete('customerInCart');
+        var url = "<?php echo $this->getUrl('webpos/index/removeCustomerFromCart', array('_forced_secure' => $this->getRequest()->isSecure())) ?>";
+        showColrightAjaxloader();
+        hasAnotherRequest = true;
+        new Ajax.Request(url, {
+            method: 'get',
+            onFailure: '',
+            onSuccess: function (transport) {
+                var response = JSON.parse(transport.responseText);
+                if (!response.error) {
+                    if (response.payment_method && $('payment_method'))
+                        $('payment_method').update(response.payment_method);
+                    if (response.shipping_method && $('shipping_method'))
+                        $('shipping_method').update(response.shipping_method);
+                    $('add-customer').innerHTML = "<?php echo $this->__('Add Customer'); ?>";
+                    $D('#add-customer').removeClass('active');
+                    $D('#add-customer').attr('onclick', 'showCustomers()');
+                    $D('#remove-customer').hide();
+                    hideColrightAjaxloader();
+                } else {
+                    hideColrightAjaxloader();
+                }
+                if (response.totals && $('pos_totals'))
+                    $('pos_totals').update(response.totals);
+                hasAnotherRequest = false;
+            },
+            onComplete: function () {
+                var productElements = $$('#webpos_cart .needupdate');
+                if (productElements.length > 0)
+                    saveCart();
+                else
+                    reloadAllBlock();
+            },
+            onFailure: function () {
+                hideColrightAjaxloader();
+                hasAnotherRequest = false;
+            }
+        });
+    }
+    function saveCustomer(url) {
+        if (!$('userid') || $('userid').value == '')
+            return;
+        var form_validator = new Validation('form-create-customer');
+        /* Daniel - updated - Customer address dropdown 20151118 */
+        if (form_validator.validate() || ($('billing-address-select') && $('billing-address-select').value != false)) {
+            /* Daniel - updated - Customer address dropdown 20151118 */
+            hidePopupCustomer();
+            if (isOffline() == true) {
+                $D('#add-customer').attr('onclick', 'showAddCustomer()');
+                $D('#add-customer').addClass('active');
+                $D('#popup-customer').hide();
+                $D('.add-customer').removeClass('active');
+                $D('#remove-customer').show();
+                saveCustomerDataToLocal('billingAddress');
+                updateTaxTotals(0, '');
+                return;
+            }
+            var customer_id = 0;
+            var parameters = $('form-create-customer').serialize(true);
+            showColrightAjaxloader();
+            hasAnotherRequest = true;
+            new Ajax.Request(url, {
+                method: 'post',
+                parameters: parameters,
+                onSuccess: function (transport) {
+                    var response = JSON.parse(transport.responseText);
+                    if (!response.error) {
+                        /* S: Daniel - updated v2.5 */
+                        if (response.customerData) {
+                            saveCustomersInfo(response.customerData.customerId, response.customerData);
+                        }
+                        /* E: Daniel - updated v2.5*/
+                        customer_id = response.customer_id;
+                        $('add-customer').innerHTML = "<p>" + response.customer_name + "</p>" + "<span>" + response.customer_email + "</span>";
+                        $D('#add-customer').attr('onclick', 'showAddCustomer()');
+                        $D('#add-customer').addClass('active');
+                        $D('#popup-customer').hide();
+                        $D('.add-customer').removeClass('active');
+                        $D('#remove-customer').show();
+                        hideColrightAjaxloader();
+                    } else {
+                        hideColrightAjaxloader();
+                        $D('.bg-create-customer').show();
+                        $D('#create-customer').show();
+                        $D('#btn-create').addClass('active');
+                        showToastMessage('danger', 'Error', response.errmessage);
+                    }
+                    if (response.customerIds != null) {
+                        var customerIds = response.customerIds;
+                        for (var customerId in customerIds) {
+                            saveCustomersInfo(customerId, customerIds[customerId]);
+                        }
+                        number_customer_saved = getNumberCustomerSaved();
+                    }
+                    hasAnotherRequest = false;
+                },
+                onComplete: function () {
+                    var customerInCart = getCustomerInfo(customer_id);
+                    customerInCart.customerid = customer_id;
+                    localSet('customerInCart', customerInCart);
+                    var productElements = $$('#webpos_cart .needupdate');
+                    if (productElements.length > 0)
+                        saveCart();
+                    else
+                        reloadAllBlock();
+                },
+                onFailure: function () {
+                    hideColrightAjaxloader();
+                    hasAnotherRequest = false;
+                }
+            });
+        }
+    }
+    function showEditAddress() {
+        if (!$('userid') || $('userid').value == '')
+            return;
+        if (!$D('#edit_shipping_address').hasClass('active')) {
+            $D('#bg-shipping-address').fadeIn();
+            $D('#shipping-address').show();
+            $D('#edit_shipping_address').addClass('active');
+            if (isOffline()) {
+                new RegionUpdater('shipping:country_id', 'shipping:region', 'shipping:region_id', <?php echo $this->helper('directory')->getRegionJson() ?>);
+                fillCustomerDataFromLocal('shippingAddress');
+                return;
+            }
+            $D('#form-shipping-address-loader').show();
+            hasAnotherRequest = true;
+            var url = "<?php echo $this->getUrl('webpos/index/showShippingAddress', array('_forced_secure' => $this->getRequest()->isSecure())) ?>";
+            new Ajax.Request(url, {
+                method: 'get',
+                onSuccess: function (transport) {
+                    var response = JSON.parse(transport.responseText);
+                    $('shipping-address').innerHTML = response;
+                    $D('#form-shipping-address-loader').hide();
+                    hasAnotherRequest = false;
+                },
+                onComplete: function () {
+                    $D('#save_in_address_book').bootstrapToggle('off');
+                    new RegionUpdater('shipping:country_id', 'shipping:region', 'shipping:region_id', <?php echo $this->helper('directory')->getRegionJson() ?>);
+                    /* Daniel - updated - Customer address dropdown 20151118 */
+                    if ($('shipping-address-select')) {
+                        $('shipping-address-select').setAttribute('onchange', "changeShipping()");
+                    }
+                    /* Daniel - updated - Customer address dropdown 20151118 */
+                },
+                onFailure: function () {
+                    hasAnotherRequest = false;
+                }
+            });
+        }
+    }
+    function saveShippingAddress() {
+        if (!$('userid') || $('userid').value == '')
+            return;
+        var form_validator = new Validation('form-shipping-address');
+        /* Daniel - updated - Customer address dropdown 20151118 */
+        if (form_validator.validate() || ($('shipping-address-select') && $('shipping-address-select').value != false)) {
+            /* Daniel - updated - Customer address dropdown 20151118 */
+            cancelEditAddress();
+            if (isOffline() == true) {
+                $D('#add-customer').attr('onclick', 'showAddCustomer()');
+                $D('#add-customer').addClass('active');
+                $D('#popup-customer').hide();
+                $D('.add-customer').removeClass('active');
+                $D('#remove-customer').show();
+                saveCustomerDataToLocal('shippingAddress');
+                updateTaxTotals(0, '');
+                return;
+            }
+            showCheckoutAjaxloader();
+            showColrightAjaxloader();
+            hasAnotherRequest = true;
+            var url = "<?php echo $this->getUrl('webpos/index/saveShippingAddress', array('_forced_secure' => $this->getRequest()->isSecure())) ?>";
+            var parameters = $('form-shipping-address').serialize(true);
+            new Ajax.Request(url, {
+                method: 'post',
+                parameters: parameters,
+                onSuccess: function (transport) {
+                    var response = JSON.parse(transport.responseText);
+                    if (!response.error) {
+                        if (response.shipping_method && $('shipping_method'))
+                            $('shipping_method').update(response.shipping_method);
+                        if (response.payment_method && $('payment_method'))
+                            $('payment_method').update(response.payment_method);
+                        if (response.totals && $('pos_totals'))
+                            $('pos_totals').update(response.totals);
+                        if (response.grandTotals && $('webpos_subtotal_button')) {
+                            $('webpos_subtotal_button').update(response.grandTotals);
+                            if ($('cashin_fullamount'))
+                                $('cashin_fullamount').innerHTML = response.grandTotals;
+                            if ($('remain_value_label'))
+                                $('remain_value_label').innerHTML = response.grandTotals;
+                            if ($('remain_value'))
+                                $('remain_value').innerHTML = response.grandTotals;
+                        }
+                        if (response.downgrandtotal && $('round_down_cashin'))
+                            $('round_down_cashin').innerHTML = response.downgrandtotal;
+                        if (response.upgrandtotal && $('round_up_cashin'))
+                            $('round_up_cashin').innerHTML = response.upgrandtotal;
+                        hideCheckoutAjaxloader();
+                        hideColrightAjaxloader();
+                    } else {
+                        hideCheckoutAjaxloader();
+                        hideColrightAjaxloader();
+                        showToastMessage('danger', 'Error', response.errmessage);
+                    }
+                    hasAnotherRequest = false;
+                },
+                onComplete: function () {
+                },
+                onFailure: function () {
+                    hideCheckoutAjaxloader()
+                    hideColrightAjaxloader();
+                    hasAnotherRequest = false;
+                }
+            });
+        }
+    }
+    function cancelEditAddress() {
+        $D('#shipping-address').fadeOut();
+        $D('#bg-shipping-address').fadeOut();
+        $D('#edit_shipping_address').removeClass('active');
+    }
+
+    function offlineSearch() {
+        var keyword = $('product_search_keyword').value;
+        if (isOffline() == true || useLocalSearch == true) {
+            //searchProductByKeyword(keyword);
+        }
+    }
+
+    /* Changed By Adam */
+    function searchProduct() {
+        var keyword = $('product_search_keyword').value;
+        //$('product_search_keyword').value = '';
+        if (isOffline() == true || useLocalSearch == true) {
+            searchProductByKeyword(keyword);
+            return;
+        }
+        hasAnotherRequest = true;
+        var url = "<?php echo $this->getUrl('webpos/product/productsearch', array('_forced_secure' => $this->getRequest()->isSecure())) ?>";
+        showColleftAjaxloader();
+        var request = new Ajax.Request(url, {
+            method: 'get',
+            parameters: {keyword: keyword},
+            onSuccess: function (transport) {
+                if (transport.status == 200) {
+                    var response = getResponseText(transport);
+                    if (response.productlist) {
+                        if ($('product_content')) {
+                            $('product_content').update(response.productlist);
+                        }
+                    }
+                    if (response.strNumberProduct) {
+                        if ($('numberProduct')) {
+                            $('numberProduct').update(response.strNumberProduct);
+                        }
+                    }
+                    if (response.numberProduct <= 16) {
+                        $D('#productPager .pager').fadeOut();
+                    } else {
+                        $D('#productPager .pager').fadeIn();
+                    }
+                }
+                hideColleftAjaxloader();
+                hasAnotherRequest = false;
+            },
+            onComplete: function () {
+                loadProductImage();
+            },
+            onFailure: function () {
+                hideColleftAjaxloader();
+                hasAnotherRequest = false;
+            }
+        });
+    }
+
+    var showOfflineMessage = function () {
+        showToastMessage('info', 'Message', "<?php echo $this->__('You are now in offline mode and unable to process this action. Please try again when you are online.'); ?>");
+    }
+
+
+    function savePendingOrders() {
+        var numberSaved = numberunsaved = 0;
+        var number_pending_orders = 0;
+        var selected_orders = $$('.selected_order');
+        if (selected_orders.length > 0)
+            selected_orders.each(function (checkbox) {
+                if (checkbox.checked == true) {
+                    number_pending_orders++;
+                }
+            });
+
+        if (number_pending_orders <= 0) {
+            showToastMessage('warning', 'Message', "<?php echo $this->__('Please select offline orders to sync.'); ?>");
+            return;
+        }
+        if ($('network_status') && $('network_status').value == 'off') {
+            showToastMessage('warning', 'Message', "<?php echo $this->__('You are now in offline mode and unable to process this action. Please try again when you are online.'); ?>");
+            return;
+        }
+        if (numberSaved == 0)
+            showToastMessage('warning', 'Notice', "<?php echo $this->__('Saving pending orders... Please wait!'); ?>");
+
+        saveOnePendingOrder(numberSaved, number_pending_orders, numberunsaved, []);
+
+    }
+
+    function saveOnePendingOrder(numberSaved, total, numberunsaved, unsaved) {
+        var checkedOrder = [];
+        var selected_orders = $$('.selected_order');
+        if (selected_orders.length > 0)
+            selected_orders.each(function (checkbox) {
+                if (checkbox.checked == true) {
+                    checkedOrder.push(checkbox.value);
+                    if (unsaved.indexOf(checkbox.value) >= 0) {
+                        checkbox.checked = false;
+                        if ($('cb_all'))
+                            $('cb_all').checked == false;
+                    }
+                }
+            });
+        var pending_orders = getAllPendingOrders();
+        var numberSaved = numberSaved;
+        var numberunsaved = numberunsaved;
+        hasAnotherRequest = true;
+        for (var key in pending_orders) {
+            if (checkedOrder.indexOf(key) < 0 || unsaved.indexOf(key) >= 0)
+                continue;
+            showPendingAjaxloader();
+            var pendingJSONstring = JSON.stringify(pending_orders[key]);
+            var request = new Ajax.Request(savePendingOrdersUrl, {
+                method: 'post',
+                parameters: {pendingJSONstring: pendingJSONstring},
+                onSuccess: function (transport) {
+                    if (transport.status == 200) {
+                        var response = getResponseText(transport);
+                        if (response.numberOrderSaved) {
+                            var orderId = response.orderId;
+                            deletePendingOrderAtPopup(key);
+                            numberSaved++;
+                            showToastMessage('info', 'Message', numberSaved + '/' + total + '<?php echo $this->__(' order(s) saved. Order Id: #'); ?>' + orderId);
+                        }
+                        if (response.numberOrderUnsaved) {
+                            numberunsaved++;
+                            unsaved.push(key);
+                            showToastMessage('danger', 'Message', numberunsaved + '<?php echo $this->__(' order(s) cannot be saved.'); ?>');
+                        }
+                        if (response.error) {
+                            numberunsaved++;
+                            unsaved.push(key);
+                            showToastMessage('danger', 'Message', numberunsaved + '<?php echo $this->__(' order(s) cannot be saved. '); ?>' + response.error);
+                        }
+                    }
+                    if (numberSaved == total || numberunsaved == total || (numberunsaved + numberSaved) == total) {
+                        hasAnotherRequest = false;
+                        numberSaved = 0;
+                        hidePendingAjaxloader();
+                    } else
+                        saveOnePendingOrder(numberSaved, total, numberunsaved, unsaved);
+                    if ($('cb_all'))
+                        $('cb_all').checked == false;
+                },
+                onComplete: function () {
+                },
+                onFailure: function () {
+                    if (numberSaved == total) {
+                        hasAnotherRequest = false;
+                        numberSaved = 0;
+                        hidePendingAjaxloader();
+                    }
+                }
+            });
+            break;
+        }
+    }
+
+    function updateNumberProduct(numberProduct) {
+        if ($('numberProduct'))
+            $('numberProduct').innerHTML = "<?php echo 'Total: ' ?>" + numberProduct + "<?php echo ' product(s)' ?>";
+    }
+
+    function showPendingOrdersPopup() {
+        if (getNumberPendingOrders() <= 0) {
+            showToastMessage('warning', 'Message', '<?php echo $this->__('No pending order.'); ?>');
+            return;
+        }
+        if ($('network_status') && $('network_status').value == 'off') {
+            showToastMessage('warning', 'Message', "<?php echo $this->__('You are now in offline mode and unable to process this action. Please try again when you are online.'); ?>");
+            return;
+        }
+        showBgOverlay();
+        if ($D('#pending_orders_popup')) {
+            preparePendingOrdersHtml();
+            $D('#pending_orders_popup').css({top: '-1000px'});
+            $D('#pending_orders_popup').show();
+            $D('#pending_orders_popup').animate({top: '50px'}, 500);
+        }
+    }
+
+    function uploadFile(formId) {
+        var form = $(formId);
+        if (form != null) {
+            $D('<iframe>', {
+                src: '',
+                id: 'uploadIframe',
+                name: 'uploadIframe',
+                frameborder: 0,
+                scrolling: 'no'
+            }).appendTo('#hiddenContainer');
+            form.setAttribute('target', 'uploadIframe');
+            form.submit();
+        }
+    }
+    function cancelSearch() {
+        if ($('product_search_keyword') && $('product_search_keyword').value) {
+            $('product_search_keyword').value = '';
+            reloadListProduct('category', '<?php echo $rootCatId; ?>', 'All Categories');
+        }
+        hideSearchForm();
+    }
+
+    function shippingHeaderClick() {
+        if ($D('#shipping_area .panel-body').hasClass('hidding')) {
+            $D('#shipping_area .panel-body').removeClass('hidding');
+            $D('#shipping_area .panel-body').slideDown();
+            $D('.payment-method').hide();
+        } else {
+            $D('#shipping_area .panel-body').slideUp();
+            $D('#shipping_area .panel-body').addClass('hidding');
+            $D('#payment_area .panel-body').slideDown();
+        }
+    }
+
+    function paymentHeaderClick() {
+        $D('#shipping_area .panel-body').slideUp();
+        $D('#shipping_area .panel-body').addClass('hidding');
+        $D('#payment_area .panel-body').slideDown();
+    }
+
+
+    function menuClick(el) {
+        $D('#menu').addClass('menuHide');
+        if (el.id != '') {
+            showActiveMenu(el);
+        }
+        if (el.id == 'checkout') {
+            //$('main_container').removeClassName('marginLeft5vw');
+        }
+        if (el.id == 'orders') {
+            orderlistSearch(false, '');
+        }
+        if (el.id != '' && el.id != 'holded_orders') {
+            if (typeof holded_order_section == 'object')
+                holded_order_section.hideArea();
+        }
+        if (el.id != '' && el.id != 'cash_drawer') {
+            if (typeof cashdrawer_section == 'object')
+                cashdrawer_section.hideArea();
+        }
+        if (el.id != '' && el.id != 'reports') {
+            if (typeof reports_section == 'object')
+                reports_section.hideArea();
+        }
+    }
+
+    function reloadAllBlock() {
+        showColrightAjaxloader();
+        showCheckoutAjaxloader();
+        var request = new Ajax.Request(savecartUrl, {
+            method: 'get',
+            parameters: {},
+            onSuccess: function (transport) {
+                if (transport.status == 200) {
+                    var response = JSON.parse(transport.responseText);
+                    if (response.grandTotal) {
+                        $('cashin_fullamount').innerHTML = response.grandTotal;
+                        if ($('remain_value_label'))
+                            $('remain_value_label').innerHTML = response.grandTotal;
+                        if ($('remain_value'))
+                            $('remain_value').innerHTML = response.grandTotal;
+                    }
+                    if (response.downgrandtotal)
+                        $('round_down_cashin').innerHTML = response.downgrandtotal;
+                    if (response.upgrandtotal)
+                        $('round_up_cashin').innerHTML = response.upgrandtotal;
+                    if (response.grand_total)
+                        $('webpos_subtotal_button').innerHTML = response.grand_total;
+                    if (response.payment_method && $('payment_method'))
+                        $('payment_method').update(response.payment_method);
+                    if (response.shipping_method && $('shipping_method'))
+                        $('shipping_method').update(response.shipping_method);
+                    if (response.pos_items && $('webpos_cart'))
+                        $('webpos_cart').update(response.pos_items);
+                    if (response.totals && $('pos_totals'))
+                        $('pos_totals').update(response.totals);
+                    if (response.number_item && $('total_number_item'))
+                        $('total_number_item').update(response.number_item);
+                    if (response.errorMessage && response.errorMessage != '') {
+                        showToastMessage('danger', 'Error', response.errorMessage);
+                    }
+                    if (response.customItem) {
+                        var customItem = response.customItem;
+                        for (var key in customPrice) {
+                            var stringPrice = customPrice[key];
+                            var stringArray = stringPrice.split("|");
+                            var productId = stringArray[0];
+                            var discountAmount = stringArray[2];
+                            var reduceType = stringArray[3];
+                            var discountType = stringArray[4];
+                            var itemId = customItem[productId];
+                            var object = '{' + '"editPrice" :"' + discountType + '","reduceType"  :"' + reduceType + '","discountAmount"  :"' + discountAmount + '"}';
+                            saveCustomInfo(itemId, JSON.parse(object));
+                        }
+                    }
+                    if (response.hasError) {
+                        if ($('bt_checkout'))
+                            $('bt_checkout').addClassName('hasError');
+                        if ($D('#webpos_quote_message'))
+                            $D('#webpos_quote_message').slideDown();
+                    } else {
+                        if ($('bt_checkout'))
+                            $('bt_checkout').removeClassName('hasError');
+                        if ($D('#webpos_quote_message'))
+                            $D('#webpos_quote_message').slideUp();
+                    }
+                }
+            },
+            onComplete: function () {
+                hideColrightAjaxloader();
+                hideCheckoutAjaxloader();
+                canPlaceOrder();
+                if ($('grand_total_wp_show_hide'))
+                    $('grand_total_wp_show_hide').show();
+                if ($('main_container') && $('main_container').hasClassName('hideCategory')) {
+                    if ($('add-discount'))
+                        $('add-discount').hide();
+                }
+                collectCartTotal();
+                if (typeof holded_order_section == 'object')
+                    holded_order_section.hideArea();
+
+                var productElements = $$('#webpos_cart .product');
+                if (productElements.length == 0) {
+                    hideHoldButton();
+                    showCategory();
+                    disableCheckout();
+                } else {
+                    var productElements = $$('#webpos_cart .needupdate');
+                    if (productElements.length > 0 && isOffline() == true) {
+                        hideHoldButton();
+                    } else {
+                        showHoldButton();
+                    }
+                    enableCheckout();
+                }
+
+                if ($('main_container').hasClassName('hideCategory')) {
+                    var deleteBts = $$('#webpos_cart .product .delete');
+                    if (deleteBts.length > 0) {
+                        deleteBts.each(function (el) {
+                            el.addClassName('hide');
+                        });
+                    }
+                    var priceEls = $$('#webpos_cart .product .price');
+                    if (priceEls.length > 0) {
+                        priceEls.each(function (el) {
+                            el.addClassName('width40');
+                        });
+                    }
+                }
+                calculateRemain();
+            },
+            onFailure: function () {
+                hideColrightAjaxloader();
+                hideCheckoutAjaxloader();
+            }
+        });
+    }
+
+    function deleteCustomerJs() {
+        $('add-customer').innerHTML = "<?php echo $this->__('Add Customer'); ?>";
+        $D('#add-customer').removeClass('active');
+        $D('#add-customer').attr('onclick', 'showCustomers()');
+        $D('#remove-customer').hide();
+    }
+
+<?php
+if (Mage::helper('webpos')->isPdfinvoice21Active()):
+    ?>
+        function printlinkPDF() {
+            if (!$('order_view_id')) {
+                alert('dont have order, cant print pdfinvoice');
+                return false;
+            }
+            var orderId = $('order_view_id').value;
+            var link = "<?php echo Mage::helper('pdfinvoiceplus')->getPrintPdfLink('order', '') ?>";
+            var countPrint = link.indexOf('/key') + 1;
+            var first = link.substring(0, countPrint);
+            var last = link.substring(countPrint);
+            var finallink = first + 'order_id/' + orderId + '/' + last;
+            window.location.href = finallink;
+        }
+    <?php
+endif;
+?>
+</script>

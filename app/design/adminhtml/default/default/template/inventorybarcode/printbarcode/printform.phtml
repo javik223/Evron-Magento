@@ -1,0 +1,397 @@
+<style>
+
+    @media print {
+        @page {
+            size: A4;
+            margin: 0;
+        }
+        .header{
+            display:none !important;
+        }
+        .notification-global{
+            display:none !important;
+        }
+        .inventory-nav-bar{
+            display:none !important;
+        }
+        #inventory-title{
+            display:none !important;
+        }
+        .footer{
+            display:none !important;
+        }
+        .button-print{
+            display:none !important;
+        }
+
+}
+
+</style>
+<?php $params = $this->getRequest()->getParams(); ?>
+<?php if(isset($params['barcodeId']) && $params['barcodeId']){
+	$barcodeIds = array($params['barcodeId']);
+}else if(isset($params['barcodeIds']) && $params['barcodeIds']){
+	$barcodeIds = explode(',', $params['barcodeIds']);
+}
+
+if(isset($params['data']) && $params['data'] ){
+    $data = $params['data'];
+}
+$purchaseorderProducts = array();
+parse_str(urldecode($data), $purchaseorderProducts);
+
+?>
+
+<?php $type = $params['type'];?>
+<?php $qty = $params['number_of_barcode'];?>
+<?php
+        $printingFormat = $params['barcode_template'];
+        if($printingFormat == 5 ){
+            $pageWidth= 3.94;
+        }else{
+            $pageWidth = 4.7;
+        }
+
+    function show( $abc ){
+        if(strlen($abc) == 23 ){
+         return  substr($abc,0,23);
+        }
+        if (strlen($abc) < 23) {
+         return  $abc;
+        }
+        if (strlen($abc) > 23){
+         $abc = substr($abc,0,20);
+         return $abc." ...";
+        }
+    }
+?>
+<?php $template = $params['barcode_template'];?>
+<?php
+        $customize = 0;
+        $heightImage = 0;
+        if(isset($params['customize']) && $params['customize']){
+            $customize = 1;
+            $heightImage = $params['heigth_barcode'];
+        }
+?>
+<div style-="width:100%; float:left;" class="button-print">
+<button style="padding: 5px; width: 90px; font-size: 16px; margin: 10px;" onclick="printbarcode()" type="button"><?php echo $this->__('Print') ?></button>
+</div>
+
+
+<?php if(empty($data)):?>
+
+<div style="width:<?php echo $pageWidth?>in; float:left;" id="mydiv"  >
+    <?php foreach($barcodeIds as $barcodeId):?>
+        <div style="width: 100%; float:left;">
+            <?php $barcode = Mage::getModel('inventorybarcode/barcode')->load($barcodeId);?>
+            <?php for($i = 0; $i<$qty; $i++):?>
+
+                <?php if($template==1):?>
+                    <table style="width:120mm; height:28mm; text-align: center;">
+                       <tr>
+                        <td align ="center" style="width:35mm; height:22mm"><img width="140" height="65" name="barcode_images" src="<?php echo Mage::helper("adminhtml")->getUrl('adminhtml/inb_printbarcode/getimage/',array('type' => $type, 'text' => $barcode->getBarcode(), 'customize' => $customize, 'heigth_barcode' => $heightImage, 'font_size' => 10)); ?>" /></td>
+                        <td align ="center" style="width:35mm; height:22mm"><img width="140" height="65" name="barcode_images" src="<?php echo Mage::helper("adminhtml")->getUrl('adminhtml/inb_printbarcode/getimage/',array('type' => $type, 'text' => $barcode->getBarcode(), 'customize' => $customize, 'heigth_barcode' => $heightImage, 'font_size' => 10)); ?>" /></td>
+                        <td align ="center" style="width:35mm; height:22mm"><img width="140" height="65" name="barcode_images" src="<?php echo Mage::helper("adminhtml")->getUrl('adminhtml/inb_printbarcode/getimage/',array('type' => $type, 'text' => $barcode->getBarcode(), 'customize' => $customize, 'heigth_barcode' => $heightImage, 'font_size' => 10)); ?>" /></td>
+                       </tr>
+                       </table>
+                <?php endif;?>
+                <?php if($template==2):?>
+                    <?php $product = Mage::getModel('catalog/product')->load($barcode->getProductEntityId());?>
+                       <table style="width:120mm; height:28mm; text-align: center;">
+                       <tr>
+                        <td align ="center" style="width:35mm; height:22mm">
+                            <span style="float: left; font-size: 9px; text-align: left; margin-left:10px;"><?php echo $product->getName()?></span>
+                            <img width="140" height="60" name="barcode_images" src="<?php echo Mage::helper("adminhtml")->getUrl('adminhtml/inb_printbarcode/getimage/',array('type' => $type, 'text' => $barcode->getBarcode(), 'customize' => $customize, 'heigth_barcode' => $heightImage, 'font_size' => 10)); ?>" /></td>
+                        <td align ="center" style="width:35mm; height:22mm">
+                            <span style="float: left; font-size: 9px; text-align: left; margin-left:10px;"><?php echo $product->getName()?></span>
+                            <img width="140" height="60" name="barcode_images" src="<?php echo Mage::helper("adminhtml")->getUrl('adminhtml/inb_printbarcode/getimage/',array('type' => $type, 'text' => $barcode->getBarcode(), 'customize' => $customize, 'heigth_barcode' => $heightImage, 'font_size' => 10)); ?>" /></td>
+                        <td align ="center" style="width:35mm; height:22mm">
+                            <span style="float: left; font-size: 9px; text-align: left; margin-left:10px;"><?php echo $product->getName()?></span>
+                            <img width="140" height="60" name="barcode_images" src="<?php echo Mage::helper("adminhtml")->getUrl('adminhtml/inb_printbarcode/getimage/',array('type' => $type, 'text' => $barcode->getBarcode(), 'customize' => $customize, 'heigth_barcode' => $heightImage, 'font_size' => 10)); ?>" /></td>
+                       </tr>
+                       </table>
+                <?php endif;?>
+                <?php if($template==3):?>
+                   <?php $product = Mage::getModel('catalog/product')->load($barcode->getProductEntityId());?>
+                       <table style="width:120mm; height:28mm; text-align: center;">
+                       <tr>
+                        <td align ="center" style="width:35mm; height:22mm">
+                            <span style="float: left; font-size: 9px; text-align: left; margin-left:10px;"><?php echo $product->getName()?></span>
+                            <span style="float: left; font-size: 12px; text-align: left; margin-left:10px;"><?php echo Mage::helper('core')->currency($product->getPrice())?></span>
+                            <img width="140" height="60" name="barcode_images" src="<?php echo Mage::helper("adminhtml")->getUrl('adminhtml/inb_printbarcode/getimage/',array('type' => $type, 'text' => $barcode->getBarcode(), 'customize' => $customize, 'heigth_barcode' => $heightImage, 'font_size' => 10)); ?>" /></td>
+                        <td align ="center" style="width:35mm; height:22mm">
+                            <span style="float: left; font-size: 9px; text-align: left; margin-left:10px;"><?php echo $product->getName()?></span>
+                            <span style="float: left; font-size: 12px; text-align: left; margin-left:10px;"><?php echo Mage::helper('core')->currency($product->getPrice())?></span>
+                            <img width="140" height="60" name="barcode_images" src="<?php echo Mage::helper("adminhtml")->getUrl('adminhtml/inb_printbarcode/getimage/',array('type' => $type, 'text' => $barcode->getBarcode(), 'customize' => $customize, 'heigth_barcode' => $heightImage, 'font_size' => 10)); ?>" /></td>
+                        <td align ="center" style="width:35mm; height:22mm">
+                            <span style="float: left; font-size: 9px; text-align: left; margin-left:10px;"><?php echo $product->getName()?></span>
+                            <span style="float: left; font-size: 12px; text-align: left; margin-left:10px;"><?php echo Mage::helper('core')->currency($product->getPrice())?></span>
+                            <img width="140" height="60" name="barcode_images" src="<?php echo Mage::helper("adminhtml")->getUrl('adminhtml/inb_printbarcode/getimage/',array('type' => $type, 'text' => $barcode->getBarcode(), 'customize' => $customize, 'heigth_barcode' => $heightImage, 'font_size' => 10)); ?>" /></td>
+                       </tr>
+                       </table>
+                <?php endif;?>
+
+                <?php if($template==4):?>
+                    <?php $product = Mage::getModel('catalog/product')->load($barcode->getProductEntityId());?>
+                       <table style="width:120mm; height:28mm; text-align: center;">
+                       <tr>
+                        <td align ="center" style="width:35mm; height:22mm">
+                            <span style="float: left; font-size: 9px; text-align: left; margin-left:10px;"><?php echo $product->getName()?></span>
+                            <span style="float: left; font-size: 9px; text-align: left; margin-left:10px;"><?php echo $product->getSku() ?></span>
+                            <img width="140" height="60" name="barcode_images" src="<?php echo Mage::helper("adminhtml")->getUrl('adminhtml/inb_printbarcode/getimage/',array('type' => $type, 'text' => $barcode->getBarcode(), 'customize' => $customize, 'heigth_barcode' => $heightImage, 'font_size' => 10)); ?>" /></td>
+                        <td align ="center" style="width:35mm; height:22mm">
+                            <span style="float: left; font-size: 9px; text-align: left; margin-left:10px;"><?php echo $product->getName()?></span>
+                            <span style="float: left; font-size: 9px; text-align: left; margin-left:10px;"><?php echo $product->getSku() ?></span>
+                            <img width="140" height="60" name="barcode_images" src="<?php echo Mage::helper("adminhtml")->getUrl('adminhtml/inb_printbarcode/getimage/',array('type' => $type, 'text' => $barcode->getBarcode(), 'customize' => $customize, 'heigth_barcode' => $heightImage, 'font_size' => 10)); ?>" /></td>
+                        <td align ="center" style="width:35mm; height:22mm">
+                            <span style="float: left; font-size: 9px; text-align: left; margin-left:10px;"><?php echo $product->getName()?></span>
+                            <span style="float: left; font-size: 9px; text-align: left; margin-left:10px;"><?php echo $product->getSku() ?></span>
+                            <img width="140" height="60" name="barcode_images" src="<?php echo Mage::helper("adminhtml")->getUrl('adminhtml/inb_printbarcode/getimage/',array('type' => $type, 'text' => $barcode->getBarcode(), 'customize' => $customize, 'heigth_barcode' => $heightImage, 'font_size' => 10)); ?>" /></td>
+                       </tr>
+                       </table>
+                <?php endif;?>
+
+                <?php if($template==5):?>
+                        <div style="display: inline-block; float:left; margin-left:35px; ">
+                            <table style=" width:3.94in; height:17mm ; line-height:0.4;  " >
+                                <tr>
+                                    <td align="center" style="width:26mm; height:14mm;">
+                                       <?php $product = Mage::getModel('catalog/product')->load($barcode->getProductEntityId());?>
+                                       <span style="float: left; font-size: 8px; text-align: left; margin-left:10px;margin-top:2px;  "><?php echo show($product->getName())?></span></br>
+                                       <span style="float: left; font-size: 8px; text-align: left; margin-left:10px;margin-top:2px;"><?php echo show($product->getSku())?></span></br>
+                                       <span style="float: left; font-size:10px; text-align: left; margin-left:10px;margin-top:4px; "><?php echo Mage::helper('core')->currency($product->getPrice())?></span>
+                                    </td>
+                                    <td align="center" style="width:22mm; height:14mm;">
+                                       <img style=" margin-top: 15px;" width="100" height="40" name="barcode_images" src="<?php echo Mage::helper("adminhtml")->getUrl('adminhtml/inb_printbarcode/getimage/',array('type' => $type, 'text' => $barcode->getBarcode(), 'customize' => $customize, 'heigth_barcode' => $heightImage, 'font_size' => 10)); ?>" />
+                                    </td>
+                                    <td></td>
+                                </tr>
+                            </table>
+                        </div>
+                <?php endif;?>
+
+                <?php if($template==7):?>
+                       <?php $product = Mage::getModel('catalog/product')->load($barcode->getProductEntityId());?>
+                       <table style="width:120mm; height:28mm; text-align: center;">
+                       <tr>
+                        <td align ="center" style="width:35mm; height:22mm">
+                            <span style="float: left; font-size: 9px; text-align: left; margin-left:6px;"><?php echo $product->getName()?></span>
+                            <span style="float: left; font-size: 12px; text-align: left; margin-left:6px;"><?php echo Mage::helper('core')->currency($product->getPrice())?></span>
+                            <img width="140" height="60" name="barcode_images" src="<?php echo Mage::helper("adminhtml")->getUrl('adminhtml/inb_printbarcode/getimage/',array('type' => $type, 'text' => $barcode->getBarcode(), 'customize' => $customize, 'heigth_barcode' => $heightImage, 'font_size' => 10)); ?>" /></td>
+                        <td align ="center" style="width:35mm; height:22mm">
+                            <span style="float: left; font-size: 9px; text-align: left; margin-left:6px;"><?php echo $product->getName()?></span>
+                            <span style="float: left; font-size: 12px; text-align: left; margin-left:6px;"><?php echo Mage::helper('core')->currency($product->getPrice())?></span>
+                            <img width="140" height="60" name="barcode_images" src="<?php echo Mage::helper("adminhtml")->getUrl('adminhtml/inb_printbarcode/getimage/',array('type' => $type, 'text' => $barcode->getBarcode(), 'customize' => $customize, 'heigth_barcode' => $heightImage, 'font_size' => 10)); ?>" /></td>
+                        <td align ="center" style="width:35mm; height:22mm">
+                            <span style="float: left; font-size: 9px; text-align: left; margin-left:6px;"><?php echo $product->getName()?></span>
+                            <span style="float: left; font-size: 12px; text-align: left; margin-left:6px;"><?php echo Mage::helper('core')->currency($product->getPrice())?></span>
+                            <img width="140" height="60" name="barcode_images" src="<?php echo Mage::helper("adminhtml")->getUrl('adminhtml/inb_printbarcode/getimage/',array('type' => $type, 'text' => $barcode->getBarcode(), 'customize' => $customize, 'heigth_barcode' => $heightImage, 'font_size' => 10)); ?>" /></td>
+                       </tr>
+                       </table>
+                <?php endif;?>
+
+
+                 <!-- end add by Kai - barcode-->
+                 <?php endfor;?>
+        </div>
+    <?php endforeach;?>
+</div>
+<?php endif; ?>
+
+
+<?php if($data):?>
+
+<?php
+
+    $total = 0;
+    foreach($purchaseorderProducts as $pId => $enCoded){
+        $barcode = Mage::getModel('inventorybarcode/barcode')->load($pId);
+                    parse_str(base64_decode($enCoded), $codeArr);
+                                       foreach($codeArr as $key => $qtyfor){
+                                           $total = $total + $qtyfor;
+                                       }
+    }
+
+?>
+<div style="width:<?php echo $pageWidth?>in; float:left;" id="mydiv"  >
+    <?php $j =0 ;?>
+     <div style="width: 100%; float:left;">
+    <?php foreach($purchaseorderProducts as $pId => $enCoded):?>       
+            <?php $barcode = Mage::getModel('inventorybarcode/barcode')->load($pId);
+                parse_str(base64_decode($enCoded), $codeArr);
+                                   foreach($codeArr as $key => $qtyfor){
+                                   }                               
+            ?>
+             <?php if($template==1):?>
+                  <?php if( $j == 0):?>
+                    <table style="width:120mm; height:28mm; text-align: center;">
+                            <tr>
+                                <?php endif; ?>
+                                <?php for($i = 0; $i<$qtyfor; $i++):?>                                  
+                                        <?php if( ($j > 0) && ($j % 3 == 0)): ?>
+                                            </tr></table>
+                                            <table style="width:120mm; height:28mm;text-align: center; "><tr>
+                                        <?php endif; $j++;  ?>                                                  
+                                    <td align ="left" style="width:35mm; height:22mm; text-align: center; "><img width="140" height="65" name="barcode_images" src="<?php echo Mage::helper("adminhtml")->getUrl('adminhtml/inb_printbarcode/getimage/',array('type' => $type, 'text' => $barcode->getBarcode(), 'customize' => $customize, 'heigth_barcode' => $heightImage, 'font_size' => 10)); ?>" /></td>
+                                <?php endfor; ?>                                
+                            <?php  if ($j == $total): ?>
+                                    <?php if ($j % 3 == 1) : ?>
+                                     <td align="left" style="width:35mm; height:22mm; text-align: center;" ></td>
+                                     <td align="left" style="width:35mm; height:22mm; text-align: center;" ></td>
+                                    <?php endif; ?>
+                                    <?php if ($j % 3 == 2) : ?>
+                                     <td align="left" style="width:35mm; height:22mm; text-align: center; " ></td>
+                                    <?php endif; ?>
+                            </tr>
+                            </table>
+                         <?php endif; ?>
+                <?php endif;?>
+            
+
+                <?php if($template==2):?>
+                    <?php $product = Mage::getModel('catalog/product')->load($barcode->getProductEntityId());?>
+                      <?php if( $j == 0):?> 
+                       <table style="width:120mm; height:28mm; text-align: center;">
+                       <tr>
+                        <?php endif; ?>   
+                           <?php for($i = 0; $i<$qtyfor; $i++):?>
+                                <?php if( ($j > 0) && ($j % 3 == 0) ): ?>
+                                       </tr></table>
+                                        <table style="width:120mm; height:28mm;text-align: center; "><tr>
+                                <?php endif; $j++ ; ?>
+                        <td align ="center" style="width:35mm; height:22mm">
+                            <span style="float: left; font-size: 9px; text-align: left; margin-left:10px;"><?php echo $product->getName()?></span>
+                            <img width="140" height="60" name="barcode_images" src="<?php echo Mage::helper("adminhtml")->getUrl('adminhtml/inb_printbarcode/getimage/',array('type' => $type, 'text' => $barcode->getBarcode(), 'customize' => $customize, 'heigth_barcode' => $heightImage, 'font_size' => 10)); ?>" /></td>
+                                <?php endfor; ?>
+                            <?php  if ($j == $total): ?>
+                                    <?php if ($j % 3 == 1) : ?>
+                                     <td align="left" style="width:35mm; height:22mm; text-align: center;" ></td>
+                                     <td align="left" style="width:35mm; height:22mm; text-align: center;" ></td>
+                                    <?php endif; ?>
+                                    <?php if ($j % 3 == 2) : ?>
+                                     <td align="left" style="width:35mm; height:22mm; text-align: center; " ></td>
+                                    <?php endif; ?>
+                            </tr>
+                            </table>
+                         <?php endif; ?>
+                <?php endif;?>
+
+                <?php if($template==3):?>
+                   <?php $product = Mage::getModel('catalog/product')->load($barcode->getProductEntityId());?>
+                        <?php if( $j == 0):?> 
+                       <table style="width:120mm; height:28mm; text-align: center;">
+                       <tr>
+                        <?php endif; ?>
+                           <?php for($i = 0; $i<$qtyfor; $i++):?>
+                               <?php if( ($j > 0) && ($j % 3 == 0) ): ?>
+                                       </tr></table>
+                                        <table style="width:120mm; height:28mm;text-align: center; "><tr>
+                                <?php endif; $j++; ?>
+                        <td align ="center" style="width:35mm; height:22mm">
+                            <span style="float: left; font-size: 9px; text-align: left; margin-left:10px;"><?php echo $product->getName()?></span>
+                            <span style="float: left; font-size: 12px; text-align: left; margin-left:10px;"><?php echo Mage::helper('core')->currency($product->getPrice())?></span>
+                            <img width="140" height="60" name="barcode_images" src="<?php echo Mage::helper("adminhtml")->getUrl('adminhtml/inb_printbarcode/getimage/',array('type' => $type, 'text' => $barcode->getBarcode(), 'customize' => $customize, 'heigth_barcode' => $heightImage, 'font_size' => 10)); ?>" /></td>
+                                <?php endfor; ?>
+                                      <?php  if ($j == $total): ?>
+                                    <?php if ($j % 3 == 1) : ?>
+                                     <td align="left" style="width:35mm; height:22mm; text-align: center;" ></td>
+                                     <td align="left" style="width:35mm; height:22mm; text-align: center;" ></td>
+                                    <?php endif; ?>
+                                    <?php if ($j % 3 == 2) : ?>
+                                     <td align="left" style="width:35mm; height:22mm; text-align: center; " ></td>
+                                    <?php endif; ?>
+                            </tr>
+                            </table>
+                         <?php endif; ?>
+                <?php endif;?>
+
+
+                <?php if($template==4):?>
+                    <?php $product = Mage::getModel('catalog/product')->load($barcode->getProductEntityId());?>
+                        <?php if( $j == 0):?> 
+                       <table style="width:120mm; height:28mm; text-align: center;">
+                       <tr>
+                        <?php endif; ?>
+                           <?php for($i = 0; $i<$qtyfor; $i++):?>
+                               <?php if( ($j > 0) && ($j % 3 == 0) ): ?>
+                                   </tr></table>
+                                    <table style="width:120mm; height:28mm;text-align: center; "><tr>
+                                <?php endif; $j++; ?>
+                        <td align ="center" style="width:35mm; height:22mm">
+                            <span style="float: left; font-size: 9px; text-align: left; margin-left:10px;"><?php echo $product->getName()?></span>
+                            <span style="float: left; font-size: 9px; text-align: left; margin-left:10px;"><?php echo $product->getSku() ?></span>
+                            <img width="140" height="60" name="barcode_images" src="<?php echo Mage::helper("adminhtml")->getUrl('adminhtml/inb_printbarcode/getimage/',array('type' => $type, 'text' => $barcode->getBarcode(), 'customize' => $customize, 'heigth_barcode' => $heightImage, 'font_size' => 10)); ?>" /></td>
+                                <?php endfor; ?>
+                               <?php  if ($j == $total): ?>
+                                    <?php if ($j % 3 == 1) : ?>
+                                     <td align="left" style="width:35mm; height:22mm; text-align: center;" ></td>
+                                     <td align="left" style="width:35mm; height:22mm; text-align: center;" ></td>
+                                    <?php endif; ?>
+                                    <?php if ($j % 3 == 2) : ?>
+                                     <td align="left" style="width:35mm; height:22mm; text-align: center; " ></td>
+                                    <?php endif; ?>
+                            </tr>
+                            </table>
+                         <?php endif; ?>
+                <?php endif;?>
+
+                <?php if($template==5):?>
+                        <div style="display: inline-block; float:left; margin-left:35px; ">
+                            <table style=" width:3.94in; height:17mm ; line-height:0.4;  " >
+                                <tr>
+                                    <td align="center" style="width:26mm; height:14mm;">
+                                       <?php $product = Mage::getModel('catalog/product')->load($barcode->getProductEntityId());?>
+                                       <span style="float: left; font-size: 8px; text-align: left; margin-left:10px;margin-top:2px;  "><?php echo show($product->getName())?></span></br>
+                                       <span style="float: left; font-size: 8px; text-align: left; margin-left:10px;margin-top:2px;"><?php echo show($product->getSku())?></span></br>
+                                       <span style="float: left; font-size:10px; text-align: left; margin-left:10px;margin-top:4px; "><?php echo Mage::helper('core')->currency($product->getPrice())?></span>
+                                    </td>
+                                    <td align="center" style="width:22mm; height:14mm;">
+                                       <img style=" margin-top: 15px;" width="100" height="40" name="barcode_images" src="<?php echo Mage::helper("adminhtml")->getUrl('adminhtml/inb_printbarcode/getimage/',array('type' => $type, 'text' => $barcode->getBarcode(), 'customize' => $customize, 'heigth_barcode' => $heightImage, 'font_size' => 10)); ?>" />
+                                    </td>
+                                    <td></td>
+                                </tr>
+                            </table>
+                        </div>
+                <?php endif;?>
+
+                <?php if($template==7):?>
+                       <?php $product = Mage::getModel('catalog/product')->load($barcode->getProductEntityId());?>
+                          <?php if( $j == 0):?> 
+                       <table style="width:120mm; height:28mm; text-align: center;">
+                       <tr>
+                        <?php endif; ?>
+                                <?php for($i = 0; $i<$qtyfor; $i++):?>
+                                    <?php if( ($j > 0) && ($j % 3 == 0) ): ?>
+                                        </tr></table>
+                                        <table style="width:120mm; height:28mm;text-align: center; "><tr>
+                                    <?php endif; $j++; ?>
+                        <td align ="center" style="width:35mm; height:22mm">
+                            <span style="float: left; font-size: 9px; text-align: left; margin-left:6px;"><?php echo $product->getName()?></span>
+                            <span style="float: left; font-size: 12px; text-align: left; margin-left:6px;"><?php echo Mage::helper('core')->currency($product->getPrice())?></span>
+                            <img width="140" height="60" name="barcode_images" src="<?php echo Mage::helper("adminhtml")->getUrl('adminhtml/inb_printbarcode/getimage/',array('type' => $type, 'text' => $barcode->getBarcode(), 'customize' => $customize, 'heigth_barcode' => $heightImage, 'font_size' => 10)); ?>" /></td>
+                                   <?php endfor; ?>
+                                   <?php  if ($j == $total): ?>
+                                    <?php if ($j % 3 == 1) : ?>
+                                     <td align="left" style="width:35mm; height:22mm; text-align: center;" ></td>
+                                     <td align="left" style="width:35mm; height:22mm; text-align: center;" ></td>
+                                    <?php endif; ?>
+                                    <?php if ($j % 3 == 2) : ?>
+                                     <td align="left" style="width:35mm; height:22mm; text-align: center; " ></td>
+                                    <?php endif; ?>
+                            </tr>
+                            </table>
+                         <?php endif; ?>
+                <?php endif;?>     
+    <?php endforeach;?>
+          </div>
+</div>
+<?php endif; ?>
+
+<script type="text/javascript">
+    function printbarcode(){
+        window.print();
+    }
+
+</script>
+

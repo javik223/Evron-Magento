@@ -1,0 +1,166 @@
+<?php
+$_collection = $this->getLimitOrderCollection();
+?>
+<?php if(count($_collection)):?>
+    <div class="table-responsive" id="order_grid">
+        <?php
+        $i = 0;
+        $currentDate = '';
+        $startGroup = false;
+        foreach($_collection as $_order): $i++;
+            $incrementId = $_order->getIncrementId();
+            $orderId = $_order->getId();
+            $printLink = $this->getUrl('webpos/order/print', array('order_id' => $orderId,'_forced_secure' => $this->getRequest()->isSecure()));
+
+            $create_time = Mage::app()->getLocale()->date(strtotime($_order->getData('created_at')), null, null, false)->toString('H:m:s');
+            $create_date = Mage::app()->getLocale()->date(strtotime($_order->getData('created_at')), null, null, false)->toString('d:M:Y');
+			$create_at = Mage::helper('core')->formatDate(Mage::app()->getLocale()->date(strtotime($_order->getData('created_at')), null, null, false), Mage_Core_Model_Locale::FORMAT_TYPE_LONG, false);
+			if($currentDate != $create_date){
+                $currentDate = $create_date;
+                Mage::getModel('webpos/session')->setData('currentDate',$currentDate);
+                $startGroup = true;
+            }else $startGroup = false;
+            $grand_total = Mage::helper('core')->currency($_order->getData('base_grand_total'), true, false);
+            $total_due = Mage::helper('core')->currency($_order->getBaseTotalDue(), true, false);
+            $statusOrderClass = '';
+            $orderStatus = $_order->getStatus();
+            $orderStatusLabel = $_order->getStatusLabel();
+            $canCancel = ($_order->canCancel())?'true':'false';
+            $canShip = $_order->canShip()?'true':'false';
+            /*Mr.Jack*/
+            $canRefund = $_order->canCreditmemo()?'true':'false';
+            $canInvoice = $_order->canInvoice()?'true':'false';
+            /**/
+            //vietdq
+            $userId = Mage::helper('webpos/permission')->getCurrentUser();
+            $canManageOrder = Mage::helper('webpos/permission')->canManageOrder($userId,$_order->getId());
+            if ($canManageOrder == false ) {
+                $showLabel = 'false';
+            } else {
+                $showLabel='';
+            }
+            //end
+            $allInvoiceIds = array();
+            $invoices = Mage::getResourceModel('sales/order_invoice_collection')
+                ->setOrderFilter($_order->getId())
+                ->load();
+            if(count($invoices) > 0)
+                foreach ($invoices as $invoice) {
+                    $allInvoiceIds[] = $invoice->getId();
+                }
+            switch($orderStatus){
+                case "canceled":
+                    $statusOrderClass = 'type2';
+                    break;
+                case "closed":
+                    $statusOrderClass = 'type2';
+                    break;
+                case "pending":
+                    $statusOrderClass = 'type4';
+                    break;
+                case "pending_payment":
+                    $statusOrderClass = 'type4';
+                    break;
+                case "complete":
+                    $statusOrderClass = 'type1';
+                    break;
+                case "processing":
+                    $statusOrderClass = 'type3';
+                    break;
+            }
+            $url = $this->getUrl('webpos/index/printInvoice',array('order_id'=>$orderId,'_forced_secure' => $this->getRequest()->isSecure()));
+            $skus = '';
+            $items = $_order->getAllVisibleItems();
+            if(count($items) > 0){
+                $numberItems = count($items);
+                $index = 1;
+                foreach($items as $item){
+                    if($index == $numberItems)
+                        $skus .= $item->getSku();
+                    else
+                        $skus .= $item->getSku().', ';
+                    $index++;
+                }
+            }
+            ?>
+            <div class="form-row">
+                <?php if($startGroup):?>
+                    <div class="create-at">
+                        <div class="date col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                            <?php echo $create_at;?>
+                        </div>
+                    </div>
+                <?php endif;?>
+                <div invoiceId="<?php echo (isset($allInvoiceIds[0]))?$allInvoiceIds[0]:'null';?>" canInvoice ="<?php echo $canInvoice; ?>" canRefund ="<?php echo $canRefund; ?>" canCancel="<?php echo $canCancel;?>" canShip="<?php echo $canShip; ?>" printLink="<?php echo $printLink;?>" increment_id="<?php echo '#'.$incrementId;?>" created_at="<?php echo $create_at;?>" grand_total="<?php echo $grand_total;?>" status="<?php echo $orderStatus;?>" show_label="<?php echo $showLabel ?>" status_label="<?php echo $orderStatusLabel;?>" total_due="<?php echo $total_due;?>" id='orderlist_row_<?php echo $_order->getId();?>' class="info <?php echo $statusOrderClass; ?> col-lg-12 col-md-12 col-sm-12 col-xs-12" onclick="showOrder('<?php echo $_order->getId()?>', ''); return false;">
+                    <ul class="line1">
+                        <li class="order-id col-lg-6 col-md-6 col-sm-6 col-xs-6">#<?php echo $incrementId ?></li>
+                        <li class="price col-lg-6 col-md-6 col-sm-6 col-xs-6"><?php echo $grand_total;?></li>
+                    </ul>
+                    <ul>
+                        <li class="order-id col-lg-6 col-md-6 col-sm-6 col-xs-6"><?php echo  $_order->getCustomerName(); ?></li>
+                        <li class="price col-lg-6 col-md-6 col-sm-6 col-xs-6"><?php echo $create_time;?></li>
+                    </ul>
+                    <ul class="building-address">
+                        <li class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                            <?php echo $skus; ?>
+                        </li>
+
+                    </ul>
+                </div>
+            </div>
+        <?php endforeach?>
+        <input type="text" id="current_page_number" style="display: none;"/> <!-- Mr.Jack current page -->
+    </div>
+
+    <?php echo $this->getChildHtml('order_tab_info');?>
+<?php else:?>
+    <div class="grid" id="order_grid" style="margin-top:30px; margin-bottom:30px; text-align:center !important;">
+        <p style="font-weight: 18px;"><?php echo $this->__('No orders found')?></p>
+    </div>
+<?php endif?>
+
+<!-- Mr.Jack load more order-->
+<script type="text/javascript">
+    $D(document).ready(function () {
+        /* scroll to load more notify  */
+        var page_number = 2;
+        if ($('current_page_number') && $('current_page_number').value)
+            page_number = parseInt($('current_page_number').value);
+        var total_page = '<?php echo $this->getTotalPage(); ?>';
+        if (document.getElementById('order_list_grid')) {
+            var page_numbers = new Array();
+            document.getElementById('order_list_grid').onscroll = function() {
+                if (this.scrollTop + this.offsetHeight >= this.scrollHeight - 10) {
+                    if (page_number <= total_page && page_numbers.indexOf(page_number) == -1) {
+                        page_numbers[page_number] = page_number;
+                        var parameters = {
+                            page: page_number
+                        };
+                        var url_load = '<?php echo $this->getUrl('webpos/order/loadMoreOrder',array('_forced_secure' => $this->getRequest()->isSecure())); ?>';
+                        $D('#order_list_loader').show();
+                        var request = new Ajax.Request(url_load,
+                            {
+                                method: 'post',
+                                parameters: parameters,
+                                loaderArea: false,
+                                onSuccess: function(transport) {
+                                    if (transport.responseText) {
+                                        if ($('order_grid')) {
+                                            var more_notify = transport.responseText.evalJSON();
+                                            $('order_grid').innerHTML += more_notify;
+                                            $('order_list_grid').scrollTop = 400;
+                                            page_number++;
+                                            $('current_page_number').value = page_number;
+                                        }
+                                        $D('#order_list_loader').hide();
+                                    }
+                                }
+                            }
+                        );
+                    }
+                }
+            };
+        }
+    });
+</script>
+<!-- -->

@@ -1,0 +1,116 @@
+<?php
+/**
+ * Magestore
+ * 
+ * NOTICE OF LICENSE
+ * 
+ * This source file is subject to the Magestore.com license that is
+ * available through the world-wide-web at this URL:
+ * http://www.magestore.com/license-agreement.html
+ * 
+ * DISCLAIMER
+ * 
+ * Do not edit or add to this file if you wish to upgrade this extension to newer
+ * version in the future.
+ * 
+ * @category    Magestore
+ * @package     Magestore_Inventorysupplyneeds
+ * @copyright   Copyright (c) 2012 Magestore (http://www.magestore.com/)
+ * @license     http://www.magestore.com/license-agreement.html
+ */
+
+/**
+ * Inventorysupplyneeds Adminhtml Controller
+ * 
+ * @category    Magestore
+ * @package     Magestore_Inventorysupplyneeds
+ * @author      Magestore Developer
+ */
+?>
+<?php
+$collection = Mage::registry('supplyneeds_collection');
+?>
+<script type="text/javascript">
+    //<![CDATA[
+    supplyNeedsGrid = new supplyneedsGridControl(inventorysupplyneedsGridJsObject, 'product_list', 'qty_', '');
+    function calMax(productId) {
+        var max = parseInt($("max_need_" + productId).innerHTML);
+        if (max > 0) {
+            $("qty_" + productId).value = max;
+            supplyNeedsGrid.logChange('qty_' + productId, '');
+        } else {
+            $("qty_" + productId).value = '0';
+        }
+    }
+
+    function calMin(productId) {
+        var min = parseInt($("min_need_" + productId).innerHTML);
+        if (min > 0) {
+            $("qty_" + productId).value = min;
+            supplyNeedsGrid.logChange('qty_' + productId, '');
+        }
+        else
+            $("qty_" + productId).value = '0';
+    }
+
+    function isNumber(n) {
+        return !isNaN(parseFloat(n)) && isFinite(n);
+    }
+
+    function fillAllMin() {
+        var ids = supplyNeedsGrid.getIds();
+        var id;
+        for (var i = 0; i < ids.length; i++)
+        {
+            id = ids[i];
+            if (isNumber(id))
+            {
+                var minValue = parseInt($('min_need_' + id).innerHTML);
+                if (minValue > 0) {
+                    $('qty_' + id).value = minValue;
+                    supplyNeedsGrid.logChange('qty_' + id, '');
+                } else {
+                    $('qty_' + id).value = '';
+                }
+            }
+        }
+    }
+
+    function fillAllMax() {
+        var ids = supplyNeedsGrid.getIds();
+        var id;
+        for (var i = 0; i < ids.length; i++)
+        {
+            id = ids[i];
+            if (isNumber(id))
+            {
+                var maxValue = parseInt($('max_need_' + id).innerHTML);
+                if (maxValue > 0) {
+                    $('qty_' + id).value = maxValue;
+                    supplyNeedsGrid.logChange('qty_' + id, '');
+                } else {
+                    $('qty_' + id).value = '0';
+                }
+            }
+        }
+    }
+    
+    function cancelAll() {
+        var ids = supplyNeedsGrid.getIds();
+        var id;
+        for (var i = 0; i < ids.length; i++)
+        {
+            id = ids[i];
+            if (isNumber(id))
+            {
+                var maxValue = parseInt($('max_need_' + id).innerHTML);
+                if (maxValue != null) {
+                    $('qty_' + id).value = '';
+                    supplyNeedsGrid.logChange('qty_' + id, '');
+                }
+            }
+        }
+    }
+
+    //]]>
+</script>

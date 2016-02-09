@@ -1,0 +1,192 @@
+<?php
+$requestData = Mage::helper('adminhtml')->prepareFilterString($this->getRequest()->getParam('top_filter'));
+$contentText = Mage::helper('inventoryreports')->getHeaderText();
+$condorder = $requestData['supplier_select'];
+$collection = Mage::getModel('catalog/product')->getCollection()->addAttributeToSelecT('*')->addAttributeToFilter('type_id', array('nin' => array('configurable', 'bundle', 'grouped')));
+$data = array();
+foreach ($collection as $row) {
+    $time = '';
+    $count = 0;
+    $totalTime = 0;
+    $now = time(); // or your date as well
+    if (Mage::helper('core')->isModuleEnabled('Magestore_Inventorybarcode')) {
+        $is_barcode = 1;
+        $resource = Mage::getSingleton('core/resource');
+        $readConnection = $resource->getConnection('core_read');
+        $results = '';
+        $purchaseOrderIds = array();
+        if ($condorder) {
+            $sql = 'SELECT distinct(`purchaseorder_purchase_order_id`) FROM ' . $resource->getTableName('inventorybarcode/barcode') . ' where (`product_entity_id` = ' . $row->getEntityId() .
+                    ') and (`supplier_supplier_id` = ' . $condorder . ') and (`qty` > ' . 0 . ')';
+        } else {
+            $sql = 'SELECT distinct(`purchaseorder_purchase_order_id`) FROM ' . $resource->getTableName('inventorybarcode/barcode') . ' where (`product_entity_id` = ' . $row->getEntityId() .
+                    ') and (`qty` > ' . 0 . ')';
+        }
+        $results = $readConnection->query($sql);
+        if ($results) {
+            foreach ($results as $result) {
+                $purchaseOrderIds[] = $result['purchaseorder_purchase_order_id'];
+            }
+        }
+        $purchaseOrders = Mage::getModel('inventorypurchasing/purchaseorder')
+                ->getCollection()
+                ->addFieldToFilter('purchase_order_id', array('in' => $purchaseOrderIds));
+        $count += $purchaseOrders->getSize();
+        $notPurchases = Mage::getModel('inventorybarcode/barcode')
+                ->getCollection()
+                ->addFieldToFilter('purchaseorder_purchase_order_id', '')
+                ->addFieldToFilter('qty', array('gt' => 0));
+        $count += $notPurchases->getSize();
+        foreach ($purchaseOrders as $purchaseOrder) {
+            if(strtotime($purchaseOrder->getPurchaseOn()) > 0){
+                $your_date = strtotime($purchaseOrder->getPurchaseOn());
+                $datediff = $now - $your_date;
+                $totalTime += floor($datediff / (60 * 60 * 24));
+                $time = 1;
+            }
+        }
+        if ($count > 0) {
+            $time = round($totalTime / $count, 1);
+        } else {
+            $time = null;
+        }
+        $data[$row->getEntityId()] = $time;
+    } else {
+        $is_barcode = 0;
+        $deliveries = Mage::getModel('inventorypurchasing/purchaseorder_delivery')
+                ->getCollection()
+                ->addFieldToFilter('product_id', $row->getEntityId());
+        foreach ($deliveries as $delivery) {
+            $count++;
+            $your_date = strtotime($delivery->getDeliveryDate());
+            $datediff = $now - $your_date;
+            $time = 1;
+            $totalTime += floor($datediff / (60 * 60 * 24));
+        }
+        $time = round($totalTime / $count, 1);
+        $data[$row->getEntityId()] = $time;
+    }
+}   //Endforeach
+
+arsort($data);
+if (count($data) > 7) {
+    $count_data = 1;
+    $results = array();
+    $i = 0;
+    foreach ($data as $id => $value) {
+        if ($i >= 7){
+            continue;
+        }
+        if($value && $value > 0){
+            $results[$id] = $value;
+            
+        } else {
+			$results[$id] = 0;
+		}
+        $i++;
+    }
+}
+?>
+<?php if (count($results) > 0): ?>
+    <div class="entry-edit" id="test">
+        <div class="entry-edit-head">
+            <h4 class="icon-head head-edit-form fieldset-legend"><?php echo $this->__('Chart Report') ?></h4>
+        </div>
+        <!DOCTYPE HTML>
+            <?php
+            foreach ($results as $id => $value) {
+                if($value != 0){
+                    $product_name[] = Mage::getModel('catalog/product')->load($id)->getName();
+                    $total_inventory[] = $value;
+                }
+            }
+            $i = 0;
+            $categories = '[';
+            foreach ($product_name as $name_value) {
+                if ($i != 0) {
+                    $categories .= ',';
+                }
+                $categories .= '"' . preg_replace('/[^a-zA-Z0-9_ %\[\]\.\(\)%&-]/s', '', $name_value) . '"';
+                $i++;
+            }
+            $categories .= ']';
+            $j = 0;
+            $series['inventory_product']['data'] = '[';
+            foreach ($total_inventory as $number_value) {
+                if ($number_value && $number_value != 0) {
+                    if ($j != 0) {
+                        $series['inventory_product']['data'] .= ',';
+                    }
+                    $series['inventory_product']['data'] .= $number_value;
+                    $j++;
+                }
+            }
+            $series['inventory_product']['data'] .= ']';
+            ?>
+
+            <div style="width: 99%; float: left;">
+                <script type="text/javascript">
+                            $(function () {
+                            $_('#inventorybyproduct_column').highcharts({
+                            chart: {
+                            type: 'column',
+                                    margin: 70,
+                                    options3d: {
+                                    enabled: true,
+                                            alpha: 20,
+                                            beta: 1,
+                                            depth: 50
+                                    }
+                            },
+                                    legend: {
+                                    enabled:false
+                                    },
+                                    title: {
+                                    text: 'Warehousing Time by Product'
+                                    },
+                                    plotOptions: {
+                                    column: {
+                                    depth: 30
+                                    }
+                                    },
+                                    xAxis: {
+                                    categories: <?php echo $categories ?>
+                                    },
+                                    yAxis: {
+                                    opposite: true
+                                    },
+                                    series: [
+    <?php $count = 0; ?>
+    <?php foreach ($series as $serie): ?>
+        <?php if (!$count == 0) echo ','; ?>
+        <?php $count++; ?>
+                                        {
+                                                data: <?php echo $serie['data']; ?>
+                                        }
+    <?php endforeach; ?>
+                                    ]
+                            });
+                            });</script>
+                <div id="inventorybyproduct_column" style="min-width: 900px; height: 450px; margin: 0 auto;"></div>
+            </div>
+        </div>          
+    </div>
+<?php endif; ?>
+
+
+
+
+<script type="text/javascript" src="<?php echo $this->getJsUrl() ?>magestore/adminhtml/inventory/dashboard/lib/_JSSettings.js"></script>
+<script src="<?php echo $this->getJsUrl() ?>magestore/adminhtml/inventory/dashboard/lib/js_002"></script>
+<script src="<?php echo $this->getJsUrl() ?>magestore/adminhtml/inventory/dashboard/lib/dashboards"></script>
+
+<script type="text/javascript">
+                        var saveViewPositions = '<?php echo $this->getUrl('adminhtml/ind_dashboard/saveviewposition') ?>';
+                        var saveTabPositions = '<?php echo $this->getUrl('adminhtml/ind_dashboard/savetabposition') ?>';
+                        var form_key_dashboard = '<?php echo $this->getFormKey() ?>';</script>
+<script type="text/javascript">
+            var $sd = new InventoryDashboard.Views.Dashboards();
+            $sd.isShare = false;
+            $sd.backgroundColour = '#808080';
+            $sd.init();
+</script>

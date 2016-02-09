@@ -1,0 +1,291 @@
+<script type="text/javascript" src="<?php echo Mage::getBaseUrl('js') . 'prototype/prototype.js' ?>"></script>
+<?php $barcodeIds = implode(',', $this->getRequest()->getParam('inventorybarcode'));?>
+<?php 
+//$barcodeIds = explode(',', $barcodeIds);
+$data = $this->getRequest()->getPost();
+
+?>
+<style>
+   
+    input, select {
+        margin: 0;
+    }
+
+    input[type=text], input[type=number], select {
+        border: 1px solid #ababab;
+        padding: 2px;
+    }
+
+    select {
+        padding-top: 1px;
+        padding-bottom: 1px;
+    }
+
+    ul {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    
+
+    .logo {
+        margin-top: 8px;
+    }
+
+    nav {
+        float: right;
+        position: absolute;
+        top: 34px;
+        right: 0;
+    }
+
+    nav label {
+        display: block;
+    }
+
+    nav select {
+        margin: 2px 0;
+        margin-left: 0;
+    }
+
+    table {
+        table-layout: fixed;
+        border-collapse: collapse;
+        width: 100%;
+    }
+    
+   /*add by Kai- barcode */ 
+    table #kai td {
+       width: 60px;
+    }
+   /* end add by Kai - barcode*/
+
+    table td {
+        padding: 3px 25px 1px 4px;
+        vertical-align: top;
+        height: 26px; /* This act as a min-height */
+        /* line-height: 30px; */
+        width: 350px;
+    }
+
+    table tr.odd {
+        background-color: #eee;
+    }
+
+    table tr.even {
+    }
+
+    table .col1 {
+        width: 180px;
+    }
+
+    table .info {
+        position: absolute;
+        dtop: 0;
+        dright: 5px;
+        line-height: 34px;
+    }
+
+    .info img {
+        border: 0;
+        vertical-align: text-bottom;
+    }
+
+    .generate {
+        float: left;
+    }
+
+    .possiblechars {
+        float: right;
+        position: relative;
+    }
+
+    #dpiUnavailable {
+        display: none;
+        padding-left: 8px;
+    }
+
+    div.configurations select {
+        min-width: 70px;
+    }
+
+    div.configurations input[type=number] {
+        width: 70px;
+    }
+
+    /* Moved section by script */
+    #explanation, #dpiExplain, #validCharacters {
+        display: none;
+        max-width: 450px;
+    }
+
+    #explanation ul {
+        list-style: disc;
+        margin-left: 20px;
+    }
+
+    #specificOptions {
+        display: none;
+    }
+
+    #validCharacters input[type=button] {
+        width: 25px;
+        padding: 1px 6px;
+    }
+
+    .BCGcode128 #validCharacters input[type=button],
+    .BCGcode39extended #validCharacters input[type=button],
+    .BCGcode93 #validCharacters input[type=button],
+    .BCGgs1128 #validCharacters input[type=button],
+    .BCGaztec #validCharacters input[type=button],
+    .BCGdatamatrix #validCharacters input[type=button],
+    .BCGmaxicode #validCharacters input[type=button],
+    .BCGqrcode #validCharacters input[type=button],
+    .BCGpdf417 #validCharacters input[type=button] {
+        width: 39px;
+    }
+
+    .bubble {
+        display: none;
+    }
+
+    .bubble.visible {
+        display: block !important;
+        position: absolute;
+        background-color: #f8f8f8;
+        border: 2px solid #ddd;
+        padding: 16px;
+    }
+
+    .gs1128_id {
+        width: 40px;
+        text-align: center;
+    }
+
+    .gs1128_value {
+        width: 295px;
+    }
+
+    .gs1128_delete img {
+        border: 0;
+        margin-left: 5px;
+        vertical-align: text-bottom;
+    }
+
+    #identifierContainer {
+        margin-top: 4px;
+    }
+    @media print {
+        #printbarcode_form{
+            display: none;		
+        }
+        h3{
+            display: none;		
+        }
+        button{
+            display: none;		
+        }
+        .output{
+            display: none;
+        }        
+    }
+</style>
+
+
+<form id="massprintbarcode_form" action="<?php echo Mage::helper("adminhtml")->getUrl('adminhtml/inb_printbarcode/massprintBarcode/'); ?>" name="printbarcode_form" method="post">
+    <input type="hidden" name="form_key" value="<?php echo $this->getFormKey() ?>" />
+    <input type="hidden" name="barcodeIds" value="<?php echo $barcodeIds; ?>" />
+    <input type="hidden" name="data" value="<?php echo $data['purchase_products']; ?>" />
+    
+    <h1><?php echo $this->__('Barcode Generator') ?></h1>
+  
+    <!--<h3><?php echo Mage::helper('inventorybarcode')->__('Barcode type: ') . ' ' . Mage::helper('inventorybarcode')->getBarcodeName(); ?></h3>-->
+    <div class="configurations">
+        <section class="configurations">
+            <h3>Configurations</h3>
+            <table>
+                <colgroup>
+                    <col class="col1" />
+                    <col class="col2" />
+                </colgroup>
+                <tbody>
+                    <tr class="odd">
+                        <td><label for="symbology"><?php echo $this->__('Symbology') ?></label></td>
+                        <?php 
+                            $barcodeTypes = Mage::getModel('inventorybarcode/barcodetypes')->toOptionArray();
+                            $defaultBarcodeType = Mage::getStoreConfig('inventoryplus/barcode/barcode_type',Mage::app()->getStore()->getStoreId());
+                        ?>                        
+                        <td><select size="1" id="type" name="type">
+                                <?php foreach($barcodeTypes as $value):?>
+                                <option <?php if($value['value']==$defaultBarcodeType) echo 'selected'?> value="<?php echo $value['value']?>"><?php echo $value['label']?></option>                               
+                                <?php endforeach;?>
+                            </select>
+                        </td>
+                    </tr>
+                  <?php if(!$data['purchase_products']):?> 
+                    <tr class="even">                      
+                        <td><label for="font_family"><?php echo $this->__('Barcode Qty') ?></label></td>
+                        <td><input type="text" name="number_of_barcode" id="number_of_barcode" value="1"/></td>
+                    </tr>
+                   <?php endif; ?> 
+                    
+                    <tr class="even">
+                        <td><label for="font_family"><?php echo $this->__('Select Template') ?></label></td>
+                        <td>
+                            <div style="float:left;">  
+                            <?php 
+                                $barcodeTemplates = Mage::getModel('inventorybarcode/barcodetemplate')
+                                                            ->getCollection()
+                                                            ->addFieldToFilter('status',1);
+                            ?>
+                            <select name="barcode_template" id="barcode_template" onchange="showDetaitl(this)">                        
+                                <?php foreach($barcodeTemplates as $barcodeTemplate): ?>
+                                    <option value="<?php echo $barcodeTemplate->getId() ?>"><?php echo $barcodeTemplate->getData('barcode_template_name') ?></option>                            
+                                <?php endforeach ?>
+                            </select>
+                            <?php foreach($barcodeTemplates as $barcodeTemplate): ?>
+                                <div style="display:none" id="template_id_<?php echo $barcodeTemplate->getId() ?>">
+                                    <?php $processor =  Mage::helper('cms')->getBlockTemplateProcessor();?>
+                                    <?php echo $html = $processor->filter($barcodeTemplate->getHtml()); ?>
+                                    <h3><?php echo $this->__('Print paper') ?></h3>
+                                    <?php if( $barcodeTemplate->getId() == 5 ) { ?>
+                                     <img src="<?php echo Mage::getBaseUrl('media').'/inventorybarcode/source/1.png' ?>"/>
+                                    <?php  }else {?>
+                                     <img src="<?php echo Mage::getBaseUrl('media').'/inventorybarcode/source/2.png' ?>"/>
+                                    <?php } ?> 
+                                </div>
+                            <?php endforeach; ?>
+                           
+                        </div>
+                        </td>
+                    </tr>
+                    
+                    <tr>
+                        <td></td>                        
+                        <td><button class="scalable save" style="width: 90px; font-size: 12px; " onclick="printstore()" type="button" ><?php echo $this->__('Submit') ?></button></td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+    </div>
+</form>
+
+<script type="text/javascript">
+    function printstore(){
+        $('massprintbarcode_form').submit();
+    }
+    
+ 
+    function showDetaitl(element) {
+        
+        for(var i = 1;i<=5;i++){
+            if($('template_id_'+i))
+                $('template_id_'+i).hide();
+        }
+        if($('template_id_'+element.value))
+            $('template_id_'+element.value).show();
+    }
+    if($('template_id_1').hide())
+        $('template_id_1').show();
+</script>

@@ -1,0 +1,111 @@
+<div class="content-header">
+    <table cellspacing="0">
+        <tbody>
+            <tr>
+                <td style="width:50%;"><h3 class="icon-head head-adminhtml-inventory"><?php echo $this->__('Report Time Inventory by Supplier'); ?></h3></td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+<?php 
+    $supplierId = $this->getRequest()->getParam('supplier_id');
+    $productId = $this->getRequest()->getParam('product_id');
+    $now = time();
+    if(Mage::helper('core')->isModuleEnabled('Magestore_Inventorybarcode')){
+        $resource = Mage::getSingleton('core/resource');        
+        $readConnection = $resource->getConnection('core_read');
+        $results = '';
+        $purchaseOrderIds = array();
+        $sql = 'SELECT distinct(`purchaseorder_purchase_order_id`) FROM '.$resource->getTableName('inventorybarcode/barcode').' where (`product_entity_id` = '.$productId.
+                                                                                                    ') and (`qty` > '. 0 .')';     
+        $results = $readConnection->query($sql);            
+        if($results){
+            foreach($results as $result){            
+                $purchaseOrderIds[] = $result['purchaseorder_purchase_order_id'];
+            }
+        }
+        $purchaseOrders = Mage::getModel('inventorypurchasing/purchaseorder')
+                                        ->getCollection()
+                                        ->addFieldToFilter('supplier_id',$supplierId)
+                                        ->addFieldToFilter('purchase_order_id',array('in'=>$purchaseOrderIds));
+        $count = 0;
+        $count += $purchaseOrders->getSize();
+        $notPurchases = Mage::getModel('inventorybarcode/barcode')
+                                ->getCollection()
+                                ->addFieldToFilter('purchaseorder_purchase_order_id','')
+                                ->addFieldToFilter('qty',array('gt'=>0));
+        $count += $notPurchases->getSize();
+        $totalTime = 0;
+        $time = '';
+        foreach($purchaseOrders as $purchaseOrder){
+            $your_date = strtotime($purchaseOrder->getPurchaseOn());
+            $datediff = $now - $your_date;            
+            $totalTime += floor($datediff/(60*60*24));
+            $time = 1;
+        }
+
+        if($time == ''){
+            $time = $this->__('N/A');
+        }else{
+            $time = round($totalTime/$time,1);
+        }        
+    }else{
+        $deliveries = Mage::getModel('inventorypurchasing/purchaseorder_delivery')
+                            ->getCollection()
+                            ->addFieldToFilter('product_id',$row->getId());
+        foreach($deliveries as $delivery){            
+            $count++;            
+            $your_date = strtotime($delivery->getDeliveryDate());
+            $datediff = $now - $your_date;
+            $time = 1;
+            $totalTime += floor($datediff/(60*60*24));
+        }
+        if($time == ''){
+            $time = $this->__('N/A');
+        }else
+            $time = round($totalTime/$count,1); 
+    }        
+?>
+<?php $product = Mage::getModel('catalog/product')->load($productId) ?>
+<?php $supplier = Mage::getModel('inventorypurchasing/supplier')->load($supplierId) ?>
+<?php echo $this->__('Product: %s','<a href="'.$this->getUrl('adminhtml/catalog_product/edit',array('id'=>$productId)).'">'.$product->getName().'</a>') ?><br />
+<?php echo $this->__('Supplier: %s','<a href="'.$this->getUrl('inventorypurchasing/adminhtml_supplier/edit',array('id'=>$supplierId)).'">'.$supplier->getSupplierName().'</a>') ?><br />
+<?php echo $this->__('Time Inventory(days): %s',$time); ?>
+<?php if(Mage::helper('core')->isModuleEnabled('Magestore_Inventorybarcode')): ?>
+    <?php if($time != $this->__('N/A')): ?>
+        <div class="grid">
+            <div class="hor-scroll" style="max-height:300px;overflow-y:auto;">
+                <table cellspacing="0" class="data">
+                    <colgroup>
+                        <col>            
+                        <col width="60">
+                        <col width="60">
+                    </colgroup>
+                    <thead>
+                        <tr class="headings">
+                            <th><span class="nobr"><?php echo $this->__('Barcode') ?></th>
+                            <th><span class="nobr"><?php echo $this->__('Qty') ?></th>
+                            <th class=" last"><?php echo $this->__('Time Inventory(days)') ?></th>
+                        </tr>            
+                    </thead>
+                    <tbody>
+                        <?php foreach($purchaseOrders as $purchaseOrder): ?>
+                            <?php 
+                                $barcodes = Mage::getModel('inventorybarcode/barcode')->getCollection() 
+                                                        ->addFieldToFilter('purchaseorder_purchase_order_id',$purchaseOrder->getId())
+                                                        ->addFieldToFilter('qty',array('gt'=>0));
+                            ?>
+                            <?php foreach($barcodes as $barcode): ?>
+                                <tr class="even pointer">
+                                    <td class=""><?php echo $barcode->getBarcode() ?></td>
+                                    <td class=""><?php echo $barcode->getQty() ?></td>
+                                    <td class="last"><?php echo floor(($now - strtotime($purchaseOrder->getPurchaseOn()))/(60*60*24)) ?></td>
+                                </tr>
+                            <?php endforeach; ?>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    <?php endif; ?>
+<?php endif ?>

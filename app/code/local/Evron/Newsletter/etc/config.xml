@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<config>
+    <modules>
+        <Evron_Newsletter>
+            <version>0.1.0</version>
+        </Evron_Newsletter>
+    </modules>
+    <global>
+        <helpers>
+            <Evron_Newsletter>
+                <class>Evron_Newsletter_Helper</class>
+            </Evron_Newsletter>
+        </helpers>
+        <blocks>
+            <Evron_Newsletter>
+                <class>Evron_Newsletter_Block</class>
+            </Evron_Newsletter>
+        </blocks>
+    </global>
+    <frontend>
+        <routers>
+            <newsletter>
+                <use>standard</use>
+                <args>
+                    <module>Evron_Newsletter</module>
+                    <frontName>newsletter</frontName>
+                </args>
+            </newsletter>
+        </routers>
+    </frontend>
+</config>

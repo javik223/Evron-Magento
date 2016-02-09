@@ -1,0 +1,150 @@
+<?php if ($purchaseorder->getId()): ?>
+    <div class="entry-edit" >
+        <form id="filter_form" action="" method="get"><div></div>
+            <div class="entry-edit-head" style="margin-top: 5px; cursor: pointer;" id="purchaseorder_form-head" onclick="Fieldset.toggleCollapse('purchaseorder_form')">
+                <h4 class="icon-head head-edit-form fieldset-legend"><?php echo $this->__('Purchase Order Information') ?></h4>
+                <div class="form-buttons"></div>
+            </div>
+            <div class="fieldset " id="purchaseorder_form" style="display:none">
+                <div class="hor-scroll">
+                    <table cellspacing="0" class="form-list">
+                        <tbody>
+
+                            <tr>
+                                <td class="label"><label><?php echo $this->__('ID') ?></label></td>
+                                <td class="value">
+                                    <?php echo $this->__('PO#').$purchaseorder->getId() ?>
+                                </td>
+                            </tr>
+                            
+                            <tr>
+                                <td class="label"><label><?php echo $this->__('Order Created On') ?></label></td>
+                                <td class="value">
+                                    <?php echo Mage::helper('core')->formatDate($purchaseorder->getPurchaseOn(), 'full', false); ?>
+                                </td>
+                            </tr>
+                            
+                            <tr>
+                                <td class="label"><label><?php echo $this->__('Billing Name') ?></label></td>
+                                <td class="value">
+                                    <?php echo $purchaseorder->getBillName(); ?>
+                                </td>
+                            </tr>
+                            <?php
+                            $warehouseIds = $purchaseorder->getWarehouseId();
+                            $warehouseIds = explode(',', $warehouseIds);
+                            ?>
+                            <tr>
+                                <td class="label"><label><?php echo $this->__('Warehouse') ?></label></td>
+                                <td class="value">
+                                    <?php foreach($warehouseIds as $warehouseId):?>
+                                        <?php $warehousename = Mage::getModel('inventoryplus/warehouse')->load($warehouseId)->getWarehouseName();?>
+                                        <?php echo $warehousename; ?><br/>
+                                    <?php endforeach;?>
+                                </td>
+                            </tr>
+                            
+                            <tr>
+                                <td class="label"><label><?php echo $this->__('Start shipping date') ?></label></td>
+                                <td class="value">
+                                    <?php echo Mage::helper('core')->formatDate($purchaseorder->getStartedDate(), 'full', false); ?>
+                                </td>
+                            </tr>
+                            
+                            <tr>
+                                <td class="label"><label><?php echo $this->__('Cancellation date') ?></label></td>
+                                <td class="value">
+                                    <?php echo Mage::helper('core')->formatDate($purchaseorder->getCanceledDate(), 'full', false); ?>
+                                </td>
+                            </tr>
+                            
+                            <tr>
+                                <td class="label"><label><?php echo $this->__('Expected delivery date') ?></label></td>
+                                <td class="value">
+                                    <?php echo Mage::helper('core')->formatDate($purchaseorder->getExpectedDate(), 'full', false); ?>
+                                </td>
+                            </tr>
+                            
+                            <tr>
+                                <td class="label"><label><?php echo $this->__('Payment date') ?></label></td>
+                                <td class="value">
+                                    <?php echo Mage::helper('core')->formatDate($purchaseorder->getPaymentDate(), 'full', false); ?>
+                                </td>
+                            </tr>
+                            <?php $shippingMethods = Mage::helper('inventorypurchasing/purchaseorder')->getShippingMethod();?>
+                            <tr>
+                                <td class="label"><label><?php echo $this->__('Shipping via') ?></label></td>
+                                <td class="value">
+                                    <?php echo $shippingMethods[$purchaseorder->getShipVia()];?>
+                                </td>
+                            </tr>
+                            
+                            <?php $paymentMethods = Mage::helper('inventorypurchasing/purchaseorder')->getPaymentTerms();?>
+                            <tr>
+                                <td class="label"><label><?php echo $this->__('Payment terms') ?></label></td>
+                                <td class="value">
+                                    <?php echo $paymentMethods[$purchaseorder->getPaymentTerm()];?>
+                                </td>
+                            </tr>
+                            
+                            <tr>
+                                <td class="label"><label><?php echo $this->__('Currency') ?></label></td>
+                                <td class="value">
+                                    <?php echo $purchaseorder->getCurrency();?>
+                                </td>
+                            </tr>
+                            
+                            <tr>
+                                <td class="label"><label><?php echo $this->__('Currency Exchange Rate') ?></label></td>
+                                <td class="value">
+                                    <?php echo $purchaseorder->getChangeRate();?>
+                                </td>
+                            </tr>
+              
+                            <tr>
+                                <td class="label"><label><?php echo $this->__('Tax Rate') ?></label></td>
+                                <td class="value">
+                                    
+                                    <?php echo Mage::getModel('directory/currency')->load($purchaseorder->getCurrency())->formatTxt($purchaseorder->getTaxRate()); ?>
+                                </td>
+                            </tr>
+              
+                            <tr>
+                                <td class="label"><label><?php echo $this->__('Shipping Cost') ?></label></td>
+                                <td class="value">
+                                    
+                                    <?php echo Mage::getModel('directory/currency')->load($purchaseorder->getCurrency())->formatTxt($purchaseorder->getShippingCost()); ?>
+                                </td>
+                            </tr>
+              
+                            <tr>
+                                <td class="label"><label><?php echo $this->__('Supplier') ?></label></td>
+                                <td class="value">
+                                    
+                                    <?php echo $supplierInfo = Mage::helper('inventorypurchasing/purchaseorder')->getSupplierInfoByPurchaseOrderId($purchaseorder->getId()); ?>
+                                </td>
+                            </tr>
+                            
+                            
+
+                            <tr>
+                                <td class="label"><label><?php echo $this->__('Status') ?></label></td>
+                                <td class="value">
+                                    <?php $status = Mage::helper('inventorypurchasing/purchaseorder')->getReturnOrderStatus();?>
+                                    <?php echo $status[$purchaseorder->getStatus()]; ?>                               
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="label"></td>
+                                <td class="value">
+                                    <a style="text-decoration: none; cursor: pointer;" onclick="window.open('<?php echo Mage::helper("adminhtml")->getUrl("adminhtml/inpu_purchaseorders/edit/", array("id" => $purchaseorder->getId())); ?>', '_blank', 'scrollbars=yes, resizable=yes, width=1000, height=600, top=50, left=300')"/><?php echo $this->__('More details') ?></a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </form>
+    </div>
+<?php endif; ?>
+

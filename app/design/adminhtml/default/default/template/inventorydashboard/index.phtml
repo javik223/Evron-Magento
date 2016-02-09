@@ -1,0 +1,408 @@
+<!-- dashboard tabs -->
+<?php
+$check = Mage::helper('inventoryplus')->isDataInstalled();
+?>
+<?php if ($check == 1) : ?>
+    <div class="section-head screen">
+        <ul class="ui-sortable" id="ulTabs">
+            <?php
+            $tabs = Mage::getModel('inventorydashboard/tabs')->getCollection()
+                    ->setOrder('position', 'ASC');
+            $tabId = '';
+            ?>
+            <?php if ($tabs->getSize()): ?>
+                <?php $i = 0 ?>
+                <?php foreach ($tabs as $tab): ?>
+                    <?php $selected = '' ?>
+                    <?php if ($this->getRequest()->getParam('tab_id')): ?>
+                        <?php if ($tab->getId() == $this->getRequest()->getParam('tab_id')): ?>
+                            <?php $selected = 'selected' ?>
+                            <?php $tabId = $tab->getId() ?>
+                        <?php endif ?>
+                    <?php else: ?>
+                        <?php if ($i == 0): ?>
+                            <?php $selected = 'selected' ?>
+                            <?php $tabId = $tab->getId() ?> 
+                        <?php endif ?>
+                    <?php endif ?>
+                    <?php $i++ ?>
+                    <li class="<?php echo $selected ?>" data-item-id="<?php echo $tab->getId() ?>" title="<?php echo $tab->getName() ?>">                    
+                        <b></b>
+                        <?php if ($selected): ?>
+                            <a><?php echo $tab->getName() ?></a>
+                        <?php else: ?>
+                            <a href="<?php echo $this->getUrl('adminhtml/ind_dashboard/index', array('tab_id' => $tab->getId())) ?>">
+                                <?php echo $tab->getName() ?>
+                            </a>
+                        <?php endif ?>                        
+                    </li>
+
+                <?php endforeach ?>    
+            <?php endif ?>
+            <li class="add"><a href="#" onclick="dashboard.addDashboard();
+                    return false;" class="add-dash gradient" title="<?php echo $this->__('Create new dashboard') ?>"><i class="add-dash-icon"></i></a></li>
+            <li id="" class="" style="float:right;">
+                <a onclick="dashboard.editDashboard(); return false;" title="<?php echo $this->__('Edit this dashboard') ?>" data-ajax="true" data-ajax-method="GET" data-ajax-mode="replace" data-ajax-success="" data-ajax-update="#dvSettings" href="javascript:void(0)">
+                    <i style="font-size:18px; color:#7f7f7f;" class="fa fa-cog"></i>
+                </a>
+            </li>
+            <?php if ($tabId): ?>
+                <li class="add" style="float:right;">
+                    <a href="javascript:void(0)" onclick="dashboard.addDashboardChart();
+                            return false;" class="add-chart" title="<?php echo $this->__('Add a new chart to this dashboard') ?>" style="float:right;">
+                        <i class="add-dash-icon"></i><?php echo $this->__('Add New Chart') ?>
+                    </a>
+                </li>
+            <?php endif ?>
+            <br class="clear">
+        </ul>
+    </div>
+    <div class="clear"></div>
+    <!-- add new dashboard form -->
+    <div class="form-dropdown screen" id="add_tab" style="display:none;">
+        <form method="post" id="add_tab_form" action="<?php echo $this->getUrl('adminhtml/ind_dashboard/savetab') ?>">
+            <input type="hidden" name="form_key" value="<?php echo $this->getFormKey() ?>" />
+            <div class="entry-edit">
+                <div class="entry-edit-head">
+                    <h4 class="icon-head head-edit-form fieldset-legend"><?php echo $this->__('New Dashboard') ?></h4>
+                    <div class="form-buttons"></div>
+                </div>
+                <div class="fieldset">
+                    <div class="hor-scroll">
+                        <table cellspacing="0" class="form-list">
+                            <tbody>
+                                <tr>
+                                    <td class="value">
+                                        <input type="text" class="required-entry input-text required-entry" name="dashboard_name" maxlength="50" id="dashboard_name" placeholder="<?php echo $this->__('Dashboard Name') ?>">            
+                                        <div style="display:none;padding-top:1px" class="validation-advice" id="advice-required-entry-add-dashboard-name"><?php echo $this->__('This is a required field.') ?></div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="value">
+                                        <button type="button" class="scalable add" onclick="dashboard.submitAddTabForm(this);" style="float:left; margin-right: 14px;" value="Add">
+                                            <span><?php echo $this->__('Add') ?></span>
+                                        </button>
+                                        <button class="scalable" onclick="dashboard.addDashboard(); return false;">
+                                                <?php echo $this->__('Cancel') ?>
+                                        </button>        
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>            
+        </form>
+    </div>
+    <!-- end dashboards tab -->
+
+    <!-- add new chart -->
+    <div class="form-dropdown screen" id="add_tab_chart" style="display:none;">
+        <form method="post" id="add_chart_form" action="<?php echo $this->getUrl('adminhtml/ind_dashboard/savechart', array('tab_id' => $tabId)) ?>">        
+            <input type="hidden" name="form_key" value="<?php echo $this->getFormKey() ?>" />
+            <div class="entry-edit">
+                <div class="entry-edit-head">
+                    <h4 class="icon-head head-edit-form fieldset-legend"><?php echo $this->__('Add New Chart') ?></h4>
+                    <div class="form-buttons"></div>
+                </div>
+                <div class="fieldset ">
+                    <div class="hor-scroll">
+                        <table cellspacing="0" class="form-list">
+                            <tbody>
+                                <tr>
+                                    <td class="label">
+                                        <label for="chart_name"><?php echo $this->__('Chart Name') ?> <span class="required">*</span></label></td>
+                                    <td class="value">
+                                        <input type="text" class="required-entry input-text required-entry" value="" name="chart_name" maxlength="50" id="chart_name" >            
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="label">
+                                        <label for="chart_name"><?php echo $this->__('Report Type') ?> <span class="required">*</span></label></td>
+                                    <td class="value">
+                                        <select name="group_type" id="group_type" onchange="return dashboard.changeSelectGroupType(this);" class="required-entry required-entry select">
+                                            <?php $groupTypes = Mage::helper('inventorydashboard')->getGroupType(); ?>
+                                            <!--<option value=""><?php // echo $this->__('Please select a group type')           ?></option>-->
+                                            <?php if ($groupTypes): ?>
+                                                <?php foreach ($groupTypes as $key => $value): ?>
+                                                    <option value="<?php echo $key ?>" ><?php echo $this->__($value['title']) ?></option>
+                                                <?php endforeach; ?>
+                                            <?php endif ?>
+                                        </select>  
+                                        <br/><br/>
+                                        <div class="clear fix"></div>
+                                            <select name="sales_report" id="sales_report" onchange="dashboard.changeSalesChartType('<?php echo $this->getUrl('adminhtml/ind_dashboard/changecharttype', array('_secure' => true)) ?>');" class="required-entry required-entry select" style="display:">
+                                                <?php $reportTypes = Mage::helper('inventorydashboard')->getReportType('sales'); ?>
+                                                <?php if ($reportTypes): ?>
+                                                    <?php $option_selected = 1; ?>
+                                                    <?php foreach ($reportTypes as $key => $value): ?>
+                                                        <option value="<?php echo $key ?>" <?php if ($option_selected == 1) echo 'selected' ?>><?php echo $this->__($value['name']) ?></option>
+                                                        <?php $option_selected++ ?>
+                                                        <?php
+                                                    endforeach;
+                                                    unset($option_selected);
+                                                    ?>
+                                                <?php endif ?>
+                                            </select>
+                                            <select name="purchaseorder_report" id="purchaseorder_report" onchange="dashboard.changePurchaseorderChartType('<?php echo $this->getUrl('adminhtml/ind_dashboard/changecharttype', array('_secure' => true)) ?>');" class="" style="display:none">
+                                                <?php $reportTypes = Mage::helper('inventorydashboard')->getReportType('purchaseorder'); ?>
+                                                <?php if ($reportTypes): ?>
+                                                    <?php ?>
+                                                    <?php foreach ($reportTypes as $key => $value): ?>
+                                                        <option value="<?php echo $key ?>"><?php echo $this->__($value['name']) ?></option>
+                                                    <?php endforeach; ?>
+                                                <?php endif ?>
+                                            </select>
+                                            <select name="stockonhand_report" id="stockonhand_report" onchange="dashboard.changeStockonhandChartType('<?php echo $this->getUrl('adminhtml/ind_dashboard/changecharttype', array('_secure' => true)) ?>');" class="" style="display:none">
+                                                <?php $reportTypes = Mage::helper('inventorydashboard')->getReportType('stockonhand'); ?>
+                                                <?php if ($reportTypes): ?>
+                                                    <?php foreach ($reportTypes as $key => $value): ?>
+                                                        <option value="<?php echo $key ?>"><?php echo $this->__($value['name']) ?></option>
+                                                    <?php endforeach; ?>
+                                                <?php endif ?>
+                                            </select>
+                                            <select name="stockmovement_report" id="stockmovement_report" onchange="dashboard.changeStockmovementChartType('<?php echo $this->getUrl('adminhtml/ind_dashboard/changecharttype', array('_secure' => true)) ?>');" class="" style="display:none">
+                                                <?php $reportTypes = Mage::helper('inventorydashboard')->getReportType('stockmovement'); ?>
+                                                <?php if ($reportTypes): ?>
+                                                    <?php foreach ($reportTypes as $key => $value): ?>
+                                                        <option value="<?php echo $key ?>"><?php echo $this->__($value['name']) ?></option>
+                                                    <?php endforeach; ?>
+                                                <?php endif ?>
+                                            </select>
+                                            <select name="customer_report" id="customer_report" onchange="dashboard.changeCustomerChartType('<?php echo $this->getUrl('adminhtml/ind_dashboard/changecharttype', array('_secure' => true)) ?>');" class="" style="display:none">
+                                                <?php $reportTypes = Mage::helper('inventorydashboard')->getReportType('customer'); ?>
+                                                <?php if ($reportTypes): ?>
+                                                    <?php foreach ($reportTypes as $key => $value): ?>
+                                                        <option value="<?php echo $key ?>"><?php echo $this->__($value['name']) ?></option>
+                                                    <?php endforeach; ?>
+                                                <?php endif ?>
+                                            </select> 
+                                        <select name="attribute_sales_report" id="attribute_sales_report" onchange="" class="" style="display:none">
+                                                <?php
+                                                $report = Mage::getModel('inventoryreports/reporttype');
+                                                $attributes = $report->getOrderAttributeOptions();
+                                                ?>
+                                                <?php if ($attributes): ?>
+                                                    <?php foreach ($attributes as $key => $attribute): ?>
+                                                        <option value="<?php echo $key ?>"><?php echo $this->__($attribute) ?></option>
+                                                    <?php endforeach; ?>
+                                                <?php endif ?>
+                                            </select>                                                                                     
+                                    </td>
+                                </tr>  
+                                <tr>
+                                    <td class="label">
+                                        <label for="chart_name"><?php echo $this->__('Chart Type') ?></label>                                              
+                                    </td>
+                                    <td class="value">
+                                        <div id="select_chart_type"></div>                                             
+                                        <div id="default_chart_type">
+                                            <?php echo Mage::helper('inventorydashboard')->getDefaultChartType(); ?>
+                                        </div>
+                                    </td>
+                                </tr>                                    
+                                <tr>
+                                    <td class="label"></td>
+                                    <td class="value">
+                                        <button type="button" class="scalable add" onclick="dashboard.submitAddChartForm();" style="float:left; margin-right: 14px;" class="" value="Add">
+                                            <span><?php echo $this->__('Add') ?></span>
+                                        </button>
+                                        <button class="scalable" onclick="dashboard.addDashboardChart();return false;">
+                                            <?php echo $this->__('Cancel') ?>
+                                        </button>                                            
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>            
+        </form>
+    </div>
+
+    <!-- end new chart -->
+
+    <!-- edit dashboard form -->    
+    <?php if ($tabId): ?>    
+        <?php $dashboardTab = Mage::getModel('inventorydashboard/tabs')->load($tabId) ?>    
+        <?php if ($dashboardTab && $dashboardTab->getId()): ?>
+            <div class="form-dropdown screen" id="edit_tab" style="display:none;">            
+                <form method="post" id="edit_tab_form" action="<?php echo $this->getUrl('adminhtml/ind_dashboard/savetab', array('tab_id' => $tabId)) ?>">                
+                    <input type="hidden" name="form_key" value="<?php echo $this->getFormKey() ?>" />
+                    <div class="entry-edit">
+                        <div class="entry-edit-head">
+                            <h4 class="icon-head head-edit-form fieldset-legend">
+                                <?php echo $this->__('Edit dashboard "%s"', $dashboardTab->getName()) ?>
+                            </h4>
+                            <div class="form-buttons"></div>
+                        </div>
+                        <div class="fieldset">
+                            <div class="hor-scroll">
+                                <table cellspacing="0" class="form-list">
+                                    <tbody>
+                                        <tr>
+                                            <td class="value">
+                                                <input type="text" class="required-entry input-text required-entry" value="<?php echo $dashboardTab->getName() ?>" name="dashboard_name" maxlength="50" id="edit_dashboard_name" placeholder="<?php echo $this->__('Dashboard Name') ?>">            
+                                                <div style="display:none;padding-top:1px" class="validation-advice" id="advice-required-entry-edit-dashboard-name"><?php echo $this->__('This is a required field.') ?></div>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="value">
+                                                <button type="button" class="scalable save" onclick="dashboard.submitEditTabForm();" style="float:left; margin-right: 14px;" value="Save">
+                                                    <span><?php echo $this->__('Save') ?></span>
+                                                </button>
+                                                <button class="scalable" onclick="dashboard.editDashboard(); return false;">
+                                                        <?php echo $this->__('Cancel') ?>
+                                                </button>    
+                                                <a onclick="dashboard.deleteDashboard('<?php echo $this->__('Are you sure you want to delete this dashboard?') ?>', '<?php echo $this->getUrl('adminhtml/ind_dashboard/deletetab', array('tab_id' => $tabId)) ?>');return false;" style="clear:both;line-height:50px;display:block;width: 200px;" href="#" data-ajax-update="#" class="delete">
+                                                    [<?php echo $this->__('Delete this dashboard') ?>]
+                                                </a>                                                
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>        
+                </form>
+            </div>
+        <?php endif ?>
+    <?php endif ?>
+    <!-- end edit dashboard form -->
+
+
+    <!-- end edit item form -->
+    <div id="edit_item_form"></div>
+    <!-- edit item form -->
+
+
+    <!-- items show -->
+    <div class="dash-content-area">
+        <!-- column 1 -->
+        <div class="column" style="width:49%" data-col="1">
+            <div class="sortable  ui-sortable">       
+                <?php
+                $itemColumn1s = Mage::getModel('inventorydashboard/items')->getCollection()
+                        ->addFieldToFilter('tab_id', $tabId)
+                        ->addFieldToFilter('item_column', 1)
+                        ->setOrder('item_row', 'ASC');
+                $resource = Mage::getSingleton('core/resource');
+                $readConnection = $resource->getConnection('read_write');
+                ?>
+                <?php if (count($itemColumn1s->getSize())): ?>
+        <?php foreach ($itemColumn1s as $itemColumn1): ?>
+                        <div id="data-view-id-<?php echo $itemColumn1->getId() ?>" class="inventory-view-item" data-view-id="<?php echo $itemColumn1->getId() ?>" data-view-type="" data-loaded="true">
+                            <div id="ui-id-<?php echo $itemColumn1->getId() ?>" class="options move" title="<?php echo $this->__('Drag and drop the chart to change its position.') ?>">
+                                <b><?php echo $itemColumn1->getName(); ?></b>
+                                <a href="#" onclick="dashboard.deleteChart('<?php echo $itemColumn1->getId() ?>', '<?php echo $this->__('Are you sure you want to delete this chart?') ?>', '<?php echo $this->getUrl('adminhtml/ind_dashboard/deleteitem', array('_secure' => true)) ?>', '<?php echo "Chart was successfully deleted" ?>');
+                                        return false;" title="<?php echo $this->__('Delete chart') ?>" class="edit screen" data-ajax-method="DELETE"  data-ajax-delete="true">
+                                    <i class="fa fa-times"></i>
+                                </a>                            
+                                <a href="#" onclick="dashboard.editItem('<?php echo $itemColumn1->getId() ?>', '<?php echo $this->getUrl('adminhtml/ind_dashboard/edititemform', array('_secure' => true)) ?>');
+                                        return false;" title="<?php echo $this->__('Edit chart') ?>" class="edit screen">
+                                    <i class="fa fa-edit"></i>
+                                </a>   
+                                <?php if($reportUrl = $this->getReportUrl($itemColumn1->getReportCode())) : ?>
+                                    <a href="<?php echo $reportUrl?>" title="<?php echo $this->__('View report') ?>" class="edit screen" target="_blank">
+                                        <i class="fa fa-table"></i>
+                                    </a>     
+                                <?php endif; ?>
+                            </div>
+                            <?php
+                            $reportTypes = Mage::helper('inventorydashboard/constant')->getReportTypes();
+                            $isFound = false;
+                            foreach ($reportTypes as $key => $value) {
+                                foreach ($value['report_code'] as $reportCode => $reportCodeValue) {
+                                    if (strcmp($itemColumn1->getReportCode(), $reportCode) == 0) {
+                                        $type = $key;
+                                        $isFound = true;
+                                        break;
+                                    }
+                                }
+                                if ($isFound == true) {
+                                    break;
+                                }
+                            }
+                            echo $this->getLayout()->createBlock('adminhtml/template')->setIdBox($itemColumn1->getId())->setReportCode($itemColumn1->getReportCode())->setTemplate('inventorydashboard/chart/' . $itemColumn1->getChartCode() . '/' . $type . '_' . $itemColumn1->getReportCode() . '.phtml')->toHtml();
+                            ?>
+                        </div>
+                    <?php endforeach ?>
+    <?php endif ?>
+
+            </div>
+            <div class="clear"></div>
+        </div>
+
+        <!-- column 2 -->
+        <div class="column" style="width:49%" data-col="2">
+            <div class="sortable  ui-sortable">
+                <?php
+                $itemColumn2s = Mage::getModel('inventorydashboard/items')->getCollection()
+                        ->addFieldToFilter('tab_id', $tabId)
+                        ->addFieldToFilter('item_column', '2')
+                        ->setOrder('item_row', 'ASC');
+                ?>
+                <?php if ($itemColumn2s->getSize()): ?>
+        <?php foreach ($itemColumn2s as $itemColumn2): ?>
+                        <div id="data-view-id-<?php echo $itemColumn2->getId() ?>" class="inventory-view-item" data-view-id="<?php echo $itemColumn2->getId() ?>" data-view-type="" data-loaded="true">
+                            <div id="ui-id-<?php echo $itemColumn2->getId() ?>" class="options move" title="<?php echo $this->__('Drag and drop the chart to change its position.') ?>">
+                                <b><?php echo $itemColumn2->getName() ?></b>
+                                <a href="#" onclick="dashboard.deleteChart('<?php echo $itemColumn2->getId() ?>', '<?php echo $this->__('Are you sure you want to delete this chart?') ?>', '<?php echo $this->getUrl('adminhtml/ind_dashboard/deleteitem', array('_secure' => true)) ?>', '<?php echo "Chart was successfully deleted" ?>');
+                                        return false;" title="<?php echo $this->__('Delete chart') ?>" class="edit screen" data-ajax-method="DELETE"  data-ajax-delete="true">
+                                    <i class="fa fa-times" style="background-position: 8px -3135px"></i>
+                                </a>                            
+                                <a href="#" onclick="dashboard.editItem('<?php echo $itemColumn2->getId() ?>', '<?php echo $this->getUrl('adminhtml/ind_dashboard/edititemform', array('_secure' => true)) ?>');
+                                        return false;" title="<?php echo $this->__('Edit chart') ?>" class="edit screen">
+                                    <i class="fa fa-edit" style="background-position: 7px -3102px"></i>
+                                </a>  
+                                <?php if($reportUrl = $this->getReportUrl($itemColumn2->getReportCode())) : ?>
+                                    <a href="<?php echo $reportUrl?>" title="<?php echo $this->__('View report') ?>" class="edit screen" target="_blank">
+                                        <i class="fa fa-table"></i>
+                                    </a>     
+                                <?php endif; ?>                                
+                            </div>      
+                            <?php
+                            $reportTypes = Mage::helper('inventorydashboard/constant')->getReportTypes();
+                            $isFound = false;
+                            foreach ($reportTypes as $key => $value) {
+                                foreach ($value['report_code'] as $reportCode => $reportCodeValue) {
+                                    if (strcmp($itemColumn2->getReportCode(), $reportCode) == 0) {
+                                        $type = $key;
+                                        $isFound = true;
+                                        break;
+                                    }
+                                }
+                                if ($isFound == true) {
+                                    break;
+                                }
+                            }
+                            echo $this->getLayout()->createBlock('adminhtml/template')->setIdBox($itemColumn2->getId())->setReportCode($itemColumn2->getReportCode())->setTemplate('inventorydashboard/chart/' . $itemColumn2->getChartCode() . '/' . $type . '_' . $itemColumn2->getReportCode() . '.phtml')->toHtml();
+                            ?>                        
+                        </div>
+                    <?php endforeach ?>
+    <?php endif ?>
+            </div>
+            <div class="clear"></div>
+        </div>
+
+    </div>
+    <script src="<?php echo $this->getJsUrl() ?>magestore/adminhtml/inventory/dashboard/dashboard.js"></script>
+    <script type="text/javascript">
+                            var dashboard = new dashboardController();
+    </script>
+    <script type="text/javascript" src="<?php echo $this->getJsUrl() ?>magestore/adminhtml/inventory/dashboard/lib/_JSSettings.js"></script>
+    <script src="<?php echo $this->getJsUrl() ?>magestore/adminhtml/inventory/dashboard/lib/js_002"></script>
+    <script src="<?php echo $this->getJsUrl() ?>magestore/adminhtml/inventory/dashboard/lib/dashboards"></script>
+
+    <script type="text/javascript">
+                            var saveViewPositions = '<?php echo $this->getUrl('adminhtml/ind_dashboard/saveviewposition') ?>';
+                            var saveTabPositions = '<?php echo $this->getUrl('adminhtml/ind_dashboard/savetabposition') ?>';
+                            var form_key_dashboard = '<?php echo $this->getFormKey() ?>';
+    </script>
+    <script type="text/javascript">
+        var $sd = new InventoryDashboard.Views.Dashboards();
+        $sd.isShare = false;
+        $sd.backgroundColour = '#808080';
+        $sd.init();
+    </script>
+<?php endif; ?>

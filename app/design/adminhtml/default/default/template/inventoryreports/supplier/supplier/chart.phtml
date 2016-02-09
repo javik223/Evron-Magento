@@ -1,0 +1,162 @@
+<?php if (!$this->getRequest()->getParam('supplier_id')):  ?>
+    <div class="entry-edit" id="test">
+        <div class="entry-edit-head">
+            <h4 class="icon-head head-edit-form fieldset-legend"><?php echo $this->__('Chart Report') ?></h4>
+        </div>
+        <!DOCTYPE HTML>
+        <div>
+            <div style="width: 33%; float: left;">
+                <?php
+                $series = array();
+                $collection = Mage::getModel('inventorypurchasing/supplier')
+                        ->getCollection();
+                $collection->getSelect()
+                        ->joinLeft(array('barcode' => $collection->getTable('inventorybarcode/barcode')), 'main_table.supplier_id=barcode.supplier_supplier_id', array('total_inventory' => 'sum(barcode.qty)')
+                        )
+                        ->group('main_table.supplier_id');
+                $categories = '[';
+                $series['inventory_supplier']['name'] = $this->__('Inventory By Supplier');
+                $series['inventory_supplier']['data'] = '[';
+                $i = 0;
+                foreach ($collection as $col) {
+                    if ($i != 0) {
+                        $categories .= ',';
+                        $series['inventory_supplier']['data'] .= ',';
+                    }
+                    $categories .= '\'' . $col->getSupplierName() . '\'';
+                    $series['inventory_supplier']['data'] .= floatval($col->getData('total_inventory'));
+                    $i++;
+                }
+                $categories .= ']';
+                $series['inventory_supplier']['data'] .= ']';
+                ?>
+                <script type="text/javascript">
+                    $(function () {
+                    $_('#inventorybysupplier_column').highcharts({
+                    chart: {
+                    type: 'column'
+                    },
+                            title: {
+                            text: '<?php echo $this->__('Inventory Report by supplier') ?>'
+                            },
+                            subtitle: {
+                            text: ''
+                            },
+                            xAxis: {
+                            categories: <?php echo $categories ?>
+                            },
+                            yAxis: {
+                            min: 0,
+                                    title: {
+                                    text: ''
+                                    }
+                            },
+                            tooltip: {
+                            headerFormat: '<span style="font-size:10px">{point.key}</span><table>',
+                                    pointFormat: '<tr><td style="color:{series.color};padding:0">{series.name}: </td>' +
+                                    '<td style="padding:0"><b>{point.y:.0f} </b></td></tr>',
+                                    footerFormat: '</table>',
+                                    shared: true,
+                                    useHTML: true
+                            },
+                            plotOptions: {
+                            column: {
+                            pointPadding: 0.2,
+                                    borderWidth: 0
+                            }
+                            },
+                            series: [
+    <?php $count = 0; ?>
+    <?php foreach ($series as $serie): ?>
+        <?php if (!$count == 0) echo ','; ?>
+        <?php $count++; ?>
+                                {
+                                name: '<?php echo $serie['name']; ?>',
+                                        data: <?php echo $serie['data']; ?>
+                                }
+    <?php endforeach; ?>
+                            ]
+                    });
+                    });</script>
+
+
+                <div id="inventorybysupplier_column" style="min-width: 310px; height: 400px; margin: 0 auto"></div>
+            </div>
+
+
+            <!-- report by supplier pie -->
+            <div style="width: 33%; float: left;">
+                <?php
+                $series = '';
+                $i = 0;
+                foreach ($collection as $col) {
+                    $totalInventories = 0;
+                    if ($col->getData('total_inventory'))
+                        $totalInventories = $col->getData('total_inventory');
+                    if ($i != 0)
+                        $series .= ',';
+                    $series .= '[\'' . $col->getSupplierName() . '(' . $totalInventories . ' items)\',' . $totalInventories . ']';
+                    $i++;
+                }
+                ?>
+                <script type="text/javascript">
+                            $(function () {
+                            $_('#inventorybysupplier_pie').highcharts({
+                            chart: {
+                            plotBackgroundColor: null,
+                                    plotBorderWidth: 1, //null,
+                                    plotShadow: false
+                            },
+                                    title: {
+                                    text: '<?php echo $this->__('Inventory Report by supplier') ?>',
+                                            x: - 20 //center
+                                    },
+                                    tooltip: {
+                                    pointFormat: '{series.name}: <b>{point.percentage:.1f} %</b>'
+                                    },
+                                    plotOptions: {
+                                    pie: {
+                                    allowPointSelect: true,
+                                            cursor: 'pointer',
+                                            dataLabels: {
+                                            enabled: true,
+                                                    format: '<b>{point.name}</b>: {point.percentage:.1f} %',
+                                                    style: {
+                                                    color: (Highcharts.theme && Highcharts.theme.contrastTextColor) || 'black'
+                                                    }
+                                            }
+                                    }
+                                    },
+                                    series: [{
+                                    type: 'pie',
+                                            name: '<?php echo $this->__('Inventory Report by supplier') ?>',
+                                            data: [
+    <?php echo $series ?>
+                                            ]
+                                    }]
+                            });
+                            });</script>
+
+                <div id="inventorybysupplier_pie" style="min-width: 310px; max-height: 400px; margin: 0 auto"></div>
+            </div>
+        </div>          
+    </div>
+<?php endif; ?>
+
+
+
+
+<script type="text/javascript" src="<?php echo $this->getJsUrl() ?>magestore/adminhtml/inventory/dashboard/lib/_JSSettings.js"></script>
+<script src="<?php echo $this->getJsUrl() ?>magestore/adminhtml/inventory/dashboard/lib/js_002"></script>
+<script src="<?php echo $this->getJsUrl() ?>magestore/adminhtml/inventory/dashboard/lib/dashboards"></script>
+
+<script type="text/javascript">
+                        var saveViewPositions = '<?php echo $this->getUrl('adminhtml/ind_dashboard/saveviewposition') ?>';
+                        var saveTabPositions = '<?php echo $this->getUrl('adminhtml/ind_dashboard/savetabposition') ?>';
+                        var form_key_dashboard = '<?php echo $this->getFormKey() ?>';</script>
+<script type="text/javascript">
+            var $sd = new InventoryDashboard.Views.Dashboards();
+            $sd.isShare = false;
+            $sd.backgroundColour = '#808080';
+            $sd.init();
+</script>

@@ -1,0 +1,38 @@
+<?php $dropships = $this->listDropships(); ?>
+<?php $status = Mage::helper('inventorydropship')->getDropshipForSupplier() ?>
+<div class="page-title">
+    <h1><?php echo $this->__('My Drop Shipments') ?></h1>
+</div>
+<?php if($dropships->getSize()): ?>
+    <?php echo $this->getPagerHtml() ?>
+    <table class="data-table" id="my-dropship-table" >
+        <colgroup>
+            <col width="10" />
+            <col />
+            <col />
+            <col width="6" />
+        </colgroup>
+        <thead>
+            <tr>
+                <th><?php echo $this->__('Drop Shipment #') ?></th>
+                <th><?php echo $this->__('Date Created') ?></th>                                
+                <th><?php echo $this->__('Status') ?></th>
+                <th><?php echo $this->__('') ?></th>
+            </tr>
+        </thead>
+        <tbody>
+        <?php foreach ($dropships as $dropship): ?>
+            <tr>
+                <td style="text-align: center;"><?php echo $dropship->getId() ?>&nbsp;</td>
+                <td><?php echo date("D, j M, Y", strtotime($dropship->getCreatedOn())) ?>&nbsp;</td>
+                <td><?php echo $status[$dropship->getStatus()] ?>&nbsp;</td>
+                <td><a href="<?php echo $this->getUrl('inventorydropship/supplier/viewdropship', array('id'=>$dropship->getId())) ?>"><?php echo $this->__('View') ?></a>&nbsp;</td>
+            </tr>
+        <?php endforeach ?>
+        </tbody>
+    </table>
+    <?php echo $this->getPagerHtml() ?>
+    <script type="text/javascript">decorateTable('my-dropship-table')</script>
+<?php else: ?>
+    <p><?php echo $this->__('You have placed no drop ships yet.') ?></p>
+<?php endif ?>

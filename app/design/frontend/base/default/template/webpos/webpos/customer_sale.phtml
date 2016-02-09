@@ -1,0 +1,212 @@
+<form class="form col-lg-7 col-md-7 col-sm-8 col-xs-9">
+    <div class="form-group bg-white">
+        <div class="name col-lg-3 col-md-3 col-sm-3 col-xs-3"><?php echo $this->__('Name');?></div>
+        <div class=" col-lg-9 col-md-9 col-sm-9 col-xs-9"><input id="name_custom_sale" type="text" placeholder="<?php echo $this->__('Customer Sale');?>" class="input-text required-entry form-control"/></div>
+    </div>
+    <div class="form-group bg-white">
+        <div class="shippble col-lg-3 col-md-3 col-sm-3 col-xs-3"><?php echo $this->__('Shippable');?></div>
+        <div id="shipable_wp" class=" col-lg-9 col-md-9 col-sm-9 col-xs-9"><input type="checkbox" checked data-toggle="toggle" class="input-text"/></div>
+    </div>
+    <div class="form-group bg-white input-price">
+        <div class="price col-lg-6 col-md-6 col-sm-6 col-xs-6"><?php echo $this->__('Price');?></div>
+        <div class=" col-lg-6 col-md-6 col-sm-6 col-xs-6"><input onkeydown ="keyCheckCs(event); if(event.keyCode == 8 || event.keyCode == 46) return false;" onkeypress="formatInputPriceCs(event);return false" type="text" placeholder="<?php echo Mage::helper('core')->currency(0, true, false);  ?>" id="custom_price" class="input-text form-control"/></div>
+    </div>    
+	<div class="form-group bg-white input-price">
+        <div class="price col-lg-6 col-md-6 col-sm-6 col-xs-6"><?php echo $this->__('Tax Class Id');?></div>
+        <div class=" col-lg-6 col-md-6 col-sm-6 col-xs-6">
+			<select id='custom_sale_tax_class_id'>
+				<option value='0'><?php echo $this->__('None');?></option>
+				<?php 
+					$taxClassIds = Mage::getModel('tax/class')->getCollection()->addFieldToFilter('class_type','PRODUCT');
+					if(count($taxClassIds) > 0):
+						foreach($taxClassIds as $taxClass):
+				?>
+				<option value='<?php echo $taxClass->getData('class_id');?>'><?php echo $taxClass->getData('class_name');?></option>
+				<?php 
+						endforeach;
+					endif;
+				?>
+			</select>
+		</div>
+    </div>
+    <div class="form-group">
+        <ul>
+            <li class="col-lg-4 col-md-4 col-sm-4 col-xs-4">
+                <button type="button" class="btn btn-default" value="1">1</button>
+            </li>
+            <li class="col-lg-4 col-md-4 col-sm-4 col-xs-4">
+                <button type="button" class="btn btn-default" value="2">2</button>
+            </li>
+            <li class="col-lg-4 col-md-4 col-sm-4 col-xs-4">
+                <button type="button" class="btn btn-default" value="3">3</button>
+            </li>
+        </ul>        
+        <ul>
+            <li class="col-lg-4 col-md-4 col-sm-4 col-xs-4">
+                <button type="button" class="btn btn-default" value="4">4</button>
+            </li>
+            <li class="col-lg-4 col-md-4 col-sm-4 col-xs-4">
+                <button type="button" class="btn btn-default" value="5">5</button>
+            </li>
+            <li class="col-lg-4 col-md-4 col-sm-4 col-xs-4">
+                <button type="button" class="btn btn-default" value="6">6</button>
+            </li>
+        </ul>
+        <ul>
+            <li class="col-lg-4 col-md-4 col-sm-4 col-xs-4">
+                <button type="button" class="btn btn-default" value="7">7</button>
+            </li>
+            <li class="col-lg-4 col-md-4 col-sm-4 col-xs-4">
+                <button type="button" class="btn btn-default" value="8">8</button>
+            </li>
+            <li class="col-lg-4 col-md-4  col-sm-4 col-xs-4">
+                <button type="button" class="btn btn-default" value="9">9</button>
+            </li>
+            </ul>
+            <ul>
+            <li class="col-lg-4 col-md-4 col-sm-4 col-xs-4">
+                <button id="delete_custom_sale" type="button" class="btn btn-default clear-number" ></button>
+            </li>
+            <li class="col-lg-4 col-md-4 col-sm-4 col-xs-4">
+                <button type="button" class="btn btn-default" value="0">0</button>
+            </li>
+            <li class="col-lg-4 col-md-4 col-sm-4 col-xs-4">
+                <button type="button" class="btn btn-default" value="00">00</button>
+            </li>        
+        </ul>
+    </div>
+    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12"><button disabled="disabled" type="button" id="add_to_cart_wp" class="btn btn-warning">Add to Cart</button></div>
+</form>
+<script type="text/javascript">
+    /*Mr.Jack calculate custom sale*/
+    var symbol = "<?php echo Mage::app()->getLocale()->currency(Mage::app()->getStore()->getCurrentCurrencyCode())->getSymbol(); ?>";
+    function keyCheckCs(event)
+    {
+       var KeyID = event.keyCode;
+       switch(KeyID)
+       {
+          case 8:
+            $('delete_custom_sale').click();
+            break; 
+          default:
+            break;
+       }
+    }
+    function numberWithCommas(price) {
+        price = price.toFixed(2).replace(/(\d)(?=(\d{3})+\.)/g, '$1,');
+        return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    }
+    var count =  0;
+    var hisCustom = [""];
+    function formatInputPriceCs(event){
+        var keyValue = String.fromCharCode(event.which);
+        var  keyCode = event.which || event.keyCode;
+        $$('.customer-sale .form-group ul li button').each(function(element) {
+            if(element.value == keyValue)
+                element.click();
+        });
+    }
+    $$('.customer-sale .form-group ul li button').each(function(element) {
+        element.observe("click", function(event) {
+            if(element.id != 'delete_custom_sale'){
+                count++;
+                hisCustom[count] = hisCustom[count-1] + element.value;
+            }
+            else{
+                if(hisCustom[hisCustom.length-1]/hisCustom[hisCustom.length-2] == '100'){
+                    hisCustom[count] = hisCustom[count]/10;
+                }
+                else{
+                    if(hisCustom.length > 1)
+                        hisCustom.pop();
+                    if(count >= 1)
+                        count--;
+                }
+            }
+            if(typeof hisCustom[count] != "undefined"){
+                if(!hisCustom[count])
+                    hisCustom[count] = 0;
+                if(hisCustom[count] != 0)
+                    $('custom_price').value = getPriceFormatedNoHtml(parseInt(hisCustom[count])/100);      
+                else
+                    $('custom_price').value = '';
+                if($('custom_price').value == '')
+                    $('add_to_cart_wp').disabled = true;
+                else
+                    $('add_to_cart_wp').disabled = false;
+            }
+        });
+    });   
+    var countCustomSale = 0;
+    $('add_to_cart_wp').observe("click",function(event){
+        $('customer-sale-btn').addClassName('no-hide-category');
+        showColrightAjaxloader();
+        $D('#webpos_cart_custom_sale').removeClass('hide');
+        countCustomSale++;
+        var productId = '<?php echo Mage::helper('webpos')->createCustomSaleProduct()->getId() ?>';
+        var price = $('custom_price').value;
+        price = convertLongNumber(getStringPriceFromString(price));
+        var name = $('name_custom_sale').value?$('name_custom_sale').value:'Custom Sale';
+        var imagePath = '<?php echo Mage::helper('webpos')->createCustomSaleProduct()->getImageUrl(); ?>';
+        addToCartByJsCp(productId+'_'+countCustomSale,price,imagePath,name);
+        cancelCustomersale();
+        var url = '<?php echo $this->getUrl('webpos/index/addCustomSale',array('_forced_secure' => $this->getRequest()->isSecure()))?>';
+        var parameters = {
+              taxclass: $('custom_sale_tax_class_id').value,
+              name: name,
+              price: price,
+              is_virtual : $('shipable_wp').down('.toggle').hasClassName('off'),
+        }; 
+        var request = new Ajax.Request(url,
+            {
+                method:'post',
+                parameters:parameters,
+                onSuccess: function(transport){
+                    if(transport.responseText) {
+
+                        $D('#webpos_cart_custom_sale').addClass('hide');
+                        var response = transport.responseText.evalJSON();
+                        if (response.message) {
+
+                            showToastMessage('danger', 'Error', response.message);
+                            emptyCart(empty_cart_url);
+                        }
+                        else {
+                            $('cart_prd_' + productId + '_' + countCustomSale).down('.delete').setAttribute('onclick', 'deleteItem("' + response.itemId + '")');
+                            $('cart_prd_' + productId + '_' + countCustomSale).down('.img-product').setAttribute('onclick', $('cart_prd_' + productId + '_' + countCustomSale).down('.img-product').getAttribute('onclick').replace(productId + '_' + countCustomSale, response.itemId));
+                            $('cart_prd_' + productId + '_' + countCustomSale).down('.price').setAttribute('onclick', $('cart_prd_' + productId + '_' + countCustomSale).down('.img-product').getAttribute('onclick').replace(productId + '_' + countCustomSale, response.itemId));
+                            $('cart_prd_' + productId + '_' + countCustomSale).down('.name-product').setAttribute('onclick', $('cart_prd_' + productId + '_' + countCustomSale).down('.img-product').getAttribute('onclick').replace(productId + '_' + countCustomSale, response.itemId));
+                            $('cart_prd_' + productId + '_' + countCustomSale).setAttribute('itemid', response.itemId);
+                            $('cart_prd_' + productId + '_' + countCustomSale).setAttribute('id', 'cart_prd_' + response.itemId);
+                            if (response.payment_method && $('payment_method')) $('payment_method').update(response.payment_method);
+                            if (response.shipping_method && $('shipping_method')) $('shipping_method').update(response.shipping_method);
+                            if (response.subtotal_html)
+                                $('total_wp').update(response.subtotal_html);
+                            if (response.grand_total)
+                                $D('#webpos_subtotal_button').html(response.grand_total);
+                            if(response.grandTotal){
+                                $('cashin_fullamount').innerHTML = response.grandTotal;
+                                if($('remain_value_label')) $('remain_value_label').innerHTML = response.grandTotal;
+                                if($('remain_value')) $('remain_value').innerHTML = response.grandTotal;
+                            }   
+                            if(response.downgrandtotal)
+                                $('round_down_cashin').innerHTML = response.downgrandtotal;
+                            if(response.upgrandtotal)
+                                $('round_up_cashin').innerHTML = response.upgrandtotal;
+                        }
+                    }
+                },
+                onComplete:function(){
+                    hideColrightAjaxloader();
+                    var productElements = $$('#webpos_cart .needupdate');
+                    if (productElements.length > 0){
+                        saveCart();
+                    }else{
+						reloadAllBlock();
+					}
+				}
+			}
+        ); 
+    });
+    /* end Mr.Jack */
+</script>

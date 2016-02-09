@@ -1,0 +1,208 @@
+<?php $dropship = Mage::getModel('inventorydropship/inventorydropship')->load($this->getRequest()->getParam('id')) ?>
+<?php $status = Mage::helper('inventorydropship')->getDropshipForSupplier() ?>
+<?php $dropshipProducts = Mage::getModel('inventorydropship/inventorydropship_product')
+                                        ->getCollection()
+                                        ->addFieldToFilter('dropship_id',$dropship->getId());
+?>
+<?php $action = '' ?>
+<?php if(in_array($dropship->getStatus(),array('1','2'))) $action = $this->getUrl('inventorydropship/supplier/confirmpost') ?>
+<?php if(in_array($dropship->getStatus(),array('3','4'))) $action = $this->getUrl('inventorydropship/supplier/shipproduct') ?>
+<div class="page-title">
+    <h1><?php echo $this->__('Drop Shipment #%s - %s',$dropship->getId(),$status[$dropship->getStatus()]) ?></h1>
+</div>
+
+<?php echo $this->getMessagesBlock()->getGroupedHtml() ?>
+<form action="<?php echo $action ?>" method="post" id="form-validate">
+    <?php echo $this->__('Drop-ship Date: %s',date("D, j M, Y", strtotime($dropship->getCreatedOn()))) ?>
+    <br />
+    <?php echo $this->__('Drop-ship for order: #%s',$dropship->getIncrementId()) ?>
+    <br />
+    <br />
+    <input type="hidden" name="dropship_id" value="<?php echo $dropship->getId() ?>" />
+    
+    <?php /*customer information*/ ?>
+    <?php if(in_array($dropship->getStatus(),array(3,4,6))): ?>
+        <?php 
+            $dropshipProducts = Mage::getModel('inventorydropship/inventorydropship_product')
+                                        ->getCollection()
+                                        ->addFieldToFilter('dropship_id',$dropship->getId());
+        ?>
+        <?php $orderId = $dropship->getOrderId() ?>
+        <?php $_order = Mage::getModel('sales/order')->load($orderId) ?>
+
+        <table cellspacing="0" cellpadding="0" border="0" width="650">
+            <thead>
+                <tr>
+                    <th align="left" width="325" bgcolor="#EAEAEA" style="font-size:13px; padding:5px 9px 6px 9px; line-height:1em;"><?php echo $this->__('Customer Information:') ?></th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td valign="top" style="font-size:12px; padding:5px 9px 6px 9px; border-left:1px solid #EAEAEA; border-bottom:1px solid #EAEAEA; border-right:1px solid #EAEAEA;">
+                        <?php echo Mage::helper('sales')->__('Customer Name: ') ?><?php echo $this->htmlEscape($_order->getCustomerName()) ?>
+                        <br />
+                        <?php echo Mage::helper('sales')->__('Email: ') ?><a href="mailto:<?php echo $_order->getCustomerEmail() ?>"><strong><?php echo $_order->getCustomerEmail() ?></strong></a>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <br />
+        <div class="clear"></div>
+
+        <table cellspacing="0" cellpadding="0" border="0" width="650">
+            <thead>
+                <tr>
+                    <th align="left" width="325" bgcolor="#EAEAEA" style="font-size:13px; padding:5px 9px 6px 9px; line-height:1em;"><?php echo $this->__('Billing Information:') ?></th>
+                    <th width="10"></th>
+                    <th align="left" width="325" bgcolor="#EAEAEA" style="font-size:13px; padding:5px 9px 6px 9px; line-height:1em;"><?php echo $this->__('Shipping Information:') ?></th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td valign="top" style="font-size:12px; padding:7px 9px 9px 9px; border-left:1px solid #EAEAEA; border-bottom:1px solid #EAEAEA; border-right:1px solid #EAEAEA;">
+                        <?php echo $_order->getBillingAddress()->getFormated(true) ?>
+                    </td>
+                    <td>&nbsp;</td>
+                    <td valign="top" style="font-size:12px; padding:7px 9px 9px 9px; border-left:1px solid #EAEAEA; border-bottom:1px solid #EAEAEA; border-right:1px solid #EAEAEA;">
+                        <?php echo $_order->getShippingAddress()->getFormated(true) ?>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <br />
+        <br />
+        <div class="clear"></div>
+    <?php endif ?>
+    <?php /*end customer information*/ ?>
+    
+    <?php if($dropshipProducts->getSize()): ?>    
+        <table class="data-table" id="my-dropship-table" style="margin-top:10px;">
+            <thead>
+                <tr>
+                    <th><?php echo $this->__('Product Name') ?></th>                
+                    <th><?php echo $this->__('SKU') ?></th>                
+                    <?php //Need to ship, ship partial ?> 
+                    <?php if(in_array($dropship->getStatus(),array('3','4'))):?>
+                        <th><?php echo $this->__('Qty Need To Ship') ?></th>
+                        <th><?php echo $this->__('Qty Shipped') ?></th>
+                        <th><?php echo $this->__('Qty To Ship') ?></th>
+                    <?php elseif($dropship->getStatus() == '6'): ?>
+                        <th><?php echo $this->__('Qty Need To Ship') ?></th>
+                        <th><?php echo $this->__('Qty Shipped') ?></th>
+                    <?php else: ?>
+                        <th><?php echo $this->__('Qty Requested') ?></th>                
+                        <th><?php echo $this->__('Qty Confirmed') ?></th>
+                        <?php if($dropship->getStatus() == '5'): ?>
+                            <th><?php echo $this->__('Qty Shipped') ?></th>                         
+                            <th><?php echo $this->__('Qty Cancel') ?></th>       
+                        <?php endif;?>
+                    <?php endif ?>                    
+                </tr>
+            </thead>
+            <tbody>
+            <?php foreach ($dropshipProducts as $dropshipProduct): ?>
+                <tr>
+                    <td>
+                        <b><?php echo $dropshipProduct->getProductName() ?>&nbsp;</b>
+                        
+                        <div style="margin-left:20px">
+                            <?php $orderItem = Mage::getModel('sales/order_item')->load($dropshipProduct->getItemId()) ?>     
+                            <?php 
+                                $result = array();
+                                if ($options = $orderItem->getProductOptions()) {
+                                    if (isset($options['options'])) {
+                                        $result = array_merge($result, $options['options']);
+                                    }
+                                    if (isset($options['additional_options'])) {
+                                        $result = array_merge($result, $options['additional_options']);
+                                    }
+                                    if (isset($options['attributes_info'])) {
+                                        $result = array_merge($result, $options['attributes_info']);
+                                    }
+                                }
+                                $_options = $result;
+                            ?>
+                            <?php if(($_options) && ($orderItem->getProductType() != 'bundle')): ?>                                        
+                                <dl class="item-options">
+                                    <?php $defaultBlock = Mage::getBlockSingleton('adminhtml/sales_items_renderer_default') ?>
+                                    <?php foreach ($_options as $_option) : ?>                                                      
+                                        <?php $_formatedOptionValue = $defaultBlock->getFormatedOptionValue($_option) ?>                                                                                                 
+                                        <dt><div class="option-label"><?php echo $_option['label'] ?></div></dt>
+                                        <dd><div class="option-value"><?php echo $_option['value'] ?></div></dd>                                                   
+                                    <?php endforeach; ?>
+                                </dl>                                                
+                            <?php endif ?>
+                            <?php if($orderItem->getProductType()=='bundle'): ?>
+                                <?php $_prevOptionId = '' ?>
+                                <?php $childrens = Mage::getModel('sales/order_item')->getCollection()->addFieldToFilter('parent_item_id',$orderItem->getId()); ?>
+                                <?php $bundle = Mage::getBlockSingleton('bundle/adminhtml_sales_order_view_items_renderer'); ?>
+                                <?php foreach($childrens as $children): ?>
+                                    <br />
+                                    <?php $attributes = $bundle->getSelectionAttributes($children) ?>
+                                    <?php if ($_prevOptionId != $attributes['option_id']): ?>                                    
+                                        <div class="option-label"><?php echo $attributes['option_label'] ?></div>                                                                                        
+                                        <div class="option-value"><?php echo $bundle->getValueHtml($children)?></div>
+                                    <?php endif; ?>
+                                <?php endforeach ?>
+                            <?php endif ?>
+                            <?php if($orderItem->getProductType()=='configurable'): ?>
+                            <?php endif ?>
+                        </div>
+                        
+                    </td>
+                    <td><?php echo $dropshipProduct->getProductSku() ?>&nbsp;</td>
+                    <?php //Need to ship, ship partial ?> 
+                    <?php if(in_array($dropship->getStatus(),array('3','4'))):?>
+                        <td class="a-center"><?php echo $dropshipProduct->getQtyApprove() ?>&nbsp;</td>                
+                        <td class="a-center"><?php echo $dropshipProduct->getQtyShipped() ?>&nbsp;</td>                
+                        <td class="a-center">
+                            <input style="width: 50px;" type="text" name="item[<?php echo $dropshipProduct->getItemId() ?>]" id="item[<?php echo $dropshipProduct->getItemId() ?>]" value="<?php echo $dropshipProduct->getQtyApprove() - $dropshipProduct->getQtyShipped() ?>" />
+                        </td>
+                        <script type="text/javascript">
+                            Event.observe($("item[<?php echo $dropshipProduct->getItemId() ?>]"),'keyup', function(){                                
+                                var maxship = '<?php echo $dropshipProduct->getQtyApprove() - $dropshipProduct->getQtyShipped() ?>';
+                                if(parseInt($("item[<?php echo $dropshipProduct->getItemId() ?>]").value) < 0 || isNaN($("item[<?php echo $dropshipProduct->getItemId() ?>]").value)){
+                                    $("item[<?php echo $dropshipProduct->getItemId() ?>]").value = 0;
+                                }else if(parseInt($("item[<?php echo $dropshipProduct->getItemId() ?>]").value) > maxship){
+                                    $("item[<?php echo $dropshipProduct->getItemId() ?>]").value = maxship;
+                                }
+                            });                            
+                        </script>
+                    <?php elseif($dropship->getStatus() == '6'): ?>
+                        <td class="a-center"><?php echo $dropshipProduct->getQtyApprove() ?>&nbsp;</td>                
+                        <td class="a-center"><?php echo $dropshipProduct->getQtyShipped() ?>&nbsp;</td>
+                    <?php else: ?>
+                        <td class="a-center"><?php echo $dropshipProduct->getQtyRequest() ?>&nbsp;</td>                
+                        <td class="a-center">
+                            <?php if(in_array($dropship->getStatus(),array('1','2'))): ?>
+                                <input style="width: 50px;" type="text" name="item[<?php echo $dropshipProduct->getItemId() ?>]" id="item[<?php echo $dropshipProduct->getItemId() ?>]" value="<?php echo $dropshipProduct->getQtyOffer() ?>" />
+                            <?php else: ?>
+                                <?php echo $dropshipProduct->getQtyOffer() ?>&nbsp;
+                            <?php endif ?>
+                        </td>       
+                        <?php if($dropship->getStatus() == '5'): ?>
+                            <td class="a-center"><?php echo $dropshipProduct->getQtyShipped() ?>&nbsp;</td>
+                            <td class="a-center"><?php echo $dropshipProduct->getQtyRequest() - $dropshipProduct->getQtyShipped() ?>&nbsp;</td>                            
+                        <?php endif;?>
+                    <?php endif ?>
+                </tr>
+            <?php endforeach ?>
+            </tbody>
+        </table>    
+        <script type="text/javascript">decorateTable('my-dropship-table')</script>
+    <?php else: ?>
+        <p><?php echo $this->__('You have placed no drop ships yet.') ?></p>
+    <?php endif ?>
+    <div class="buttons-set">
+        <p class="back-link"><a href="<?php echo $this->getUrl('inventorydropship/supplier/dropship') ?>"><small>&laquo; </small><?php echo $this->__('Back to your drop shipments') ?></a></p>
+        <?php if(in_array($dropship->getStatus(),array('1','2'))): ?>
+            <button id="confirm" name="confirm" title="Confirm" class="button" type="submit"><span><span><?php echo $this->__('Confirm') ?></span></span></button>
+            <button id="cancel" name="cancel" title="Cancel" onclick="setLocation('<?php echo $this->getUrl('inventorydropship/supplier/cancel',array('id'=>$dropship->getId())) ?>')" class="button" type="button"><span><span><?php echo $this->__('Cancel') ?></span></span></button>
+        <?php endif ?>
+        <?php if(in_array($dropship->getStatus(),array('3','4'))): ?>
+            <button id="confirm" name="confirm" title="Ship" class="button" type="submit"><span><span><?php echo $this->__('Ship') ?></span></span></button>            
+        <?php endif ?>
+    </div>
+</form>

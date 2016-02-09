@@ -1,0 +1,154 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Magestore
+ * 
+ * NOTICE OF LICENSE
+ * 
+ * This source file is subject to the Magestore.com license that is
+ * available through the world-wide-web at this URL:
+ * http://www.magestore.com/license-agreement.html
+ * 
+ * DISCLAIMER
+ * 
+ * Do not edit or add to this file if you wish to upgrade this extension to newer
+ * version in the future.
+ * 
+ * @category    Magestore
+ * @package     Magestore_Inventorysupplyneeds
+ * @copyright   Copyright (c) 2012 Magestore (http://www.magestore.com/)
+ * @license     http://www.magestore.com/license-agreement.html
+ */
+-->
+<config>
+    <modules>
+        <Magestore_Inventoryreports>
+            <version>0.1.3</version>
+        </Magestore_Inventoryreports>
+    </modules>
+    <frontend>
+        <routers>
+            <inventoryreports>
+                <use>standard</use>
+                <args>
+                    <module>Magestore_Inventoryreports</module>
+                    <frontName>inventoryreports</frontName>
+                </args>
+            </inventoryreports>
+        </routers>
+        <layout>
+            <updates>
+                <inventoryreports>
+                    <file>inventoryreports.xml</file>
+                </inventoryreports>
+            </updates>
+        </layout>
+        <translate>
+            <modules>
+                <Magestore_Inventoryreports>
+                    <files>
+                        <default>Magestore_Inventoryreports.csv</default>
+                    </files>
+                </Magestore_Inventoryreports>
+            </modules>
+        </translate>
+    </frontend>
+    <admin> 
+        <routers> 
+            <adminhtml> 
+                <args> 
+                    <modules> 
+                        <magestore_inventoryreports after="Mage_Adminhtml">Magestore_Inventoryreports_Adminhtml</magestore_inventoryreports> 
+                    </modules> 
+                </args> 
+            </adminhtml> 
+        </routers> 
+    </admin>     
+    <adminhtml>
+        <layout>
+            <updates>
+                <inventoryreports>
+                    <file>inventoryreports.xml</file>
+                </inventoryreports>
+            </updates>
+        </layout>
+        <translate>
+            <modules>
+                <Magestore_Inventoryreports>
+                    <files>
+                        <default>Magestore_Inventoryreports.csv</default>
+                    </files>
+                </Magestore_Inventoryreports>
+            </modules>
+        </translate>
+        <events>
+            <inventory_menu_list>
+                <observers>
+                    <inventoryreports_observers>
+                        <class>inventoryreports/observer</class>
+                        <method>addMenu</method>
+                    </inventoryreports_observers>
+                </observers>
+            </inventory_menu_list>
+        </events>
+    </adminhtml>   
+    <global>
+        <models>
+            <inventoryreports>
+                <class>Magestore_Inventoryreports_Model</class>
+                <resourceModel>inventoryreports_mysql4</resourceModel>
+            </inventoryreports>
+            <inventoryreports_mysql4>
+                <class>Magestore_Inventoryreports_Model_Mysql4</class>
+                <entities>
+                    <inventoryreports>
+                        <table>inventoryreports</table>
+                    </inventoryreports>
+                    <reporttype>
+                        <table>erp_inventory_report_type</table>
+                    </reporttype>
+                </entities>
+            </inventoryreports_mysql4>
+        </models>
+        <resources>
+            <inventoryreports_setup>
+                <setup>
+                    <module>Magestore_Inventoryreports</module>
+                </setup>
+                <connection>
+                    <use>core_setup</use>
+                </connection>
+            </inventoryreports_setup>
+            <inventoryreports_write>
+                <connection>
+                    <use>core_write</use>
+                </connection>
+            </inventoryreports_write>
+            <inventoryreports_read>
+                <connection>
+                    <use>core_read</use>
+                </connection>
+            </inventoryreports_read>
+        </resources>
+        <blocks>
+            <inventoryreports>
+                <class>Magestore_Inventoryreports_Block</class>
+            </inventoryreports>
+        </blocks>
+        <helpers>
+            <inventoryreports>
+                <class>Magestore_Inventoryreports_Helper</class>
+            </inventoryreports>
+        </helpers>
+        <!-- <events>
+            <controller_action_predispatch>
+                <observers>
+                    <inventoryreports_observers>
+                        <class>inventoryreports/observer</class>
+                        <method>controllerActionPredispatch</method>
+                    </inventoryreports_observers>
+                </observers>
+            </controller_action_predispatch>
+        </events> -->
+    </global>
+</config>

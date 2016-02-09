@@ -1,0 +1,128 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Magestore
+ * 
+ * NOTICE OF LICENSE
+ * 
+ * This source file is subject to the Magestore.com license that is
+ * available through the world-wide-web at this URL:
+ * http://www.magestore.com/license-agreement.html
+ * 
+ * DISCLAIMER
+ * 
+ * Do not edit or add to this file if you wish to upgrade this extension to newer
+ * version in the future.
+ * 
+ * @category    Magestore
+ * @package     Magestore_Inventory
+ * @copyright   Copyright (c) 2012 Magestore (http://www.magestore.com/)
+ * @license     http://www.magestore.com/license-agreement.html
+ */
+-->
+<config>
+    <inventoryplus_menu>
+        <stock_onhand>
+            <children>  
+                <nosupplierproduct module="inventorypurchasing" translate="title">   
+                    <title>Non-Supplier Products</title>
+                    <sort_order>100</sort_order>    
+                    <action>adminhtml/inpu_supplier/noSupplyProduct</action>                                  
+                </nosupplierproduct>                          
+            </children>             
+        </stock_onhand>
+        <stock_in>
+            <children>
+                <purchaseorder module="inventorypurchasing" translate="title">
+                    <title>Purchase Orders</title>
+                    <sort_order>10</sort_order>    
+                    <action>adminhtml/inpu_purchaseorders</action>                        
+                </purchaseorder>   
+            </children>
+        </stock_in>                
+        <supplier module="inventorypurchasing" translate="title">   
+            <title>Suppliers</title>
+            <icon>fa-truck</icon>
+            <sort_order>60</sort_order>   
+            <action>adminhtml/inpu_supplier</action>                 
+        </supplier> 
+        <settings>
+            <children>  
+                <purchase_order module="inventorypurchasing" translate="title">
+                    <title>Purchase Order</title>
+                    <sort_order>30</sort_order>                      
+                    <children>
+                        <paymentterms module="inventorypurchasing" translate="title">     
+                            <title>Payment Terms</title>
+                            <sort_order>10</sort_order>    
+                            <action>adminhtml/inpu_paymentterms</action>                                
+                        </paymentterms>                         
+                        <shippingmethod module="inventorypurchasing" translate="title">     
+                            <title>Shipping Methods</title>
+                            <sort_order>20</sort_order>    
+                            <action>adminhtml/inpu_shippingmethods</action>                                
+                        </shippingmethod>     
+                    </children>              
+                </purchase_order>              
+            </children>              
+        </settings>    
+    </inventoryplus_menu>
+    <acl>
+        <resources>
+            <all>
+                <title>Allow Everything</title>
+            </all>
+            <admin>
+                <children>
+                    <inventoryplus>  
+                        <children>   
+                            <stock_onhand>
+                                <children>  
+                                    <nosupplierproduct module="inventorypurchasing" translate="title">   
+                                        <title>Non-Supplier Products</title>
+                                        <sort_order>100</sort_order>    
+                                        <action>adminhtml/inpu_supplier/noSupplyProduct</action>                                  
+                                    </nosupplierproduct>                          
+                                </children>             
+                            </stock_onhand>
+                            <stock_in>
+                                <children>
+                                    <purchaseorder module="inventorypurchasing" translate="title">
+                                        <title>Purchase Orders</title>
+                                        <sort_order>10</sort_order>    
+                                        <action>adminhtml/inpu_purchaseorders</action>                        
+                                    </purchaseorder>   
+                                </children>
+                            </stock_in>                
+                            <supplier module="inventorypurchasing" translate="title">   
+                                <title>Suppliers</title>
+                                <sort_order>60</sort_order>   
+                                <action>adminhtml/inpu_supplier</action>                 
+                            </supplier> 
+                            <settings>
+                                <children>  
+                                    <purchase_order module="inventorypurchasing" translate="title">
+                                        <title>Purchase Order</title>
+                                        <sort_order>30</sort_order>                      
+                                        <children>
+                                            <paymentterms module="inventorypurchasing" translate="title">     
+                                                <title>Payment Terms</title>
+                                                <sort_order>10</sort_order>    
+                                                <action>adminhtml/inpu_paymentterms</action>                                
+                                            </paymentterms>                         
+                                            <shippingmethod module="inventorypurchasing" translate="title">     
+                                                <title>Shipping Methods</title>
+                                                <sort_order>20</sort_order>    
+                                                <action>adminhtml/inpu_shippingmethods</action>                                
+                                            </shippingmethod>     
+                                        </children>              
+                                    </purchase_order>              
+                                </children>              
+                            </settings>                                       
+                        </children>                    
+                    </inventoryplus>
+                </children>
+            </admin>
+        </resources>
+    </acl>
+</config>
