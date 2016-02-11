@@ -9,15 +9,15 @@
                     <td><?php echo $this->helper('sales')->__('Discount') ?></td>
                     <td align="right"><strong><?php echo $this->getDiscountAmount(); ?></strong></td>
                 </tr>
-                <tr>
+                <!-- <tr>
                     <td><?php echo $this->helper('sales')->__('Taxes') ?></td>
                     <td align="right"><strong><?php echo $this->getTaxesAmount(); ?></strong></td>
-                </tr>
+                </tr> -->
 			<?php if($this->getShippingAmount() != false): ?>	
-            <tr>
+            <!-- <tr>
                 <td><?php echo $this->helper('sales')->__('Shipping') ?></td>
                 <td align="right"><strong><?php echo $this->getShippingAmount(); ?></strong></td>
-            </tr>
+            </tr> -->
 			<?php endif; ?>	
 			<?php if($this->getRefundedAmount() != false): ?>			
 			<tr>

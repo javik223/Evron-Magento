@@ -25,24 +25,20 @@
 <div class="ced-sociallogin-register">   
     <div class="<?php echo $this->_getColSet(); ?> fieldset">
         <?php if($this->_googleEnabled()): ?>
-        <div class="col ced-sociallogin-register-google">
           <?php echo $this->getChildHtml('ced_sociallogin_checkout_google_button')?>
-        </div>
         <?php endif; ?>
         <?php if($this->_facebookEnabled()): ?>
-        <div class="col ced-sociallogin-register-facebook">
+
             <?php echo $this->getChildHtml('ced_sociallogin_checkout_facebook_button')?>
-        </div>
+
         <?php endif; ?>
         <?php if($this->_twitterEnabled()): ?>
-        <div class="col ced-sociallogin-register-twitter">
+       
             <?php echo $this->getChildHtml('ced_sociallogin_checkout_twitter_button')?>
-        </div>
+       
         <?php endif; ?>
 		<?php if($this->_linkedinEnabled()): ?>
-        <div class="col ced-sociallogin-register-linkedin">
             <?php echo $this->getChildHtml('ced_sociallogin_checkout_linkedin_button')?>
-        </div>
         <?php endif; ?>
     </div>
 </div>

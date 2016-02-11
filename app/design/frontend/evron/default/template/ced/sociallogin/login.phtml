@@ -25,29 +25,24 @@
 ?>
 
 <div class="ced-sociallogin-login">
-    <h4>Login using your social account</h4>
-    <div class="account-login">
-        <div class="<?php echo $this->_getColSet(); ?> ced-sociallogin-login-lower">
-            <?php if($this->_googleEnabled()): ?>
-            <div class="<?php echo $this->_getButtCol(); ?> ced-sociallogin-login-lower-google">
-                <?php echo $this->getChildHtml('ced_google_login_button'); ?>
-            </div>
-            <?php endif; ?>
-            <?php if($this->_facebookEnabled()): ?>
-            <div>
-                <?php echo $this->getChildHtml('ced_facebook_login_button'); ?>
-            </div>
-            <?php endif; ?>
-            <?php if($this->_twitterEnabled()): ?>
-            <div class="col">
-                <?php echo $this->getChildHtml('ced_twitter_login_button'); ?>
-            </div>
-            <?php endif; ?>
-             <?php if($this->_linkedinEnabled()): ?>
-            <div class="<?php echo $this->_getButtCol(); ?> ced-sociallogin-login-lower-linkedin">
-                <?php echo $this->getChildHtml('ced_linkedin_login_button'); ?>
-            </div>
-            <?php endif; ?>
-        </div>
+    <?php if($this->_googleEnabled()): ?>
+    <div class="col s-6-12">
+        <?php echo $this->getChildHtml('ced_google_login_button'); ?>
     </div>
+    <?php endif; ?>
+    <?php if($this->_facebookEnabled()): ?>
+    <div class="col s-6-12">
+        <?php echo $this->getChildHtml('ced_facebook_login_button'); ?>
+    </div>
+    <?php endif; ?>
+    <?php if($this->_twitterEnabled()): ?>
+    <div class="col s-6-12">
+        <?php echo $this->getChildHtml('ced_twitter_login_button'); ?>
+    </div>
+    <?php endif; ?>
+     <?php if($this->_linkedinEnabled()): ?>
+    <div class="col s-6-12">
+        <?php echo $this->getChildHtml('ced_linkedin_login_button'); ?>
+    </div>
+    <?php endif; ?>
 </div>

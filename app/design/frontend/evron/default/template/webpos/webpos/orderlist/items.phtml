@@ -5,7 +5,7 @@
                 <th class="item-name" data-metadata="item-name" align="left"><?php echo Mage::helper('webpos')->__('ITEM'); ?></th>
                 <th data-metadata="qty"><?php echo Mage::helper('webpos')->__('Qty'); ?></th>
                 <th class="price-container" data-metadata="price"><?php echo Mage::helper('webpos')->__('PRICE'); ?></th>
-                <th class="tax" data-metadata="tax-amount"><?php echo Mage::helper('webpos')->__('TAX'); ?></th>
+                <!-- <th class="tax" data-metadata="tax-amount"><?php echo Mage::helper('webpos')->__('TAX'); ?></th> -->
                 <th class="row-total" data-metadata="row-total" align="right"><?php echo Mage::helper('webpos')->__('SUBTOTAL'); ?></th>
             </tr>
         </thead>
@@ -26,7 +26,7 @@
                                 <?php echo $this->getOrder()->formatPrice($_item->getData('price_incl_tax')); ?>
                             <?php endif; ?>
                         </td>
-                        <td class="tax" data-metadata="tax-amount"><?php echo $this->getOrder()->formatPrice($_item->getData('tax_amount')); ?></td>
+                        <!-- <td class="tax" data-metadata="tax-amount"><?php echo $this->getOrder()->formatPrice($_item->getData('tax_amount')); ?></td> -->
                         <td class="row-total" data-metadata="row-total" align="right">
                             <?php if ($this->helper('tax')->displaySalesBothPrices() || $this->helper('tax')->displaySalesPriceExclTax()): ?>
                                 <?php echo $this->getOrder()->formatPrice($_item->getData('row_total')); ?>

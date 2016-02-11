@@ -29,7 +29,7 @@
             }
             html {
                 font-family: <?php echo $this->getFont(); ?>;
-                font-size: 13px;
+                font-size: 10px;
             }
             body, h1, h2, h3, h4, h5, h6, ul {
                 padding: 0;
@@ -168,7 +168,7 @@
             .footer .highlight {
                 text-transform: uppercase;
                 font-weight: 400;
-                font-size: 28px;
+                font-size: 20px;
             }
             .footer .separate {
 
@@ -184,11 +184,11 @@
             #store-star {
                 text-transform: uppercase;
                 font-weight: 400;
-                font-size: 16px;
+                font-size: 14px;
             }
             #store-info {
                 font-weight: 200;
-                font-size: 16px;
+                font-size: 14px;
             }
 
             @media screen {
@@ -282,14 +282,14 @@
                     <?php endif; ?>
                 </div>
 
-                <div class="shipping_area">
+                <!-- <div class="shipping_area">
                     <?php if (isset($receiptSettings['show_shipping_method']) && $receiptSettings['show_shipping_method'] == true): ?>
                         <span><?php echo $this->__('SHIPPING : <b>%s</b>', $_order->getShippingDescription()) ?></span> <br/>
                     <?php endif; ?>
                     <?php if (isset($receiptSettings['show_payment_method']) && $receiptSettings['show_payment_method'] == true): ?>
                         <span><?php echo $this->__('PAYMENT : <b>%s</b>', $_order->getPayment()->getMethodInstance()->getTitle()) ?></span>
                     <?php endif; ?>
-                </div>
+                </div> -->
                 <div class="items-view-container container">
                     <?php
                     $this->getChild('items')->setData("order", $printBlock->getOrder());
@@ -328,9 +328,26 @@
             </div>
         </div>
         <script type="text/javascript">
-            window.print();
-            window.onfocus = function () {
-                window.close();
+            if (!isNode()) {
+                window.print();
+                window.onfocus = function () {
+                    window.close();
+                }
+            }
+
+            // Check if current environment is Node.js
+            // Specific modification for Evron
+            function isNode() {
+                var isNode = false;    
+                if (typeof process === 'object') {
+                  if (typeof process.versions === 'object') {
+                    if (typeof process.versions.node !== 'undefined') {
+                      isNode = true;
+                    }
+                  }
+                }
+
+                return isNode;
             }
         </script>
     </body>

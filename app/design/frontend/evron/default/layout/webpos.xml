@@ -32,6 +32,10 @@
         <remove name="ajaxpro.head" />
         <remove name="ajaxpro.top.container" />
         <remove name="ajaxpro.before_body_end" />
+
+        <remove name="animateCss" />
+        <remove name="owlcarousel" />
+        <remove name="owlcarousel-theme" />
         <!-- end -->
         <reference name="head">
             <!-- S: Daniel- updated: v2.3 -->
@@ -68,7 +72,23 @@
                 <type>skin_js</type>
                 <name>js/slideshow.js</name>
                 <params/>
-            </action>     
+            </action>
+
+            <action method="removeItem" >
+                <type>skin_js</type>
+                <name>js/minicart.js</name>
+                <params/>
+            </action>
+
+
+            <action method="removeItem" >
+                <type>skin_css</type>
+                <name>css/app.css</name>
+                <params/>
+            </action>
+
+
+
             <action method="removeItem" >
                 <type>js</type>
                 <name>meigee/jquery.min.js</name>
@@ -475,7 +495,7 @@
         </block>
     </webpos_index_removediscount>
 	
-    <!--webpos_order_print translate="label">		 
+    <webpos_order_print translate="label">		 
         <label>Sales Order Print View</label>
         <reference name="content">
             <block type="webpos/admin_orderlist_printinvoice" name="order.print" template="webpos/webpos/orderlist/print.phtml">
@@ -511,7 +531,7 @@
             <block type="rewardpoints/totals_order_point" name="rewardpoints.total.point" />
             <block type="rewardpointsreferfriends/orderviewpage"/>
         </reference>
-    </webpos_order_print-->
+    </webpos_order_print>
 	
     <webpos_order_vieworder>
         <reference name="content">

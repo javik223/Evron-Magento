@@ -1485,7 +1485,23 @@ if (count($defaultCustomerConfig) > 0)
                             }
                             var autoPrint = response.auto_print;
                             if (response.auto_print) {
-                                printOrder(response.printLink);
+                                if (isNode()) {
+                                    //alert("Yes I'm on the desktop app");
+
+                                    var remote = require('electron').remote;
+
+                                    var BrowserWindow = remote.BrowserWindow;
+
+                                    var win = new BrowserWindow({width: 0, height: 0});
+                                    win.loadURL(response.printLink);
+
+                                    win.webContents.on("did-finish-load",  function(){
+                                        var printWebContents = win.webContents.print({silent: true, printBackground: false});
+                                        win.close();
+                                    });
+                                } else {
+                                    printOrder(response.printLink);
+                                }
                                 autoPrint = false;
                             }
                             showContentOptionsAfterPlace(response.orderId, response.orderIncrementId, response.printLink, response.customerEmail, response.grandTotal, autoPrint);
@@ -1544,6 +1560,21 @@ if (count($defaultCustomerConfig) > 0)
                 hasAnotherRequest = false;
             }
         });
+    }
+
+    // Check if current environment is Node.js
+    // Specific modification for Evron
+    function isNode() {
+        var isNode = false;    
+        if (typeof process === 'object') {
+          if (typeof process.versions === 'object') {
+            if (typeof process.versions.node !== 'undefined') {
+              isNode = true;
+            }
+          }
+        }
+
+        return isNode;
     }
 
     function resetAddCustomerForm(createForm) {

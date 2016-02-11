@@ -23,7 +23,7 @@
 <config>
     <modules>
         <Magestore_Webpos>
-            <active>false</active>
+            <active>true</active>
             <codePool>local</codePool>
             <erp>
                 <isERPmodule>true</isERPmodule>

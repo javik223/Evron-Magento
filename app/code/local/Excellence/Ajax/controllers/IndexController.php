@@ -119,15 +119,12 @@ class Excellence_Ajax_IndexController extends Mage_Checkout_CartController {
                     $response['cart_id'] = $cart->getQuote()->getId();
                     //New Code Here
                     $this->loadLayout();
-                    //$toplink = "Hey";
                     //$toplink = $this->getLayout()->getBlock('top.links')->toHtml();
                     $sidebar_block = $this->getLayout()->getBlock('topcart');
                     Mage::register('referrer_url', $this->_getRefererUrl());
-                    //$sidebar = "Na";
                     $sidebar = $sidebar_block->toHtml();
-                    $response['toplink'] = $toplink;
+                    //$response['toplink'] = $toplink;
                     $response['sidebar'] = $sidebar;
-                    //$response['other-items'] = json_decode($cart->_getCart());
                 }
             } catch (Mage_Core_Exception $e) {
                 $msg = "";
@@ -147,7 +144,7 @@ class Excellence_Ajax_IndexController extends Mage_Checkout_CartController {
                 $response['message'] = $this->__('Cannot add the item to shopping cart.');
                 Mage::logException($e);
             }
-            $this->getResponse()->setHeader('Content-type', 'application/json');
+            //$this->getResponse()->setHeader('Content-type', 'application/json');
             $this->getResponse()->setBody(Mage::helper('core')->jsonEncode($response));
             return;
         }else{
@@ -216,15 +213,12 @@ class Excellence_Ajax_IndexController extends Mage_Checkout_CartController {
                     $response['cart_id'] = $cart->getQuote()->getId();
                     //New Code Here
                     $this->loadLayout();
-                    //$toplink = "Hey";
                     //$toplink = $this->getLayout()->getBlock('top.links')->toHtml();
                     $sidebar_block = $this->getLayout()->getBlock('topcart');
                     Mage::register('referrer_url', $this->_getRefererUrl());
-                    //$sidebar = "Na";
                     $sidebar = $sidebar_block->toHtml();
-                    $response['toplink'] = $toplink;
+                    //$response['toplink'] = $toplink;
                     $response['sidebar'] = $sidebar;
-                    //$response['other-items'] = json_decode($cart->_getCart());
                 }
         } catch (Mage_Core_Exception $e) {
             $msg = "";
@@ -244,7 +238,7 @@ class Excellence_Ajax_IndexController extends Mage_Checkout_CartController {
             $response['message'] = $this->__('Cannot add the item to shopping cart.');
             Mage::logException($e);
         }
-        $this->getResponse()->setHeader('Content-type', 'application/json');
+        //$this->getResponse()->setHeader('Content-type', 'application/json');
         $this->getResponse()->setBody(Mage::helper('core')->jsonEncode($response));
         return;
     } else{
@@ -392,10 +386,10 @@ class Excellence_Ajax_IndexController extends Mage_Checkout_CartController {
                             Mage::unregister('wishlist');
  
                             $this->loadLayout();
-                            $toplink = $this->getLayout()->getBlock('top.links')->toHtml();
+                            //$toplink = $this->getLayout()->getBlock('top.links')->toHtml();
                             $sidebar_block = $this->getLayout()->getBlock('wishlist_sidebar');
                             $sidebar = $sidebar_block->toHtml();
-                            $response['toplink'] = $toplink;
+                            //$response['toplink'] = $toplink;
                             $response['sidebar'] = $sidebar;
                         }
                         catch (Mage_Core_Exception $e) {
